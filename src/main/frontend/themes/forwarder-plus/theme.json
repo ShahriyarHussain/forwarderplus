@@ -1,0 +1,9 @@
+{
+  "lumoImports" : [ "typography", "color", "spacing", "badge", "utility" ],
+  "assets" : {
+    "@fontsource/barlow" : {
+      "*.css" : "@fontsource/barlow",
+      "files/*" : "@fontsource/barlow/files"
+    }
+  }
+}
