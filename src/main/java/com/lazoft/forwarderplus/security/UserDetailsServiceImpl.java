@@ -1,9 +1,11 @@
 package com.lazoft.forwarderplus.security;
 
-import com.lazoft.forwarderplus.data.User;
-import com.lazoft.forwarderplus.data.UserRepository;
+import com.lazoft.forwarderplus.entity.User;
+import com.lazoft.forwarderplus.repository.UserRepository;
+
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

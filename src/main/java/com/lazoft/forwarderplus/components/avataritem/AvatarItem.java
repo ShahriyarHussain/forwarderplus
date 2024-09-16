@@ -10,9 +10,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 public class AvatarItem extends Composite<HorizontalLayout> implements HasSize {
 
-    private Span heading = new Span();
+    private final Span heading = new Span();
 
-    private Span description = new Span();
+    private final Span description = new Span();
 
     public AvatarItem() {
 

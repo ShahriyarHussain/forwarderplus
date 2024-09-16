@@ -29,7 +29,7 @@ public class DashboardView extends Composite<VerticalLayout> {
         VerticalLayout layoutColumn4 = new VerticalLayout();
         H5 h5 = new H5();
         ProgressBar progressBar = new ProgressBar();
-        CheckboxGroup checkboxGroup = new CheckboxGroup();
+        CheckboxGroup<String> checkboxGroup = new CheckboxGroup<>();
         VerticalLayout layoutColumn5 = new VerticalLayout();
         H5 h52 = new H5();
         getContent().setWidth("100%");

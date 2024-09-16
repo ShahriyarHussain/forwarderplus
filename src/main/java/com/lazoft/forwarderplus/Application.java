@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus;
 
-import com.lazoft.forwarderplus.data.SamplePersonRepository;
-import com.vaadin.flow.component.dependency.NpmPackage;
+import com.lazoft.forwarderplus.repository.SamplePersonRepository;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
 import javax.sql.DataSource;
@@ -19,7 +18,7 @@ import org.springframework.context.annotation.Bean;
  *
  */
 @SpringBootApplication
-@NpmPackage(value = "@fontsource/barlow", version = "4.5.0")
+//@NpmPackage(value = "@fontsource/barlow", version = "4.5.0")
 @Theme(value = "forwarder-plus")
 public class Application implements AppShellConfigurator {
 

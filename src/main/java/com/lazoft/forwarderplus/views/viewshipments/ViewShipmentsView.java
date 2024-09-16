@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
-import com.lazoft.forwarderplus.data.SamplePerson;
+import com.lazoft.forwarderplus.entity.SamplePerson;
 import com.lazoft.forwarderplus.services.SamplePersonService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;

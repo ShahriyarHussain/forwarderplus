@@ -1,8 +1,10 @@
 package com.lazoft.forwarderplus.services;
 
-import com.lazoft.forwarderplus.data.User;
-import com.lazoft.forwarderplus.data.UserRepository;
+import com.lazoft.forwarderplus.entity.User;
+import com.lazoft.forwarderplus.repository.UserRepository;
+
 import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

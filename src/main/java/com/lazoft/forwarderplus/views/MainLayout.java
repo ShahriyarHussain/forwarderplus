@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views;
 
-import com.lazoft.forwarderplus.data.User;
+import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
 import com.lazoft.forwarderplus.views.blmanager.BLManagerView;
