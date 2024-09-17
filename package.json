@@ -3,6 +3,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
+    "@fontsource/barlow": "4.5.0",
     "@polymer/polymer": "3.5.1",
     "@vaadin/bundles": "24.4.9",
     "@vaadin/common-frontend": "0.0.19",
@@ -45,6 +46,7 @@
   },
   "vaadin": {
     "dependencies": {
+      "@fontsource/barlow": "4.5.0",
       "@polymer/polymer": "3.5.1",
       "@vaadin/bundles": "24.4.9",
       "@vaadin/common-frontend": "0.0.19",
@@ -85,7 +87,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "3a6a14992074db2b6c8214afab87f503fb709e7de3bd3097b64aa63e26d1162d"
+    "hash": "81cb66af88e9bf3c9f3a408db6d453b8dc82f6c50a5c71fa80e31477630e43ac"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -106,6 +108,7 @@
     "proj4": "$proj4",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "@fontsource/barlow": "$@fontsource/barlow"
   }
 }

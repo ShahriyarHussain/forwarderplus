@@ -14,6 +14,8 @@ import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -32,6 +34,9 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 /**
@@ -39,10 +44,11 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
  */
 public class MainLayout extends AppLayout {
 
+    private static final Logger log = LoggerFactory.getLogger(MainLayout.class);
     private H1 viewTitle;
 
-    private AuthenticatedUser authenticatedUser;
-    private AccessAnnotationChecker accessChecker;
+    private final AuthenticatedUser authenticatedUser;
+    private final AccessAnnotationChecker accessChecker;
 
     public MainLayout(AuthenticatedUser authenticatedUser, AccessAnnotationChecker accessChecker) {
         this.authenticatedUser = authenticatedUser;
@@ -80,19 +86,15 @@ public class MainLayout extends AppLayout {
             nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_BAR.create()));
 
         }
+
+        SideNavItem exportOverview = new SideNavItem("Export Overview");
+        exportOverview.setPrefixComponent(LineAwesomeIcon.SHIP_SOLID.create());
+        exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.FOLDER_PLUS_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class,LineAwesomeIcon.BRIEFCASE_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("B/L Manager", BLManagerView.class, LineAwesomeIcon.PAGER_SOLID.create()));
+
         if (accessChecker.hasAccess(NewBookingView.class)) {
-            nav.addItem(
-                    new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.FOLDER_PLUS_SOLID.create()));
-
-        }
-        if (accessChecker.hasAccess(ShippingOrderView.class)) {
-            nav.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class,
-                    LineAwesomeIcon.BRIEFCASE_SOLID.create()));
-
-        }
-        if (accessChecker.hasAccess(BLManagerView.class)) {
-            nav.addItem(new SideNavItem("B/L Manager", BLManagerView.class, LineAwesomeIcon.PAGER_SOLID.create()));
-
+            nav.addItem(exportOverview);
         }
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {
             nav.addItem(
@@ -142,14 +144,17 @@ public class MainLayout extends AppLayout {
             Div div = new Div();
             div.add(avatar);
             div.add(user.getName());
-            div.add(new Icon("lumo", "dropdown"));
+            div.add(LineAwesomeIcon.ANGLE_UP_SOLID.create());
             div.getElement().getStyle().set("display", "flex");
             div.getElement().getStyle().set("align-items", "center");
             div.getElement().getStyle().set("gap", "var(--lumo-space-s)");
             userName.add(div);
-            userName.getSubMenu().addItem("Sign out", e -> {
-                authenticatedUser.logout();
-            });
+
+            Button logoutButton = new Button("Sign Out");
+            logoutButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            logoutButton.setIcon(LineAwesomeIcon.SIGN_OUT_ALT_SOLID.create());
+            logoutButton.addClickListener(event -> authenticatedUser.logout());
+            userName.getSubMenu().addItem(logoutButton);
 
             layout.add(userMenu);
         } else {

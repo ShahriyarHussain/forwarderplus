@@ -14,5 +14,5 @@ public enum ContainerType {
     INSULATED("Insulated"),
     TRANSPORTABLE_TANK("Tanker");
 
-    private final String containerSize;
+    private final String containerType;
 }
