@@ -2,11 +2,13 @@ package com.lazoft.forwarderplus.views.newbooking;
 
 import com.lazoft.forwarderplus.entity.Carrier;
 import com.lazoft.forwarderplus.entity.Client;
+import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ContainerType;
 import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.ClientService;
+import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
@@ -16,6 +18,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H6;
@@ -49,9 +52,13 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final TextField commodity = new TextField("Commodity");
     private final ComboBox<Client> clients = new ComboBox<>("Shipper");
     private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
+    private final ComboBox<Port> loadingPort = new ComboBox<>("Port Of Loading");
+    private final ComboBox<Port> destinationPort = new ComboBox<>("Port Of Loading");
+    private final TextField inLandDestination = new TextField("In Land Location (ie. Origin: Dhaka ICD, Dest: Istanbul Depot)");
 
     private final List<Client> clientList = new LinkedList<>();
     private final List<Carrier> carrierList = new LinkedList<>();
+    private final List<Port> portList = new LinkedList<>();
 
     private final Button createBooking = new Button("Create Booking");
     private final Button reset = new Button("Reset");
@@ -60,11 +67,13 @@ public class NewBookingView extends Composite<VerticalLayout> {
 
     private final ClientService clientService;
     private final CarrierService carrierService;
+    private final PortService portService;
 
 
-    public NewBookingView(ClientService clientService, CarrierService carrierService) {
+    public NewBookingView(ClientService clientService, CarrierService carrierService, PortService portService) {
         this.clientService = clientService;
         this.carrierService = carrierService;
+        this.portService = portService;
 
         setComponentAttributes();
         prepareBookingSummary();
@@ -72,15 +81,16 @@ public class NewBookingView extends Composite<VerticalLayout> {
         HorizontalLayout clientsLayout = getClientLayout();
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
-        formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, clientsLayout);
-        formLayout.setColspan(clientsLayout, 2);
-        formLayout.setMaxWidth("70%");
+        formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, loadingPort,
+                destinationPort, inLandDestination, clientsLayout );
+//        formLayout.setColspan(clientsLayout, 2);
+        formLayout.setMaxWidth("75%");
 
         HorizontalLayout layoutRow = new HorizontalLayout();
         VerticalLayout layoutColumn2 = new VerticalLayout();
         VerticalLayout layoutColumn3 = new VerticalLayout();
         H3 h3 = new H3();
-        H3 h32 = new H3();
+        H2 h32 = new H2();
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         layoutRow.addClassName(Gap.MEDIUM);
@@ -90,7 +100,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         layoutColumn2.getStyle().set("flex-grow", "1");
         h3.setText("New Booking (Export)");
         h3.setWidth("max-content");
-        layoutColumn3.setWidth("400px");
+        layoutColumn3.setWidth("450px");
         layoutColumn3.getStyle().set("flex-grow", "1");
         h32.setText("Booking Summary");
         h32.setWidth("max-content");
@@ -106,14 +116,19 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private void setComponentAttributes() {
         setCarrierAttributes();
         setButtonAttributes();
+        setPortAttributes();
+
+        containerSize.setRequired(true);
         containerSize.setItems(ContainerSize.values());
         containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
+        containerType.setRequired(true);
         containerType.setItems(ContainerType.values());
         containerType.setItemLabelGenerator(ContainerType::getContainerType);
     }
 
     private void setCarrierAttributes() {
+        carrier.setRequired(true);
         carrier.addFocusListener(event -> {
             if (carrierList.isEmpty()) {
                 carrierList.addAll(carrierService.getAllCarriers());
@@ -167,42 +182,61 @@ public class NewBookingView extends Composite<VerticalLayout> {
         clients.setInvalid(false);
 
         boolean isValid = true;
-
-        if (StringUtils.isAllBlank(bookingNo.getValue())) {
-            bookingNo.setInvalid(true);
-            bookingNo.setErrorMessage("Booking No Cannot be Empty!");
+        if (destinationPort.getValue() == null) {
+            destinationPort.setInvalid(true);
+            destinationPort.setErrorMessage("Must Select Destination Port");
+            destinationPort.focus();
             isValid = false;
         }
-        if (numberOfContainers.getValue() == null || numberOfContainers.getValue() <= 0) {
-            numberOfContainers.setInvalid(true);
-            numberOfContainers.setErrorMessage("Please provide a valid number between 1 and 10,000!");
-            isValid = false;
-        }
-        if (containerType.getValue() == null) {
-            containerType.setInvalid(true);
-            containerType.setErrorMessage("Please choose a container type!");
-            isValid = false;
-        }
-        if (containerSize.getValue() == null) {
-            containerSize.setInvalid(true);
-            containerSize.setErrorMessage("Please choose a container size!");
-            isValid = false;
-        }
-        if (StringUtils.isAllBlank(commodity.getValue())) {
-            commodity.setInvalid(true);
-            commodity.setErrorMessage("Commodity Name Cannot be Empty!");
-            isValid = false;
-        }
-        if (carrier.getValue() == null) {
-            carrier.setInvalid(true);
-            carrier.setErrorMessage("Please choose a carrier!");
+        if (loadingPort.getValue() == null) {
+            loadingPort.setInvalid(true);
+            loadingPort.setErrorMessage("Must Select Loading Port");
+            loadingPort.focus();
             isValid = false;
         }
         if (clients.getValue() == null) {
             clients.setInvalid(true);
             clients.setErrorMessage("Please choose a shipper or create a new one.");
+            clients.focus();
             isValid = false;
         }
+        if (carrier.getValue() == null) {
+            carrier.setInvalid(true);
+            carrier.setErrorMessage("Please choose a carrier!");
+            carrier.focus();
+            isValid = false;
+        }
+        if (StringUtils.isAllBlank(commodity.getValue())) {
+            commodity.setInvalid(true);
+            commodity.setErrorMessage("Commodity Name Cannot be Empty!");
+            commodity.focus();
+            isValid = false;
+        }
+        if (containerSize.getValue() == null) {
+            containerSize.setInvalid(true);
+            containerSize.setErrorMessage("Please choose a container size!");
+            containerSize.focus();
+            isValid = false;
+        }
+        if (containerType.getValue() == null) {
+            containerType.setInvalid(true);
+            containerType.setErrorMessage("Please choose a container type!");
+            containerType.focus();
+            isValid = false;
+        }
+        if (numberOfContainers.getValue() == null || numberOfContainers.getValue() <= 0) {
+            numberOfContainers.setInvalid(true);
+            numberOfContainers.setErrorMessage("Please provide a valid number between 1 and 10,000!");
+            numberOfContainers.focus();
+            isValid = false;
+        }
+        if (StringUtils.isAllBlank(bookingNo.getValue())) {
+            bookingNo.setInvalid(true);
+            bookingNo.setErrorMessage("Booking No Cannot be Empty!");
+            bookingNo.focus();
+            isValid = false;
+        }
+
         return isValid;
     }
 
@@ -212,12 +246,11 @@ public class NewBookingView extends Composite<VerticalLayout> {
         Button addButton = new Button();
         addButton.setTooltipText("Add New Client");
         addButton.setIcon(LineAwesomeIcon.USER_PLUS_SOLID.create());
-        addButton.setWidth(4, Unit.REM);
-        addButton.addClickListener(event -> {
-           createClientDialog().open();
-        });
+        addButton.setWidth("10%");
+        addButton.addClickListener(event -> createClientDialog().open());
 
-        clients.setWidth("60%");
+        clients.setWidth("90%");
+        clients.setRequired(true);
         clients.setAllowCustomValue(true);
         clients.setItemLabelGenerator(Client::getName);
         clients.setItems(clientList);
@@ -228,7 +261,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
             clients.setItems(clientList);
         });
         clientLayout.add(clients, addButton);
-
         return clientLayout;
     }
 
@@ -362,5 +394,21 @@ public class NewBookingView extends Composite<VerticalLayout> {
         bookingSummary.removeAll();
         bookingSummary.add(exportBooking, shipperLayout, containerLayout, commodityLayout, carrierLayout, bookingLayout);
         bookingSummary.setVisible(true);
+    }
+
+    private void setPortAttributes() {
+        loadingPort.setRequired(true);
+        loadingPort.addFocusListener(event -> loadPortComponentPropertiesOnDemand(loadingPort));
+
+        destinationPort.setRequired(true);
+        destinationPort.addFocusListener(event -> loadPortComponentPropertiesOnDemand(destinationPort));
+    }
+
+    private void loadPortComponentPropertiesOnDemand(ComboBox<Port> portComboBox) {
+        if (portList.isEmpty()) {
+            portList.addAll(portService.getAllPorts());
+        }
+        portComboBox.setItems(portList);
+        portComboBox.setItemLabelGenerator(Port::getPortLabel);
     }
 }
