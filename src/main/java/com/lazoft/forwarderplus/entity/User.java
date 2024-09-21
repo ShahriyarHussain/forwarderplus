@@ -34,4 +34,8 @@ public class User extends AbstractEntity {
     @Column(length = 1000000)
     private byte[] profilePicture;
 
+    private String contactNo;
+    private String email;
+    private String bio;
+
 }

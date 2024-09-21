@@ -23,6 +23,8 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H6;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -33,10 +35,12 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.OneToOne;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.ast.Not;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDateTime;
@@ -166,27 +170,44 @@ public class NewBookingView extends Composite<VerticalLayout> {
         createBooking.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         createBooking.setIcon(LineAwesomeIcon.PLUS_SOLID.create());
         createBooking.addClickListener(event -> {
-            Notification notification = new Notification();
-            notification.setDuration(4000);
-            notification.setPosition(Notification.Position.TOP_END);
             if (!isAllFieldsValid()) {
+                Notification notification = getNotificationComponent(true);
                 notification.setText("Please provide correct data in the marked fields!");
                 notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                notification.setDuration(4000);
                 notification.open();
                 return;
             }
             prepareBookingSummary();
             try {
                 createNewBooking();
+                Notification notification = getNotificationComponent(false);
                 notification.setText("New Booking Successfully Created. Booking Id: " + bookingNo.getValue());
                 notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                notification.setDuration(5000);
+                notification.open();
             } catch (Exception e) {
+                Notification notification = getNotificationComponent(true);
                 notification.setText("Unexpected error! " + e.getMessage());
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.setDuration(5000);
+                notification.open();
                 e.printStackTrace();
             }
-            notification.open();
         });
+    }
+
+    private Notification getNotificationComponent(boolean isError) {
+        Notification notification = new Notification();
+        Icon icon =  isError ? LumoIcon.CROSS.create() : VaadinIcon.CHECK_CIRCLE.create();
+        Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create(), clickEvent -> notification.close());
+        closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        HorizontalLayout layout = new HorizontalLayout(icon, new Text("Application submitted!"), closeBtn);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        notification.add(layout);
+        notification.setPosition(Notification.Position.TOP_END);
+        return notification;
     }
 
     private void createNewBooking() {
@@ -197,10 +218,8 @@ public class NewBookingView extends Composite<VerticalLayout> {
         booking.setNumOfContainers(numberOfContainers.getValue());
         booking.setCommodity(commodity.getValue());
         booking.setRemarks(remarks.getValue());
-        booking.setCreatedBy(user.getUsername());
+        booking.setCreatedBy(user);
         booking.setCreatedOn(LocalDateTime.now());
-//        booking.setModifiedBy(modifiedBy.getValue());
-//        booking.setModifiedOn(modifiedOn.getValue());
         booking.setLoadingPort(loadingPort.getValue());
         booking.setDestinationPort(destinationPort.getValue());
         booking.setShipper(clients.getValue());
