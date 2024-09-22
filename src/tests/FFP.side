@@ -1,0 +1,369 @@
+{
+  "id": "ae74fdc7-102c-4b74-8bb5-30df8486a1bc",
+  "version": "2.0",
+  "name": "FFP",
+  "url": "http://localhost:15070/new-booking",
+  "tests": [{
+    "id": "8f60fbb6-6017-4361-8fbb-70ad02087c1b",
+    "name": "Untitled",
+    "commands": []
+  }, {
+    "id": "f9073e36-ee11-48c1-a02a-3699e6e017ee",
+    "name": "New Booking",
+    "commands": [{
+      "id": "e78c3ac9-404d-4112-9ee7-6798338c960e",
+      "comment": "",
+      "command": "open",
+      "target": "http://localhost:15070/new-booking",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "025ebdb0-6701-42d3-aaa0-564308559b52",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1600x913",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b71737e6-41a2-4404-ba83-e83c936f2f90",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-text-field-35",
+      "targets": [
+        ["id=input-vaadin-text-field-35", "id"],
+        ["css=#input-vaadin-text-field-35", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-35']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "92cb6d7d-5dac-4289-a838-2bf5f0f10e0f",
+      "comment": "",
+      "command": "type",
+      "target": "id=input-vaadin-text-field-35",
+      "targets": [
+        ["id=input-vaadin-text-field-35", "id"],
+        ["css=#input-vaadin-text-field-35", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-35']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "EBKG100000"
+    }, {
+      "id": "40eeea90-71c6-4b93-a6f9-823978147e76",
+      "comment": "",
+      "command": "sendKeys",
+      "target": "id=input-vaadin-text-field-35",
+      "targets": [
+        ["id=input-vaadin-text-field-35", "id"],
+        ["css=#input-vaadin-text-field-35", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-35']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "${KEY_ENTER}"
+    }, {
+      "id": "a3ffaa21-0fb3-49f9-98da-7e01d9cc601e",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-integer-field-36",
+      "targets": [
+        ["id=input-vaadin-integer-field-36", "id"],
+        ["css=#input-vaadin-integer-field-36", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-integer-field-36']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-integer-field/input", "xpath:idRelative"],
+        ["xpath=//vaadin-integer-field/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c4ff422d-fc15-4ea5-baf5-96f99559c845",
+      "comment": "",
+      "command": "type",
+      "target": "id=input-vaadin-integer-field-36",
+      "targets": [
+        ["id=input-vaadin-integer-field-36", "id"],
+        ["css=#input-vaadin-integer-field-36", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-integer-field-36']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-integer-field/input", "xpath:idRelative"],
+        ["xpath=//vaadin-integer-field/input", "xpath:position"]
+      ],
+      "value": "2"
+    }, {
+      "id": "f9b76ee5-9098-4044-b391-384ae1a961d9",
+      "comment": "",
+      "command": "sendKeys",
+      "target": "id=input-vaadin-integer-field-36",
+      "targets": [
+        ["id=input-vaadin-integer-field-36", "id"],
+        ["css=#input-vaadin-integer-field-36", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-integer-field-36']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-integer-field/input", "xpath:idRelative"],
+        ["xpath=//vaadin-integer-field/input", "xpath:position"]
+      ],
+      "value": "${KEY_ENTER}"
+    }, {
+      "id": "138c00b3-6778-4003-8d45-ac30f29b5e29",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-38",
+      "targets": [
+        ["id=input-vaadin-combo-box-38", "id"],
+        ["css=#input-vaadin-combo-box-38", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-38']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e63e53e8-f9e2-4428-9666-971077a8e7b4",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-0",
+      "targets": [
+        ["id=vaadin-combo-box-item-0", "id"],
+        ["css=#vaadin-combo-box-item-0", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-0']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-37']/vaadin-combo-box-item", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item", "xpath:position"],
+        ["xpath=//vaadin-combo-box-item[contains(.,'Standard/Dry')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "e37506ed-4b81-442b-8562-eb471d374245",
+      "comment": "",
+      "command": "type",
+      "target": "id=input-vaadin-integer-field-36",
+      "targets": [
+        ["id=input-vaadin-integer-field-36", "id"],
+        ["css=#input-vaadin-integer-field-36", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-integer-field-36']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-integer-field/input", "xpath:idRelative"],
+        ["xpath=//vaadin-integer-field/input", "xpath:position"]
+      ],
+      "value": "2"
+    }, {
+      "id": "f4da63cf-7ce4-4cbf-98b4-d9d9e12dfd42",
+      "comment": "",
+      "command": "sendKeys",
+      "target": "id=input-vaadin-combo-box-38",
+      "targets": [
+        ["id=input-vaadin-combo-box-38", "id"],
+        ["css=#input-vaadin-combo-box-38", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-38']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box/input", "xpath:position"]
+      ],
+      "value": "${KEY_ENTER}"
+    }, {
+      "id": "2a4b9017-e577-49bc-936a-d3b33fddd480",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-40",
+      "targets": [
+        ["id=input-vaadin-combo-box-40", "id"],
+        ["css=#input-vaadin-combo-box-40", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-40']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box[2]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box[2]/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a14d648a-d0fe-4173-b712-a0e133107c5d",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-0",
+      "targets": [
+        ["id=vaadin-combo-box-item-0", "id"],
+        ["css=#vaadin-combo-box-item-0", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-0']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-39']/vaadin-combo-box-item", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "11e78ad7-28b3-44fd-a7f8-a68ae94d41a3",
+      "comment": "",
+      "command": "type",
+      "target": "id=input-vaadin-integer-field-36",
+      "targets": [
+        ["id=input-vaadin-integer-field-36", "id"],
+        ["css=#input-vaadin-integer-field-36", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-integer-field-36']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-integer-field/input", "xpath:idRelative"],
+        ["xpath=//vaadin-integer-field/input", "xpath:position"]
+      ],
+      "value": "2"
+    }, {
+      "id": "370ee187-a3b3-43aa-9a7a-c92f6b1e4724",
+      "comment": "",
+      "command": "sendKeys",
+      "target": "id=input-vaadin-combo-box-40",
+      "targets": [
+        ["id=input-vaadin-combo-box-40", "id"],
+        ["css=#input-vaadin-combo-box-40", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-40']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box[2]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box[2]/input", "xpath:position"]
+      ],
+      "value": "${KEY_ENTER}"
+    }, {
+      "id": "5a0b0537-ef13-4d5b-9c7d-ec7546cc3060",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-text-field-41",
+      "targets": [
+        ["id=input-vaadin-text-field-41", "id"],
+        ["css=#input-vaadin-text-field-41", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-41']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field[2]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-text-field[2]/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "8c373587-fa0b-4758-87e8-baf5902ba776",
+      "comment": "",
+      "command": "type",
+      "target": "id=input-vaadin-text-field-41",
+      "targets": [
+        ["id=input-vaadin-text-field-41", "id"],
+        ["css=#input-vaadin-text-field-41", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-41']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field[2]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-text-field[2]/input", "xpath:position"]
+      ],
+      "value": "JUTE GOODS"
+    }, {
+      "id": "4c284678-b9d0-43f9-82de-c284ee0d057a",
+      "comment": "",
+      "command": "sendKeys",
+      "target": "id=input-vaadin-text-field-41",
+      "targets": [
+        ["id=input-vaadin-text-field-41", "id"],
+        ["css=#input-vaadin-text-field-41", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-text-field-41']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-text-field[2]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-text-field[2]/input", "xpath:position"]
+      ],
+      "value": "${KEY_ENTER}"
+    }, {
+      "id": "95aaae8d-2e5c-445f-a151-d07b0ae0fa72",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-43",
+      "targets": [
+        ["id=input-vaadin-combo-box-43", "id"],
+        ["css=#input-vaadin-combo-box-43", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-43']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box[3]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box[3]/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "98c32179-5f47-4774-b3ed-48c5b416c699",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-2",
+      "targets": [
+        ["id=vaadin-combo-box-item-2", "id"],
+        ["css=#vaadin-combo-box-item-2", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-2']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-42']/vaadin-combo-box-item[3]", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item[3]", "xpath:position"],
+        ["xpath=//vaadin-combo-box-item[contains(.,'CMA CGM')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0583ec90-822e-436d-951e-2cb81251dea3",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-45",
+      "targets": [
+        ["id=input-vaadin-combo-box-45", "id"],
+        ["css=#input-vaadin-combo-box-45", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-45']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box[4]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box[4]/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a99c9704-ed67-4393-9f3c-e8e6297cee26",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-6",
+      "targets": [
+        ["id=vaadin-combo-box-item-6", "id"],
+        ["css=#vaadin-combo-box-item-6", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-6']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-44']/vaadin-combo-box-item[7]", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item[7]", "xpath:position"],
+        ["xpath=//vaadin-combo-box-item[contains(.,'BDCGP - Chittagong, Bangladesh')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "6426b390-0312-44bc-afea-134b27a1664a",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-47",
+      "targets": [
+        ["id=input-vaadin-combo-box-47", "id"],
+        ["css=#input-vaadin-combo-box-47", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-47']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box[5]/input", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box[5]/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a54ec188-96dc-4d5d-a906-31e8f555c3cc",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-2",
+      "targets": [
+        ["id=vaadin-combo-box-item-2", "id"],
+        ["css=#vaadin-combo-box-item-2", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-2']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-46']/vaadin-combo-box-item[3]", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item[3]", "xpath:position"],
+        ["xpath=//vaadin-combo-box-item[contains(.,'AQBAH - AL-AQBAH, JORDAN')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "71b9ce6f-766a-4f79-97fb-f93d5c2e01ce",
+      "comment": "",
+      "command": "click",
+      "target": "id=input-vaadin-combo-box-50",
+      "targets": [
+        ["id=input-vaadin-combo-box-50", "id"],
+        ["css=#input-vaadin-combo-box-50", "css:finder"],
+        ["xpath=//input[@id='input-vaadin-combo-box-50']", "xpath:attributes"],
+        ["xpath=//flow-container-root-2521314[@id='ROOT-2521314']/vaadin-app-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-horizontal-layout/vaadin-combo-box/input", "xpath:idRelative"],
+        ["xpath=//vaadin-horizontal-layout/vaadin-combo-box/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3d415813-dac3-4d1a-aa04-96581c6d6cc3",
+      "comment": "",
+      "command": "click",
+      "target": "id=vaadin-combo-box-item-2",
+      "targets": [
+        ["id=vaadin-combo-box-item-2", "id"],
+        ["css=#vaadin-combo-box-item-2", "css:finder"],
+        ["xpath=//vaadin-combo-box-item[@id='vaadin-combo-box-item-2']", "xpath:attributes"],
+        ["xpath=//vaadin-combo-box-scroller[@id='vaadin-combo-box-scroller-49']/vaadin-combo-box-item[3]", "xpath:idRelative"],
+        ["xpath=//vaadin-combo-box-item[3]", "xpath:position"],
+        ["xpath=//vaadin-combo-box-item[contains(.,'JOBAIDA KARIM JUTE MILLS LTD.')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "9daa46cd-22bf-4266-bc5e-f227ef83b537",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["8f60fbb6-6017-4361-8fbb-70ad02087c1b"]
+  }],
+  "urls": ["http://localhost:15070/new-booking"],
+  "plugins": []
+}

@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, String>, JpaSpecificationExecutor<Booking> {
 
-    Optional<Booking> findBookingByBookingNo(String bookingNumber);
+    boolean existsBookingByBookingNo(String bookingNumber);
 
 }

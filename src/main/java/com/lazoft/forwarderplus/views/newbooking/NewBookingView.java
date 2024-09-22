@@ -19,10 +19,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.H6;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -62,6 +59,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final ComboBox<Port> loadingPort = new ComboBox<>("Port Of Loading");
     private final ComboBox<Port> destinationPort = new ComboBox<>("Port Of Loading");
     private final TextField remarks = new TextField("Remarks");
+    private final IntegerField numOfShipments = new IntegerField("Number Of Shipments");
 
     private final List<Client> clientList = new LinkedList<>();
     private final List<Carrier> carrierList = new LinkedList<>();
@@ -75,7 +73,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final ClientService clientService;
     private final CarrierService carrierService;
     private final PortService portService;
-    private final AuthenticatedUser authenticatedUser;
     private final BookingService bookingService;
 
     private User user;
@@ -86,7 +83,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
         this.clientService = clientService;
         this.carrierService = carrierService;
         this.portService = portService;
-        this.authenticatedUser = authenticatedUser;
         this.bookingService = bookingService;
         if (authenticatedUser.get().isPresent()) {
             user = authenticatedUser.get().get();
@@ -105,8 +101,8 @@ public class NewBookingView extends Composite<VerticalLayout> {
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
         formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, loadingPort,
-                destinationPort, remarks, clientsLayout );
-//        formLayout.setColspan(clientsLayout, 2);
+                destinationPort, numOfShipments, clientsLayout, remarks, new Hr());
+//        formLayout.setColspan(remarks, 2);
         formLayout.setMaxWidth("75%");
 
         HorizontalLayout layoutRow = new HorizontalLayout();
@@ -148,6 +144,10 @@ public class NewBookingView extends Composite<VerticalLayout> {
         containerType.setRequired(true);
         containerType.setItems(ContainerType.values());
         containerType.setItemLabelGenerator(ContainerType::getContainerType);
+        
+        numOfShipments.setValue(1);
+        numOfShipments.setMax(100);
+        numOfShipments.setMin(1);
     }
 
     private void setCarrierAttributes() {
@@ -223,6 +223,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         booking.setLoadingPort(loadingPort.getValue());
         booking.setDestinationPort(destinationPort.getValue());
         booking.setShipper(clients.getValue());
+        booking.setNumOfShipments(numOfShipments.getValue());
         bookingService.createBooking(booking);
     }
 
@@ -244,8 +245,15 @@ public class NewBookingView extends Composite<VerticalLayout> {
         commodity.setInvalid(false);
         carrier.setInvalid(false);
         clients.setInvalid(false);
+        numOfShipments.setInvalid(false);
 
         boolean isValid = true;
+        if (numOfShipments.getValue() == null || numOfShipments.getValue() < 1 || numOfShipments.getValue() > 100) {
+            numOfShipments.setInvalid(true);
+            numOfShipments.setErrorMessage("Value must be between 1 and 100");
+            numOfShipments.focus();
+            isValid = false;
+        }
         if (destinationPort.getValue() == null) {
             destinationPort.setInvalid(true);
             destinationPort.setErrorMessage("Must Select Destination Port");
@@ -300,7 +308,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
             bookingNo.focus();
             isValid = false;
         }
-        if (bookingService.getBooking(bookingNo.getValue()).isPresent()) {
+        if (bookingService.getBooking(bookingNo.getValue())) {
             bookingNo.setInvalid(true);
             bookingNo.setErrorMessage("Booking with the same booking no already exists!");
             bookingNo.focus();

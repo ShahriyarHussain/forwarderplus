@@ -3,6 +3,7 @@ package com.lazoft.forwarderplus.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -10,8 +11,9 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-//@Table(indexes = @Index(name = "booking_no_idx", columnList = "bookingNo"))
-public class Booking  {
+@Table(indexes = @Index(name = "booking_no_idx", columnList = "bookingNo"))
+public class Booking {
+
     @Id
     private String bookingNo;
     private String containerType;
@@ -21,7 +23,8 @@ public class Booking  {
     private String remarks;
     private LocalDateTime createdOn;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "username", nullable = false)
     private User createdBy;
     @OneToOne
     private Port loadingPort;
@@ -30,6 +33,9 @@ public class Booking  {
     @OneToOne
     private Client shipper;
 
-    @OneToMany(mappedBy = "blNo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Shipment> shipments;
+
+    @Transient
+    private int numOfShipments;
 }
