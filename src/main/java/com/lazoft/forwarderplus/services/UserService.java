@@ -19,7 +19,7 @@ public class UserService {
         this.repository = repository;
     }
 
-    public Optional<User> get(Long id) {
+    public Optional<User> get(String id) {
         return repository.findById(id);
     }
 
@@ -27,7 +27,7 @@ public class UserService {
         return repository.save(entity);
     }
 
-    public void delete(Long id) {
+    public void delete(String id) {
         repository.deleteById(id);
     }
 

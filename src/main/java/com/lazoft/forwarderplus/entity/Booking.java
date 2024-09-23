@@ -1,6 +1,7 @@
 package com.lazoft.forwarderplus.entity;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Fetch;
@@ -11,7 +12,6 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(indexes = @Index(name = "booking_no_idx", columnList = "bookingNo"))
 public class Booking {
 
     @Id
@@ -23,17 +23,17 @@ public class Booking {
     private String remarks;
     private LocalDateTime createdOn;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "username", nullable = false)
+    @ManyToOne
     private User createdBy;
-    @OneToOne
+    @ManyToOne
     private Port loadingPort;
-    @OneToOne
+    @ManyToOne
     private Port destinationPort;
-    @OneToOne
+    @ManyToOne
     private Client shipper;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private Set<Shipment> shipments;
 
     @Transient

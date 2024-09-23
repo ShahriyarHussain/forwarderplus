@@ -2,6 +2,7 @@ package com.lazoft.forwarderplus.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ public class StuffingDetails {
     private String cnfAgentName;
     private String cnfAgentContactNo;
 
-    @OneToOne
+    @ManyToOne
     private StuffingDepot stuffingDepot;
     private LocalDate stuffingDate;
     private BigDecimal stuffingCharge;

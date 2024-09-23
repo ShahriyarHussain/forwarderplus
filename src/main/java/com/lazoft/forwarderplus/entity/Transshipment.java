@@ -2,6 +2,7 @@ package com.lazoft.forwarderplus.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ public class Transshipment {
     @OneToOne
     private Schedule schedule;
 
-    @OneToOne
+    @ManyToOne
     private Port vesselPort;
     private String vesselName;
     private LocalDate portEta;

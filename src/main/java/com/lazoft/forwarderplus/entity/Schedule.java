@@ -17,20 +17,23 @@ public class Schedule {
     @SequenceGenerator(name = "schedule_id_generator")
     private Long scheduleId;
 
-    @OneToOne
+    @ManyToOne
     private Port portOfLoading;
     private LocalDate portOfLoadingETA;
     private LocalDate portOfLoadingETD;
 
-    @OneToOne
+    @ManyToOne
     private Port portOfDischarge;
     private LocalDate portOfDischargeETA;
 
-    @OneToOne
+    @ManyToOne
     private Port motherVesselPort;
     private LocalDate motherVesselETA;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     private Set<Shipment> shipment;
+
+    @OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER)
+    private Set<Transshipment> transshipments;
 
 }

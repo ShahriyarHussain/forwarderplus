@@ -30,6 +30,10 @@ public class ShipmentService {
         return savedShipments;
     }
 
+    public void saveAll(Collection<Shipment> shipments) {
+        shipmentRepository.saveAll(shipments);
+    }
+
     public Set<Shipment> createShipmentFromBooking(Booking booking, int numOfShipments) {
         Set<Shipment> shipments = new HashSet<>();
         for (int i = 0; i < numOfShipments; i++) {

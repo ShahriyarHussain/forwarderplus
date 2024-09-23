@@ -1,6 +1,7 @@
 package com.lazoft.forwarderplus.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.lazoft.forwarderplus.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +11,10 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-@Table(name = "application_user",
-        indexes = @Index(name = "userName_idx", columnList = "username", unique = true))
-public class User extends AbstractEntity {
+@Table(name = "application_user")
+public class User {
 
+    @Id
     private String username;
     private String name;
 
