@@ -1,13 +1,17 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
-import com.lazoft.forwarderplus.entity.SamplePerson;
-import com.lazoft.forwarderplus.services.SamplePersonService;
+import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Port;
+import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
@@ -20,17 +24,17 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
@@ -42,18 +46,18 @@ import org.springframework.data.jpa.domain.Specification;
 @Uses(Icon.class)
 public class ViewShipmentsView extends Div {
 
-    private Grid<SamplePerson> grid;
+    private final ShipmentService shipmentService;
+    private Grid<Shipment> grid;
 
-    private Filters filters;
-    private final SamplePersonService samplePersonService;
+    private final Filters filters;
 
-    public ViewShipmentsView(SamplePersonService SamplePersonService) {
-        this.samplePersonService = SamplePersonService;
+    public ViewShipmentsView(PortService portService, ShipmentService shipmentService) {
+        this.shipmentService = shipmentService;
+
         setSizeFull();
         addClassNames("view-shipments-view");
-
-        filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
+        filters = new Filters(this::refreshGrid, portService);
+        VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
@@ -84,38 +88,48 @@ public class ViewShipmentsView extends Div {
         return mobileFilters;
     }
 
-    public static class Filters extends Div implements Specification<SamplePerson> {
+    public static class Filters extends Div implements Specification<Shipment> {
 
-        private final TextField name = new TextField("Name");
-        private final TextField phone = new TextField("Phone");
-        private final DatePicker startDate = new DatePicker("Date of Birth");
-        private final DatePicker endDate = new DatePicker();
-        private final MultiSelectComboBox<String> occupations = new MultiSelectComboBox<>("Occupation");
-        private final CheckboxGroup<String> roles = new CheckboxGroup<>("Role");
+        private final TextField bookingNo = new TextField("Booking No");
+        private final TextField blNo = new TextField("Bill Of Lading No");
+        private final MultiSelectComboBox<String> shipper = new MultiSelectComboBox<>("Shipper");
+        private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
+        private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
+        private final Select<ShipmentStatus> status = new Select<>();
+        private final DatePicker createFromDate = new DatePicker("Created Date");
+        private final DatePicker createdToDate = new DatePicker();
 
-        public Filters(Runnable onSearch) {
+        public Filters(Runnable onSearch, PortService portService) {
+            List<Port> ports = portService.getAllPorts();
 
             setWidthFull();
             addClassName("filter-layout");
             addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
                     LumoUtility.BoxSizing.BORDER);
-            name.setPlaceholder("First or last name");
 
-            occupations.setItems("Insurance Clerk", "Mortarman", "Beer Coil Cleaner", "Scale Attendant");
+            bookingNo.setPlaceholder("Booking No");
+            blNo.setPlaceholder("B/L No");
 
-            roles.setItems("Worker", "Supervisor", "Manager", "External");
-            roles.addClassName("double-width");
+            portOfLoading.setItems(ports);
+            portOfLoading.setItemLabelGenerator(Port::getPortLabel);
+
+            portOfDestination.setItems(ports);
+            portOfDestination.setItemLabelGenerator(Port::getPortLabel);
+
+            status.setItems(ShipmentStatus.values());
+            status.setLabel("Shipment Status");
 
             // Action buttons
             Button resetBtn = new Button("Reset");
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
-                name.clear();
-                phone.clear();
-                startDate.clear();
-                endDate.clear();
-                occupations.clear();
-                roles.clear();
+                bookingNo.clear();
+                blNo.clear();
+                createFromDate.clear();
+                createdToDate.clear();
+                shipper.clear();
+                portOfLoading.setValue(portOfLoading.getEmptyValue());
+                portOfDestination.setValue(portOfDestination.getEmptyValue());
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -126,75 +140,60 @@ public class ViewShipmentsView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(name, phone, createDateRangeFilter(), occupations, roles, actions);
+            add(bookingNo, blNo, portOfLoading, portOfDestination, shipper, status, createDateFilter(), actions);
         }
 
-        private Component createDateRangeFilter() {
-            startDate.setPlaceholder("From");
+        private Component createDateFilter() {
+            createFromDate.setPlaceholder("From");
 
-            endDate.setPlaceholder("To");
+            createdToDate.setPlaceholder("To");
 
             // For screen readers
-            startDate.setAriaLabel("From date");
-            endDate.setAriaLabel("To date");
+            createFromDate.setAriaLabel("Created From");
+            createdToDate.setAriaLabel("Created From");
 
-            FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
-            dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
-            dateRangeComponent.addClassName(LumoUtility.Gap.XSMALL);
-
-            return dateRangeComponent;
+            FlexLayout portSelectionComponent = new FlexLayout(createFromDate, new Text(" – "), createdToDate);
+            portSelectionComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
+            portSelectionComponent.addClassName(LumoUtility.Gap.XSMALL);
+            return portSelectionComponent;
         }
 
         @Override
-        public Predicate toPredicate(Root<SamplePerson> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<Shipment> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (!name.isEmpty()) {
-                String lowerCaseFilter = name.getValue().toLowerCase();
-                Predicate firstNameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")),
-                        lowerCaseFilter + "%");
-                Predicate lastNameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")),
-                        lowerCaseFilter + "%");
-                predicates.add(criteriaBuilder.or(firstNameMatch, lastNameMatch));
+            if (!bookingNo.isEmpty()) {
+                String lowerCaseFilter = bookingNo.getValue().toLowerCase();
+                Join<Shipment, Booking> bookingJoin = root.join("booking");
+                Predicate bookingNoMatch = criteriaBuilder.equal(
+                        criteriaBuilder.lower(bookingJoin.get("bookingNo")), lowerCaseFilter);
+                predicates.add(bookingNoMatch);
             }
-            if (!phone.isEmpty()) {
-                String databaseColumn = "phone";
-                String ignore = "- ()";
-
-                String lowerCaseFilter = ignoreCharacters(ignore, phone.getValue().toLowerCase());
-                Predicate phoneMatch = criteriaBuilder.like(
-                        ignoreCharacters(ignore, criteriaBuilder, criteriaBuilder.lower(root.get(databaseColumn))),
-                        "%" + lowerCaseFilter + "%");
-                predicates.add(phoneMatch);
-
+            if (!blNo.isEmpty()) {
+                String lowerCaseFilter = blNo.getValue().toLowerCase();
+                Predicate mblMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("mblNo")), "%" + lowerCaseFilter + "%");
+                Predicate hblMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("hblNo")), "%" + lowerCaseFilter + "%");
+                predicates.add(criteriaBuilder.or(mblMatch, hblMatch));
             }
-            if (startDate.getValue() != null) {
-                String databaseColumn = "dateOfBirth";
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get(databaseColumn),
-                        criteriaBuilder.literal(startDate.getValue())));
+            if (createFromDate.getValue() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdOn"),
+                        criteriaBuilder.literal(createFromDate.getValue())));
             }
-            if (endDate.getValue() != null) {
-                String databaseColumn = "dateOfBirth";
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(criteriaBuilder.literal(endDate.getValue()),
-                        root.get(databaseColumn)));
+            if (createdToDate.getValue() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdOn"),
+                        criteriaBuilder.literal(createdToDate.getValue())));
             }
-            if (!occupations.isEmpty()) {
-                String databaseColumn = "occupation";
-                List<Predicate> occupationPredicates = new ArrayList<>();
-                for (String occupation : occupations.getValue()) {
-                    occupationPredicates
-                            .add(criteriaBuilder.equal(criteriaBuilder.literal(occupation), root.get(databaseColumn)));
-                }
-                predicates.add(criteriaBuilder.or(occupationPredicates.toArray(Predicate[]::new)));
-            }
-            if (!roles.isEmpty()) {
-                String databaseColumn = "role";
-                List<Predicate> rolePredicates = new ArrayList<>();
-                for (String role : roles.getValue()) {
-                    rolePredicates.add(criteriaBuilder.equal(criteriaBuilder.literal(role), root.get(databaseColumn)));
-                }
-                predicates.add(criteriaBuilder.or(rolePredicates.toArray(Predicate[]::new)));
-            }
+//            if (!shipper.isEmpty()) {
+//                String databaseColumn = "occupation";
+//                List<Predicate> occupationPredicates = new ArrayList<>();
+//                for (String occupation : shipper.getValue()) {
+//                    occupationPredicates
+//                            .ad.d(criteriaBuilder.equal(criteriaBuilder.literal(occupation), root.get(databaseColumn)));
+//                }
+//                predicates.add(criteriaBuilder.or(occupationPredicates.toArray(Predicate[]::new)));
+//            }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
 
@@ -219,18 +218,25 @@ public class ViewShipmentsView extends Div {
     }
 
     private Component createGrid() {
-        grid = new Grid<>(SamplePerson.class, false);
-        grid.addColumn("firstName").setAutoWidth(true);
-        grid.addColumn("lastName").setAutoWidth(true);
-        grid.addColumn("email").setAutoWidth(true);
-        grid.addColumn("phone").setAutoWidth(true);
-        grid.addColumn("dateOfBirth").setAutoWidth(true);
-        grid.addColumn("occupation").setAutoWidth(true);
-        grid.addColumn("role").setAutoWidth(true);
+        grid = new Grid<>(Shipment.class, false);
+        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
+        grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
+        grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
+        grid.addColumn("clientInvoiceNo").setAutoWidth(true);
+        grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
+        grid.addColumn(shipment -> {
+            Booking booking = shipment.getBooking();
+            return booking.getLoadingPort().getPortCityAndCountry() + " -> " + booking.getDestinationPort().getPortCityAndCountry();
+        }).setHeader("Route").setAutoWidth(true).setSortable(false);
+        grid.addColumn("status").setAutoWidth(true).setSortable(true);
+        grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
+        grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
+                .setHeader("Created On").setAutoWidth(true).setSortable(true);
 
-        grid.setItems(query -> samplePersonService.list(
+        grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());
+//        grid.setItems(shipmentService.getAll());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 

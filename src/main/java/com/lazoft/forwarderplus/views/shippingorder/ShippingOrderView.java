@@ -1,14 +1,8 @@
 package com.lazoft.forwarderplus.views.shippingorder;
 
-import com.lazoft.forwarderplus.entity.Booking;
-import com.lazoft.forwarderplus.entity.Carrier;
-import com.lazoft.forwarderplus.entity.Port;
-import com.lazoft.forwarderplus.entity.SamplePerson;
+import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
-import com.lazoft.forwarderplus.services.BookingService;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.SamplePersonService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -53,11 +47,13 @@ public class ShippingOrderView extends Div {
 //    private final SamplePersonService samplePersonService;
 //    private final BookingService bookingService;
 //    private final CarrierService carrierService;
+//    private final ShipmentService shipmentService;
 //
-//    public ShippingOrderView(SamplePersonService SamplePersonService, BookingService bookingService, CarrierService carrierService) {
+//    public ShippingOrderView(SamplePersonService SamplePersonService, BookingService bookingService, CarrierService carrierService, ShipmentService shipmentService) {
 //        this.samplePersonService = SamplePersonService;
 //        this.bookingService = bookingService;
 //        this.carrierService = carrierService;
+//        this.shipmentService = shipmentService;
 //
 //        setSizeFull();
 //        addClassNames("shipping-order-view");
@@ -71,13 +67,13 @@ public class ShippingOrderView extends Div {
 //    }
 //
 //
-//    public static class Filters extends Div implements Specification<Booking> {
+//    public static class Filters extends Div implements Specification<Shipment> {
 //
 //        private final TextField bookingNo = new TextField("Booking No");
+//        private final TextField blNo = new TextField("Bill Of Lading No");
 //        private final ComboBox<ContainerSize> containerSize = new ComboBox<>("Container");
-//        private final DatePicker startDate = new DatePicker("Created Date");
-//        private final DatePicker endDate = new DatePicker();
-//        private final MultiSelectComboBox<Carrier> carrierComboBox = new MultiSelectComboBox<>("Carrier");
+//        private final DatePicker createdDate = new DatePicker("Created Date");
+//        private final ComboBox<Carrier> carrierComboBox = new ComboBox<>("Carrier");
 //        private final ComboBox<Port> destinationPort = new ComboBox<>("Destination Port");
 //
 //        public Filters(Runnable onSearch, CarrierService carrierService, PortService portService) {
@@ -86,10 +82,10 @@ public class ShippingOrderView extends Div {
 //            addClassName("filter-layout");
 //            addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
 //                    LumoUtility.BoxSizing.BORDER);
-//            bookingNo.setPlaceholder("First or last name");
+//            bookingNo.setPlaceholder("Booking No");
+//            blNo.setPlaceholder("B/L No");
 //
 //            carrierComboBox.setItems(carrierService.getAllCarriers());
-//
 //            destinationPort.setItems(portService.getAllPorts());
 //            destinationPort.addClassName("double-width");
 //
@@ -98,9 +94,10 @@ public class ShippingOrderView extends Div {
 //            resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 //            resetBtn.addClickListener(e -> {
 //                bookingNo.clear();
+//                blNo.clear();
 //                containerSize.clear();
-//                startDate.clear();
-//                endDate.clear();
+//                createdDate.clear();
+//                //endDate.clear();
 //                carrierComboBox.clear();
 //                destinationPort.clear();
 //                onSearch.run();
@@ -117,14 +114,12 @@ public class ShippingOrderView extends Div {
 //        }
 //
 //        private Component createDateRangeFilter() {
-//            startDate.setPlaceholder("From");
-//            endDate.setPlaceholder("To");
+//            createdDate.setPlaceholder("From");
 //
 //            // For screen readers
-//            startDate.setAriaLabel("From date");
-//            endDate.setAriaLabel("To date");
+//            createdDate.setAriaLabel("From date");
 //
-//            FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
+//            FlexLayout dateRangeComponent = new FlexLayout(createdDate);
 //            dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
 //            dateRangeComponent.addClassName(LumoUtility.Gap.XSMALL);
 //
@@ -132,7 +127,7 @@ public class ShippingOrderView extends Div {
 //        }
 //
 //        @Override
-//        public Predicate toPredicate(Root<Booking> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+//        public Predicate toPredicate(Root<Shipment> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 //            List<Predicate> predicates = new ArrayList<>();
 //
 //            if (!bookingNo.isEmpty()) {
@@ -151,10 +146,10 @@ public class ShippingOrderView extends Div {
 //                predicates.add(phoneMatch);
 //
 //            }
-//            if (startDate.getValue() != null) {
+//            if (createdDate.getValue() != null) {
 //                String databaseColumn = "dateOfBirth";
 //                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get(databaseColumn),
-//                        criteriaBuilder.literal(startDate.getValue())));
+//                        criteriaBuilder.literal(createdDate.getValue())));
 //            }
 //            if (endDate.getValue() != null) {
 //                String databaseColumn = "dateOfBirth";

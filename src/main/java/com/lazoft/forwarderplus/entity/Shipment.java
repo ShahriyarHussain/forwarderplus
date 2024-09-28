@@ -27,11 +27,11 @@ public class Shipment {
 
     private String marks;
     private String goodsDescription;
-    private LocalDateTime createdOn;
     private String clientInvoiceNo;
 
     @Enumerated(EnumType.STRING)
     private ShipmentStatus status;
+    private LocalDateTime createdOn;
 
     @ManyToOne
     private User createdBy;
