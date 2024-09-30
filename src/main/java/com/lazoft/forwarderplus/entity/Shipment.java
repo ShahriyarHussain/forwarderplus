@@ -34,6 +34,8 @@ public class Shipment {
     private LocalDateTime createdOn;
 
     @ManyToOne
+    private Carrier carrier;
+    @ManyToOne
     private User createdBy;
     @ManyToOne
     private Client shipper;
@@ -45,6 +47,7 @@ public class Shipment {
     private ContainerDetails containerDetails;
     @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
     private StuffingDetails stuffingDetails;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scheduleId")

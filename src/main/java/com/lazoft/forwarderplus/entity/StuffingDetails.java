@@ -1,5 +1,7 @@
 package com.lazoft.forwarderplus.entity;
 
+import com.lazoft.forwarderplus.enums.PackageUnit;
+import com.vaadin.flow.component.textfield.IntegerField;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -21,6 +23,8 @@ public class StuffingDetails {
     private StuffingDepot stuffingDepot;
     private LocalDate stuffingDate;
     private BigDecimal stuffingCharge;
+    private Integer quantity;
+    private PackageUnit packageUnit;
 
     @Id
     @OneToOne

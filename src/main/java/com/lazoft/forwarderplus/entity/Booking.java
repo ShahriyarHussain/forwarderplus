@@ -38,4 +38,6 @@ public class Booking {
 
     @Transient
     private int numOfShipments;
+    @Transient
+    private Carrier carrier;
 }

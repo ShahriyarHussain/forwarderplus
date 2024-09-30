@@ -54,6 +54,7 @@ public class ShipmentService {
             shipment.setStatus(ShipmentStatus.NEW);
             shipments.add(shipment);
             shipment.setShipper(booking.getShipper());
+            shipment.setCarrier(booking.getCarrier());
         }
         return saveAllShipments(shipments);
     }

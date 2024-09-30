@@ -98,7 +98,7 @@ public class MainLayout extends AppLayout {
         }
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {
             nav.addItem(
-                    new SideNavItem("Search & View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
+                    new SideNavItem("View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
 
         }
         if (accessChecker.hasAccess(FinancesView.class)) {

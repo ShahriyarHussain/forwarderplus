@@ -1,6 +1,7 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
 import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
@@ -40,7 +41,7 @@ import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
-@PageTitle("View Shipments")
+@PageTitle("Search & View Shipments")
 @Route(value = "view-shipments", layout = MainLayout.class)
 @RolesAllowed("USER")
 @Uses(Icon.class)
@@ -92,7 +93,7 @@ public class ViewShipmentsView extends Div {
 
         private final TextField bookingNo = new TextField("Booking No");
         private final TextField blNo = new TextField("Bill Of Lading No");
-        private final MultiSelectComboBox<String> shipper = new MultiSelectComboBox<>("Shipper");
+        private final TextField shipper = new TextField("Shipper");
         private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
         private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
         private final Select<ShipmentStatus> status = new Select<>();
@@ -130,6 +131,7 @@ public class ViewShipmentsView extends Div {
                 shipper.clear();
                 portOfLoading.setValue(portOfLoading.getEmptyValue());
                 portOfDestination.setValue(portOfDestination.getEmptyValue());
+                status.setValue(status.getEmptyValue());
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -165,8 +167,8 @@ public class ViewShipmentsView extends Div {
             if (!bookingNo.isEmpty()) {
                 String lowerCaseFilter = bookingNo.getValue().toLowerCase();
                 Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Predicate bookingNoMatch = criteriaBuilder.equal(
-                        criteriaBuilder.lower(bookingJoin.get("bookingNo")), lowerCaseFilter);
+                Predicate bookingNoMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(bookingJoin.get("bookingNo")), "%" + lowerCaseFilter + "%");
                 predicates.add(bookingNoMatch);
             }
             if (!blNo.isEmpty()) {
@@ -185,15 +187,13 @@ public class ViewShipmentsView extends Div {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdOn"),
                         criteriaBuilder.literal(createdToDate.getValue())));
             }
-//            if (!shipper.isEmpty()) {
-//                String databaseColumn = "occupation";
-//                List<Predicate> occupationPredicates = new ArrayList<>();
-//                for (String occupation : shipper.getValue()) {
-//                    occupationPredicates
-//                            .ad.d(criteriaBuilder.equal(criteriaBuilder.literal(occupation), root.get(databaseColumn)));
-//                }
-//                predicates.add(criteriaBuilder.or(occupationPredicates.toArray(Predicate[]::new)));
-//            }
+            if (!shipper.isEmpty()) {
+                String lowerCaseFilter = shipper.getValue().toLowerCase();
+                Join<Shipment, Client> shipperJoin = root.join("shipper");
+                Predicate shipperNameMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(shipperJoin.get("name")), "%" + lowerCaseFilter + "%");
+                predicates.add(shipperNameMatch);
+            }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
 
