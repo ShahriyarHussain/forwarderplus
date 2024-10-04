@@ -2,10 +2,7 @@ package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.PackageUnit;
 import com.vaadin.flow.component.textfield.IntegerField;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +13,16 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class StuffingDetails {
+
+    @Id
+    private Long stuffingId;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "shipmentId")
+    private Shipment shipment;
+
+
     private String cnfAgentName;
     private String cnfAgentContactNo;
 
@@ -25,8 +32,6 @@ public class StuffingDetails {
     private BigDecimal stuffingCharge;
     private Integer quantity;
     private PackageUnit packageUnit;
-
-    @Id
-    @OneToOne
-    private Shipment shipment;
 }
+
+

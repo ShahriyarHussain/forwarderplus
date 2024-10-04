@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
 
@@ -43,9 +42,12 @@ public class Shipment {
     private Client consignee;
     @ManyToOne
     private Client notifyParty;
-    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
+
+    @OneToOne(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @PrimaryKeyJoinColumn
     private ContainerDetails containerDetails;
-    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "shipment`", cascade = CascadeType.ALL, orphanRemoval = true)
+    @PrimaryKeyJoinColumn
     private StuffingDetails stuffingDetails;
 
 

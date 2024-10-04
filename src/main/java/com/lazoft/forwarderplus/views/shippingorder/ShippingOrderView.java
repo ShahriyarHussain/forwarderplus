@@ -5,6 +5,7 @@ import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.PackageUnit;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -33,11 +35,17 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.InputStreamFactory;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -45,6 +53,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperRunManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.vaadin.lineawesome.LineAwesomeIcon;
@@ -56,12 +67,15 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 public class ShippingOrderView extends Div {
 
     private final ShipmentService shipmentService;
+    private final AuthenticatedUser authenticatedUser;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
-    public ShippingOrderView(PortService portService, ShipmentService shipmentService) {
+    public ShippingOrderView(PortService portService, ShipmentService shipmentService,
+                             AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
+        this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -253,9 +267,11 @@ public class ShippingOrderView extends Div {
     }
 
     private Button getCreateButtonForShipment(Shipment shipment) {
+        User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
+
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShippingOrderPage(shipment).open());
+        create.addClickListener(event -> new ShippingOrderPage(shipment, user).open());
         return create;
     }
 
@@ -274,11 +290,13 @@ public class ShippingOrderView extends Div {
         private StuffingDetails stuffingDetails;
         private final Booking booking;
         private Schedule schedule;
+        private final User user;
 
-        public ShippingOrderPage(Shipment shipment) {
+        public ShippingOrderPage(Shipment shipment, User user) {
             stuffingDetails = shipment.getStuffingDetails();
             booking = shipment.getBooking();
             schedule = shipment.getSchedule();
+            this.user = user;
 
             this.setWidth(800, Unit.PIXELS);
             FormLayout formLayout = new FormLayout();
@@ -306,13 +324,11 @@ public class ShippingOrderView extends Div {
 
             this.add(new H3("Shipping Order"), new Hr(), formLayout);
 
-            Button printButton = new Button("Download As PDF");
-            printButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
-            printButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+            Anchor printButtonAnchor = getReportDownloadButtonAnchor(shipment, booking);
 
             Button closeButton = new Button("Close", event -> this.close());
             closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            this.getFooter().add(saveButton, printButton, closeButton);
+            this.getFooter().add(saveButton, printButtonAnchor, closeButton);
         }
 
         private void setValues(Shipment shipment) {
@@ -344,6 +360,29 @@ public class ShippingOrderView extends Div {
             }
         }
 
+        private Anchor getReportDownloadButtonAnchor(Shipment shipment, Booking booking) {
+            Anchor anchor = new Anchor(new StreamResource("Shipping_order_" + booking.getBookingNo() + ".pdf",
+                    (InputStreamFactory) () -> {
+                        Map<String, Object> parameters;
+                        String report = "shipping_order.jasper";
+                        parameters = prepareParamsForShippingOrder(shipment, user);
+
+                        try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
+                            return new ByteArrayInputStream(JasperRunManager.runReportToPdf(stream, parameters,
+                                    new JREmptyDataSource(1)));
+                        } catch (JRException | IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }), "");
+
+            Button printButton = new Button("Download As PDF");
+            printButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
+            printButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+
+            anchor.getElement().setAttribute("download", true);
+            anchor.add(printButton);
+            return anchor;
+        }
 
         private Map<String, Object> prepareParamsForShippingOrder(Shipment shipment, User user) {
             Map<String, Object> paramMap = new HashMap<>();
@@ -378,7 +417,6 @@ public class ShippingOrderView extends Div {
 
             return paramMap;
         }
-
     }
 
 
