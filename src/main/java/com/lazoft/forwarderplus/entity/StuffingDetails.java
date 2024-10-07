@@ -17,11 +17,6 @@ public class StuffingDetails {
     @Id
     private Long stuffingId;
 
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "shipmentId")
-    private Shipment shipment;
-
 
     private String cnfAgentName;
     private String cnfAgentContactNo;

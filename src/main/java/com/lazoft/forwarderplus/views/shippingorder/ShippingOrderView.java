@@ -4,18 +4,16 @@ import com.lazoft.forwarderplus.Util.DateUtil;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.PackageUnit;
-import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.repository.StuffingDetailsRepository;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -25,12 +23,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -38,7 +34,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
-import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
@@ -48,10 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -68,14 +60,22 @@ public class ShippingOrderView extends Div {
 
     private final ShipmentService shipmentService;
     private final AuthenticatedUser authenticatedUser;
+    private final ClientService clientService;
+    private final ScheduleService scheduleService;
+    private final StuffingDetailsService stuffingDetailsService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
     public ShippingOrderView(PortService portService, ShipmentService shipmentService,
-                             AuthenticatedUser authenticatedUser) {
+                             AuthenticatedUser authenticatedUser, ClientService clientService,
+                             StuffingDetailsService stuffingDetailsService,
+                             ScheduleService scheduleService) {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
+        this.clientService = clientService;
+        this.scheduleService = scheduleService;
+        this.stuffingDetailsService = stuffingDetailsService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -271,7 +271,8 @@ public class ShippingOrderView extends Div {
 
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShippingOrderPage(shipment, user).open());
+        create.addClickListener(event -> new ShippingOrderPage(shipment, user, clientService, stuffingDetailsService,
+                scheduleService, shipmentService).open());
         return create;
     }
 
@@ -292,7 +293,11 @@ public class ShippingOrderView extends Div {
         private Schedule schedule;
         private final User user;
 
-        public ShippingOrderPage(Shipment shipment, User user) {
+        public ShippingOrderPage(Shipment shipment, User user, ClientService clientService,
+                                 StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService,
+                                 ShipmentService shipmentService) {
+            notifyParty.setItems(clientService.getAllClients());
+            notifyParty.setItemLabelGenerator(Client::getName);
             stuffingDetails = shipment.getStuffingDetails();
             booking = shipment.getBooking();
             schedule = shipment.getSchedule();
@@ -320,6 +325,29 @@ public class ShippingOrderView extends Div {
                     schedule.setPortOfLoading(booking.getLoadingPort());
                     schedule.setPortOfDischarge(booking.getDestinationPort());
                 }
+
+
+                //stuffingDetails.setShipment(shipment);
+
+                stuffingDetails.setStuffingId(shipment.getShipmentId());
+                stuffingDetails.setPackageUnit(units.getValue());
+                stuffingDetails.setCnfAgentName(cnfAgentName.getValue());
+                stuffingDetails.setCnfAgentContactNo(cnfAgentContact.getValue());
+                stuffingDetails.setQuantity(quantity.getValue());
+                StuffingDetails savedStuffingDetails = stuffingDetailsService.saveStuffingDetails(stuffingDetails);
+
+                Set<Shipment> shipmentSet = schedule.getShipment() == null ? new HashSet<>() : schedule.getShipment();
+                shipmentSet.add(shipment);
+                schedule.setPortOfLoading(booking.getLoadingPort());
+                schedule.setPortOfDischarge(booking.getDestinationPort());
+                schedule.setFeederVesselName(vessel.getValue());
+                schedule.setShipment(shipmentSet);
+                Schedule savedSchedule = scheduleService.saveSchedule(schedule);
+
+                shipment.setStuffingDetails(savedStuffingDetails);
+                shipment.setSchedule(savedSchedule);
+                shipment.setNotifyParty(notifyParty.getValue());
+                shipmentService.saveShipment(shipment);
             });
 
             this.add(new H3("Shipping Order"), new Hr(), formLayout);

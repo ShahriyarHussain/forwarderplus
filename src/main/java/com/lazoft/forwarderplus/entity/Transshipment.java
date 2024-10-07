@@ -15,6 +15,8 @@ import java.time.LocalDate;
 public class Transshipment {
 
     @Id
+    private long scheduleId;
+
     @OneToOne
     private Schedule schedule;
 

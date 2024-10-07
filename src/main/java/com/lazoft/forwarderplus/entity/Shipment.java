@@ -43,11 +43,9 @@ public class Shipment {
     @ManyToOne
     private Client notifyParty;
 
-    @OneToOne(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
-    @PrimaryKeyJoinColumn
+    @OneToOne(fetch = FetchType.EAGER)
     private ContainerDetails containerDetails;
-    @OneToOne(mappedBy = "shipment`", cascade = CascadeType.ALL, orphanRemoval = true)
-    @PrimaryKeyJoinColumn
+    @OneToOne(fetch = FetchType.EAGER)
     private StuffingDetails stuffingDetails;
 
 

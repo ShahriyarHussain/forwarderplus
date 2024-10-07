@@ -15,11 +15,6 @@ public class ContainerDetails {
 
     @Id
     private long containerDetailsId;
-    @MapsId
-    @OneToOne
-    @JoinColumn(name = "shipmentId")
-    private Shipment shipment;
-
     private String containerNo;
     private String sealNo;
     private BigDecimal grossWeight;
