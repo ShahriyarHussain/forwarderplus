@@ -39,6 +39,10 @@ public class UserService {
         return repository.findAll(filter, pageable);
     }
 
+    public void create(User user) {
+        repository.save(user);
+    }
+
     public int count() {
         return (int) repository.count();
     }

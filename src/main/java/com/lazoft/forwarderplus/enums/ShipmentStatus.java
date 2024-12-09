@@ -1,13 +1,22 @@
 package com.lazoft.forwarderplus.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum ShipmentStatus {
-    NEW,
-    STUFFING_DONE,
-    SHIPMENT_ADVICE_SENT,
-    BL_DRAFT_RECEIVED_FROM_SHIPPER,
-    BL_DRAFT_SENT_TO_CARRIER,
-    FINAL_BL_RECEIVED_FROM_CARRIER,
-    INVOICE_RECEIVED_FROM_CARRIER,
-    INVOICE_SENT_TO_SHIPPER,
-    COMPLETED,
+    NEW("New"),
+    SHIPPING_ORDER_CREATED("Shipping Order Done"),
+    SHIPMENT_ADVICE_DONE("Shipment Advice Done"),
+    SHIPMENT_ADVICE_SENT("Shipment Advice Sent"),
+    SHIPPING_INSTRUCTION_SUBMITTED("SI Submitted"),
+    BL_DRAFT_SENT_TO_SHIPPER("B/L Draft Sent"),
+    BL_CONFIRMED("Final B/L Confirmed"),
+    BL_RELEASED("B/L Release"),
+    INVOICE_SENT_TO_SHIPPER("Invoice Sent To Shipper"),
+    SHIPMENT_COMPLETE("Shipment Complete");
+
+    private final String status;
+
 }

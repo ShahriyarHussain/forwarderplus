@@ -1,8 +1,13 @@
 package com.lazoft.forwarderplus.views.login;
 
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -11,36 +16,41 @@ import com.vaadin.flow.router.internal.RouteUtil;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
-@AnonymousAllowed
+@Route("login")
 @PageTitle("Login")
-@Route(value = "login")
-public class LoginView extends LoginOverlay implements BeforeEnterObserver {
+@AnonymousAllowed
+public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
-    private final AuthenticatedUser authenticatedUser;
+    private final LoginForm login = new LoginForm();
 
-    public LoginView(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
-        setAction(RouteUtil.getRoutePath(VaadinService.getCurrent().getContext(), getClass()));
+    public LoginView() {
+        addClassName("login-view");
+        addClassName("lumo-base-color");
+        setSizeFull();
 
-        LoginI18n i18n = LoginI18n.createDefault();
-        i18n.setHeader(new LoginI18n.Header());
-        i18n.getHeader().setTitle("Forwarder-Plus");
-        i18n.getHeader().setDescription("Login using user/user or admin/admin");
-        i18n.setAdditionalInformation(null);
-        setI18n(i18n);
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        setAlignItems(Alignment.CENTER);
 
-        setForgotPasswordButtonVisible(false);
-        setOpened(true);
+        login.setAction("login");
+        Button registerButton = new Button("Create New Account");
+        registerButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        registerButton.addClickListener(e ->
+                registerButton.getUI().ifPresent(ui ->
+                        ui.navigate("register"))
+        );
+        login.setForgotPasswordButtonVisible(false);
+        login.addForgotPasswordListener(e -> registerButton.getUI().ifPresent(ui -> ui.navigate("register")));
+
+        add(new H1("Forwarder+"), login, registerButton);
     }
 
     @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        if (authenticatedUser.get().isPresent()) {
-            // Already logged in
-            setOpened(false);
-            event.forwardTo("new-booking");
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if(beforeEnterEvent.getLocation()
+                .getQueryParameters()
+                .getParameters()
+                .containsKey("error")) {
+            login.setError(true);
         }
-
-        setError(event.getLocation().getQueryParameters().getParameters().containsKey("error"));
     }
 }

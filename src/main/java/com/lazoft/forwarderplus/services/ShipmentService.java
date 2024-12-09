@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.services;
 
 import com.lazoft.forwarderplus.entity.Booking;
-import com.lazoft.forwarderplus.entity.SamplePerson;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.repository.ShipmentRepository;
@@ -9,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,25 +35,23 @@ public class ShipmentService {
         return savedShipments;
     }
 
+    @EntityGraph("shipment")
     public Page<Shipment> getShipmentsByFilter(Pageable pageable, Specification<Shipment> filter) {
         return shipmentRepository.findAll(filter, pageable);
     }
 
-    public void saveAll(Collection<Shipment> shipments) {
-        shipmentRepository.saveAll(shipments);
-    }
-
-    public Set<Shipment> createShipmentFromBooking(Booking booking, int numOfShipments) {
+    public Set<Shipment> createShipmentFromBooking(Booking booking) {
         Set<Shipment> shipments = new HashSet<>();
-        for (int i = 0; i < numOfShipments; i++) {
+        for (int i = 0; i < booking.getNumOfShipments(); i++) {
             Shipment shipment = new Shipment();
             shipment.setCreatedOn(LocalDateTime.now());
             shipment.setCreatedBy(booking.getCreatedBy());
             shipment.setBooking(booking);
-            shipment.setStatus(ShipmentStatus.NEW);
             shipments.add(shipment);
             shipment.setShipper(booking.getShipper());
             shipment.setCarrier(booking.getCarrier());
+            shipment.setNumOfContainers(booking.getNumOfContainers() / booking.getNumOfShipments());
+            shipment.setStatus(ShipmentStatus.NEW);
         }
         return saveAllShipments(shipments);
     }

@@ -4,7 +4,6 @@ import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
-import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.views.MainLayout;
@@ -13,7 +12,6 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
@@ -33,13 +31,12 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
 @PageTitle("Search & View Shipments")
 @Route(value = "view-shipments", layout = MainLayout.class)
@@ -96,7 +93,7 @@ public class ViewShipmentsView extends Div {
         private final TextField shipper = new TextField("Shipper");
         private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
         private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
-        private final Select<ShipmentStatus> status = new Select<>();
+        private final Select<String> status = new Select<>();
         private final DatePicker createFromDate = new DatePicker("Created Date");
         private final DatePicker createdToDate = new DatePicker();
 
@@ -117,7 +114,7 @@ public class ViewShipmentsView extends Div {
             portOfDestination.setItems(ports);
             portOfDestination.setItemLabelGenerator(Port::getPortLabel);
 
-            status.setItems(ShipmentStatus.values());
+            //status.setItems(ShipmentStatus.values());
             status.setLabel("Shipment Status");
 
             // Action buttons

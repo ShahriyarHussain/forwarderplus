@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.views.newbooking;
 
 import com.lazoft.forwarderplus.entity.*;
-import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ContainerType;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
@@ -10,6 +9,7 @@ import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.views.MainLayout;
+import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
@@ -19,7 +19,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -28,16 +30,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.persistence.OneToOne;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.ast.Not;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDateTime;
@@ -57,7 +56,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final ComboBox<Client> clients = new ComboBox<>("Shipper");
     private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
     private final ComboBox<Port> loadingPort = new ComboBox<>("Port Of Loading");
-    private final ComboBox<Port> destinationPort = new ComboBox<>("Port Of Loading");
+    private final ComboBox<Port> destinationPort = new ComboBox<>("Port Of Destination");
     private final TextField remarks = new TextField("Remarks");
     private final IntegerField numOfShipments = new IntegerField("Number Of Shipments");
 
@@ -67,8 +66,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
 
     private final Button createBooking = new Button("Create Booking");
     private final Button reset = new Button("Reset");
-    VerticalLayout bookingSummary = new VerticalLayout();
-
 
     private final ClientService clientService;
     private final CarrierService carrierService;
@@ -84,6 +81,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         this.carrierService = carrierService;
         this.portService = portService;
         this.bookingService = bookingService;
+
         if (authenticatedUser.get().isPresent()) {
             user = authenticatedUser.get().get();
         } else {
@@ -93,16 +91,12 @@ public class NewBookingView extends Composite<VerticalLayout> {
             dialog.setConfirmButton(new Button("Logout", event -> authenticatedUser.logout()));
         }
 
-
         setComponentAttributes();
-        prepareBookingSummary();
-
         HorizontalLayout clientsLayout = getClientLayout();
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
         formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, loadingPort,
                 destinationPort, numOfShipments, clientsLayout, remarks, new Hr());
-//        formLayout.setColspan(remarks, 2);
         formLayout.setMaxWidth("75%");
 
         HorizontalLayout layoutRow = new HorizontalLayout();
@@ -127,15 +121,24 @@ public class NewBookingView extends Composite<VerticalLayout> {
         layoutRow.add(layoutColumn2);
         layoutColumn2.add(h3, formLayout, new HorizontalLayout(createBooking, reset));
         layoutRow.add(layoutColumn3);
-        layoutColumn3.add(h32, bookingSummary);
-
-
     }
 
     private void setComponentAttributes() {
         setCarrierAttributes();
         setButtonAttributes();
         setPortAttributes();
+
+        bookingNo.setRequired(true);
+        commodity.setRequired(true);
+        carrier.setRequired(true);
+
+        numberOfContainers.setRequired(true);
+        numberOfContainers.setMin(1);
+        numberOfContainers.setMax(10000);
+
+        numOfShipments.setRequired(true);
+        numOfShipments.setMin(0);
+        numOfShipments.setMax(100);
 
         containerSize.setRequired(true);
         containerSize.setItems(ContainerSize.values());
@@ -144,10 +147,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
         containerType.setRequired(true);
         containerType.setItems(ContainerType.values());
         containerType.setItemLabelGenerator(ContainerType::getContainerType);
-        
-        numOfShipments.setValue(1);
-        numOfShipments.setMax(100);
-        numOfShipments.setMin(1);
     }
 
     private void setCarrierAttributes() {
@@ -178,14 +177,9 @@ public class NewBookingView extends Composite<VerticalLayout> {
                 notification.open();
                 return;
             }
-            prepareBookingSummary();
             try {
-                createNewBooking();
-                Notification notification = getNotificationComponent(false);
-                notification.setText("New Booking Successfully Created. Booking Id: " + bookingNo.getValue());
-                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-                notification.setDuration(5000);
-                notification.open();
+                Booking booking = createNewBooking();
+                showBookingConfirmationDialog(booking);
             } catch (Exception e) {
                 Notification notification = getNotificationComponent(true);
                 notification.setText("Unexpected error! " + e.getMessage());
@@ -210,7 +204,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         return notification;
     }
 
-    private void createNewBooking() {
+    private Booking createNewBooking() {
         Booking booking = new Booking();
         booking.setBookingNo(bookingNo.getValue());
         booking.setContainerType(containerType.getValue().getContainerType());
@@ -224,7 +218,8 @@ public class NewBookingView extends Composite<VerticalLayout> {
         booking.setDestinationPort(destinationPort.getValue());
         booking.setShipper(clients.getValue());
         booking.setNumOfShipments(numOfShipments.getValue());
-        bookingService.createBooking(booking);
+        booking.setCarrier(carrier.getValue());
+        return bookingService.createBooking(booking);
     }
 
     private void setResetButtonAttributes() {
@@ -238,16 +233,19 @@ public class NewBookingView extends Composite<VerticalLayout> {
     }
 
     private boolean isAllFieldsValid() {
-        bookingNo.setInvalid(false);
-        numberOfContainers.setInvalid(false);
-        containerType.setInvalid(false);
-        containerSize.setInvalid(false);
-        commodity.setInvalid(false);
-        carrier.setInvalid(false);
-        clients.setInvalid(false);
-        numOfShipments.setInvalid(false);
-
         boolean isValid = true;
+        if (StringUtils.isAllBlank(bookingNo.getValue())) {
+            bookingNo.setInvalid(true);
+            bookingNo.setErrorMessage("Booking No Cannot be Empty!");
+            bookingNo.focus();
+            isValid = false;
+        }
+        if (bookingService.bookingExists(bookingNo.getValue())) {
+            bookingNo.setInvalid(true);
+            bookingNo.setErrorMessage("Booking with the same booking no already exists!");
+            bookingNo.focus();
+            isValid = false;
+        }
         if (numOfShipments.getValue() == null || numOfShipments.getValue() < 1 || numOfShipments.getValue() > 100) {
             numOfShipments.setInvalid(true);
             numOfShipments.setErrorMessage("Value must be between 1 and 100");
@@ -302,17 +300,16 @@ public class NewBookingView extends Composite<VerticalLayout> {
             numberOfContainers.focus();
             isValid = false;
         }
-        if (StringUtils.isAllBlank(bookingNo.getValue())) {
-            bookingNo.setInvalid(true);
-            bookingNo.setErrorMessage("Booking No Cannot be Empty!");
-            bookingNo.focus();
-            isValid = false;
-        }
-        if (bookingService.getBooking(bookingNo.getValue())) {
-            bookingNo.setInvalid(true);
-            bookingNo.setErrorMessage("Booking with the same booking no already exists!");
-            bookingNo.focus();
-            isValid = false;
+
+        if (isValid) {
+            bookingNo.setInvalid(false);
+            numberOfContainers.setInvalid(false);
+            containerType.setInvalid(false);
+            containerSize.setInvalid(false);
+            commodity.setInvalid(false);
+            carrier.setInvalid(false);
+            clients.setInvalid(false);
+            numOfShipments.setInvalid(false);
         }
 
         return isValid;
@@ -322,10 +319,10 @@ public class NewBookingView extends Composite<VerticalLayout> {
         HorizontalLayout clientLayout = new HorizontalLayout();
         clientLayout.setAlignItems(VerticalLayout.Alignment.END);
         Button addButton = new Button();
-        addButton.setTooltipText("Add New Client");
+        addButton.setTooltipText("Add New Shipper");
         addButton.setIcon(LineAwesomeIcon.USER_PLUS_SOLID.create());
         addButton.setWidth("10%");
-        addButton.addClickListener(event -> createClientDialog().open());
+        addButton.addClickListener(event -> new ClientCreationDialogView(clientService, clientList).open());
 
         clients.setWidth("90%");
         clients.setRequired(true);
@@ -342,136 +339,27 @@ public class NewBookingView extends Composite<VerticalLayout> {
         return clientLayout;
     }
 
-    private Dialog createClientDialog() {
+
+    private void showBookingConfirmationDialog(Booking booking) {
         Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Booking Created!");
+        FormLayout bookingConfirmationLayout = new FormLayout();
 
-        H3 h3 = new H3("Add Shipper");
-        dialog.getHeader().add(h3);
+        bookingConfirmationLayout.addFormItem(new Text(booking.getBookingNo()), "Booking No:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getNumOfContainers() + " X " + booking.getContainerSize() +
+                " " + booking.getContainerType()),  "Containers:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getCommodity()),  "Commodity:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getCarrier().getName()),  "Carrier:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getShipper().getName()),  "Shipper:");
 
-        FormLayout formLayout = new FormLayout();
-        formLayout.setWidth("fit-content");
+        Button okButton = new Button("OK");
+        okButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        okButton.addClickListener(event -> dialog.close());
 
-        TextField partyName = new TextField("Name (as printed on B/L)");
-        partyName.setValue(clients.getValue() != null ? clients.getValue().getName() : "");
-        partyName.setRequired(true);
-        partyName.addBlurListener(event -> validateTextFieldForEmpty(event.getSource()));
-
-        TextField email = new TextField("Email");
-        //email.setRequired(true);
-        //partyName.addBlurListener(event -> validateTextFieldForEmpty(event.getSource());A
-
-        TextArea address = new TextArea("Address (as printed on B/L");
-        address.addBlurListener(event -> {
-            TextArea area = event.getSource();
-            if (area.getValue() == null || area.getValue().trim().isEmpty()) {
-                area.setInvalid(true);
-                area.setErrorMessage("Cannot be empty");
-            } else {
-                area.setInvalid(false);
-            }
-        });
-
-        TextField city = new TextField("City");
-        TextField country = new TextField("Country");
-        TextField taxId = new TextField("TaxId");
-        TextField postCode = new TextField("Post/Zip Code");
-        TextField accountNum = new TextField("Bank Account");
-        TextField accountBank = new TextField("Bank Name");
-
-
-        ComboBox<ClientType> partyType = new ComboBox<>("Party Type");
-        partyType.setItems(ClientType.values());
-        partyType.setItemLabelGenerator(ClientType::name);
-        partyType.setRequired(true);
-        partyType.setRequiredIndicatorVisible(true);
-        partyType.setValue(ClientType.SHIPPER);
-
-        Button addButton = new Button("Add", event -> {
-            Notification notification = new Notification();
-            notification.setDuration(4000);
-            notification.setPosition(Notification.Position.TOP_END);
-            if (partyName.isInvalid() || partyType.isInvalid() || address.isInvalid()) {
-                notification.setText("Please fill up all required fields");
-                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                notification.open();
-                return;
-            }
-            Client client = new Client();
-            client.setName(partyName.getValue());
-            client.setType(partyType.getValue());
-            client.setCity(city.getValue());
-            client.setAddress(address.getValue());
-            client.setCountry(country.getValue());
-            client.setPostCode(postCode.getValue());
-            client.setTaxId(taxId.getValue());
-            client.setEmail(email.getValue());
-            client.setAccountBank(accountBank.getValue());
-            client.setAccountNumber(accountNum.getValue());
-
-            try {
-                Client savedClient = clientService.saveClient(client);
-                notification.setText("Shipper Added Successfully!");
-                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-                clientList.add(savedClient);
-                dialog.close();
-            } catch (Exception e) {
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setText("Error: " + e.getMessage());
-                notification.open();
-            }
-            notification.open();
-        });
-        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button closeButton = new Button("Close", event -> dialog.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-
-        formLayout.add(partyName, partyType, address, email, city, country, taxId, postCode, accountNum, accountBank);
-        formLayout.setColspan(address, 2);
-
-        dialog.add(formLayout);
-        dialog.setWidth(700, Unit.PIXELS);
-        dialog.getFooter().add(addButton, closeButton);
-
-        return dialog;
-    }
-
-    private void validateTextFieldForEmpty(TextField textField) {
-        if (textField.getValue() == null || textField.getValue().trim().isEmpty()) {
-            textField.setInvalid(true);
-            textField.setErrorMessage("Cannot be empty");
-        } else {
-            textField.setInvalid(false);
-        }
-    }
-
-    private void prepareBookingSummary() {
-        H4 exportBooking = new H4("Export Booking");
-
-        HorizontalLayout bookingLayout = new HorizontalLayout(new H6("Booking No: "), new Text(bookingNo.getValue()));
-        bookingLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        HorizontalLayout containerLayout = new HorizontalLayout(new H6("Container: "),
-                new Text(numberOfContainers.getValue() + " X " +
-                        (containerSize.getValue() == null ? "" : containerSize.getValue().getContainerSize()) + " " +
-                        (containerType.getValue() == null ? "" : containerType.getValue().getContainerType())));
-        containerLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        HorizontalLayout commodityLayout = new HorizontalLayout(new H6("Commodity: "),
-                new Text(commodity.getValue()));
-        commodityLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        HorizontalLayout carrierLayout = new HorizontalLayout(new H6("Carrier: "),
-                new Text(carrier.getValue() == null ? "" : carrier.getValue().getName()));
-        carrierLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        HorizontalLayout shipperLayout = new HorizontalLayout(new H6("Shipper: "),
-                new Text(clients.getValue() == null ? "" : clients.getValue().getName()));
-        shipperLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        bookingSummary.removeAll();
-        bookingSummary.add(exportBooking, shipperLayout, containerLayout, commodityLayout, carrierLayout, bookingLayout);
-        bookingSummary.setVisible(true);
+        dialog.add(bookingConfirmationLayout);
+        dialog.setWidth(400, Unit.PIXELS);
+        dialog.getFooter().add(okButton);
+        dialog.open();
     }
 
     private void setPortAttributes() {

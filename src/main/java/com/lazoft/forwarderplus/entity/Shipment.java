@@ -27,6 +27,7 @@ public class Shipment {
     private String marks;
     private String goodsDescription;
     private String clientInvoiceNo;
+    private int numOfContainers;
 
     @Enumerated(EnumType.STRING)
     private ShipmentStatus status;
