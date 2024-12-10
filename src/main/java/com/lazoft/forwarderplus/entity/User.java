@@ -25,12 +25,8 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
-    @Lob
-    @Column(length = 1000000)
-    private byte[] profilePicture;
-
     private String contactNo;
     private String email;
-    private String bio;
+    private String designation;
 
 }

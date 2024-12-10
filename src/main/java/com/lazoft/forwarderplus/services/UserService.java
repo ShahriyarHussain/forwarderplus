@@ -23,6 +23,10 @@ public class UserService {
         return repository.findById(id);
     }
 
+    public boolean existsByEmail(String email) {
+        return repository.existsUserByEmail(email);
+    }
+
     public User update(User entity) {
         return repository.save(entity);
     }
