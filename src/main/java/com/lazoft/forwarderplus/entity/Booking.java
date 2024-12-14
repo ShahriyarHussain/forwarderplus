@@ -1,10 +1,8 @@
 package com.lazoft.forwarderplus.entity;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Fetch;
 
 import java.time.LocalDateTime;
 import java.util.Set;

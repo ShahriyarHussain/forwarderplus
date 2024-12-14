@@ -2,7 +2,6 @@ package com.lazoft.forwarderplus.entity;
 
 
 import com.lazoft.forwarderplus.enums.ClientType;
-import com.vaadin.flow.component.tabs.Tab;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,8 +9,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 @Entity
 @Getter

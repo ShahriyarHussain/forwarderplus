@@ -96,8 +96,6 @@ public class ShippingOrderDialog extends Dialog {
                 schedule.setPortOfLoading(booking.getLoadingPort());
                 schedule.setPortOfDischarge(booking.getDestinationPort());
             }
-
-
             //stuffingDetails.setShipment(shipment);
 
             stuffingDetails.setStuffingId(shipment.getShipmentId());

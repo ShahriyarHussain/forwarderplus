@@ -2,13 +2,12 @@ package com.lazoft.forwarderplus.services;
 
 import com.lazoft.forwarderplus.entity.SamplePerson;
 import com.lazoft.forwarderplus.repository.SamplePersonRepository;
-
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class SamplePersonService {

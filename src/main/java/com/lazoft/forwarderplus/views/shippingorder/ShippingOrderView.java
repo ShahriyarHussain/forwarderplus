@@ -273,7 +273,7 @@ public class ShippingOrderView extends Div {
 
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShippingOrderPage(shipment, user, clientService, stuffingDetailsService,
+        create.addClickListener(event -> new ShippingOrderDialog(shipment, user, clientService, stuffingDetailsService,
                 scheduleService, shipmentService).open());
         return create;
     }
@@ -401,7 +401,6 @@ public class ShippingOrderView extends Div {
             clientLayout.add(notifyParty, addButton);
             return clientLayout;
         }
-
 
         protected void setExistingValues(Shipment shipment) {
             documentDate.setValue(LocalDate.now());

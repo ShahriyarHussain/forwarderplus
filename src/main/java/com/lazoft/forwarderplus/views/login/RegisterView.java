@@ -9,10 +9,11 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @AnonymousAllowed
@@ -110,18 +112,23 @@ public class RegisterView extends VerticalLayout {
             user.setName(fullName.getValue());
             user.setEmail(email.getValue());
             user.setHashedPassword(passwordEncoder.encode(password.getValue()));
-            user.setContactNo(country.getValue().getCountryCode() + contactNumber.getValue());
+            if (country.getValue() != null) {
+                user.setContactNo(country.getValue().getCountryCode() + contactNumber.getValue());
+            }
             user.setDesignation(designation.getValue());
             user.setRoles(Set.of(Role.USER));
+            user.setUserNotLocked(false);
+            user.setPasswordNotExpired(true);
+            user.setNotTerminated(true);
+            user.setCreatedOn(LocalDateTime.now());
             userService.create(user);
-            Notification notification = new Notification();
-            notification.setText("User Registered!");
-            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            notification.setDuration(4000);
-                notification.setPosition(Notification.Position.TOP_START);
-            notification.open();
-            registerButton.getUI().ifPresent(ui ->
-                    ui.navigate("login"));
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setHeader("User Created Successfully!");
+            confirmDialog.setText(new H5("You need approval from ADMIN before you can log in"));
+            confirmDialog.setCancelable(false);
+            confirmDialog.setConfirmButton(new Button("OK", confirmEvent -> confirmEvent.getSource().getUI()
+                    .ifPresent(ui -> ui.navigate("login"))));
+            confirmDialog.open();
         });
 
         loginButton.addClickListener(event -> registerButton.getUI().ifPresent(ui -> ui.navigate("login")));
@@ -188,8 +195,8 @@ public class RegisterView extends VerticalLayout {
             confirmPassword.setInvalid(true);
         } else if (password.getValue().matches("")) {
             password.setInvalid(true);
-        } else if (!isStrongPassword()) {
-            password.setInvalid(true);
+//        } else if (!isStrongPassword()) {
+//            password.setInvalid(true);
         } else {
             confirmPassword.setInvalid(false);
         }

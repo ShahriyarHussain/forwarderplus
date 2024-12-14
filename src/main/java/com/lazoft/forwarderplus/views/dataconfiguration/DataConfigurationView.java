@@ -20,10 +20,11 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import jakarta.annotation.security.RolesAllowed;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @PageTitle("Data Configuration")
 @Route(value = "data-configuration", layout = MainLayout.class)
