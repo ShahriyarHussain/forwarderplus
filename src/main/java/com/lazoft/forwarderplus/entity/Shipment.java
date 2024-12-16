@@ -35,6 +35,8 @@ public class Shipment {
 
     @ManyToOne
     private Carrier carrier;
+//    @ManyToOne
+//    private Commodity commodity;
     @ManyToOne
     private User createdBy;
     @ManyToOne
@@ -50,7 +52,7 @@ public class Shipment {
     private StuffingDetails stuffingDetails;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "scheduleId")
     private Schedule schedule;
 

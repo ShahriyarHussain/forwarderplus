@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.security;
 
 import com.lazoft.forwarderplus.entity.User;
-import com.lazoft.forwarderplus.repository.UserRepository;
 import com.lazoft.forwarderplus.services.UserService;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import lombok.RequiredArgsConstructor;

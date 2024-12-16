@@ -4,6 +4,7 @@ package com.lazoft.forwarderplus.views.commonViews;
 import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.services.ClientService;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -62,13 +63,9 @@ public class ClientCreationDialogView extends Dialog {
         partyType.setValue(ClientType.SHIPPER);
 
         Button addButton = new Button("Add", event -> {
-            Notification notification = new Notification();
-            notification.setDuration(4000);
-            notification.setPosition(Notification.Position.TOP_END);
             if (partyName.isInvalid() || partyType.isInvalid() || address.isInvalid()) {
-                notification.setText("Please fill up all required fields");
-                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                notification.open();
+                NotificationUtil.getNotification("Please fill up all required fields", "", false,
+                        NotificationVariant.LUMO_WARNING, 4000).open();
                 return;
             }
             Client client = new Client();
@@ -85,16 +82,14 @@ public class ClientCreationDialogView extends Dialog {
 
             try {
                 Client savedClient = clientService.saveClient(client);
-                notification.setText("Shipper Added Successfully!");
-                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                NotificationUtil.getNotification("Client Saved Successfully!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 4000).open();
                 clientList.add(savedClient);
                 this.close();
             } catch (Exception e) {
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setText("Error: " + e.getMessage());
-                notification.open();
+                NotificationUtil.getNotification("Unexpected Error while saving client!", e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 5000).open();
             }
-            notification.open();
         });
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

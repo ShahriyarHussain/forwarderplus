@@ -1,6 +1,5 @@
-package com.lazoft.forwarderplus.views.shippingorder;
+package com.lazoft.forwarderplus.views.exportviews.shippingOrder;
 
-import com.lazoft.forwarderplus.Util.DateUtil;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
@@ -8,6 +7,8 @@ import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ScheduleService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.services.StuffingDetailsService;
+import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -19,7 +20,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -35,7 +36,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ShippingOrderDialog extends Dialog {
     private final DatePicker documentDate = new DatePicker("Report Date");
@@ -57,11 +60,16 @@ public class ShippingOrderDialog extends Dialog {
     private final User user;
     private final List<Client> clientList;
     private final ClientService clientService;
+    private final ShippingOrderView shippingOrderView;
 
     public ShippingOrderDialog(Shipment shipment, User user, ClientService clientService,
-                             StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService,
-                             ShipmentService shipmentService) {
+                               StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService,
+                               ShipmentService shipmentService, ShippingOrderView shippingOrderView) {
         this.clientService = clientService;
+        this.shippingOrderView = shippingOrderView;
+        this.user = user;
+        this.setWidth(800, Unit.PIXELS);
+
         clientList = clientService.getClientsByType(List.of(ClientType.NOTIFY_PARTY, ClientType.ALL));
         notifyParty.setItems(clientService.getAllClients());
         notifyParty.setItemLabelGenerator(Client::getName);
@@ -70,68 +78,56 @@ public class ShippingOrderDialog extends Dialog {
         portOfDischarge.setReadOnly(true);
         stuffingDetails = shipment.getStuffingDetails();
         booking = shipment.getBooking();
-        //schedule = shipment.getSchedule();
 
-        this.user = user;
-
-        this.setWidth(800, Unit.PIXELS);
         FormLayout formLayout = new FormLayout();
         formLayout.add(documentDate, new Hr(), bookingNo, vessel, portOfLoading, portOfDischarge, shipper, getClientLayout(),
                 cnfAgentName, cnfAgentContact, quantity, units);
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
-
         setExistingValues(shipment);
 
         Button saveButton = new Button("Save");
         saveButton.setIcon(LineAwesomeIcon.SAVE_SOLID.create());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(event -> {
-            if (stuffingDetails == null) {
-                stuffingDetails = new StuffingDetails();
-                stuffingDetails.setQuantity(quantity.getValue());
+            try {
+                saveShipment(shipment, stuffingDetailsService, shipmentService);
+            } catch (Exception e) {
+
             }
-            if (schedule == null) {
-                schedule = new Schedule();
-                schedule.setFeederVesselName(vessel.getValue());
-                schedule.setPortOfLoading(booking.getLoadingPort());
-                schedule.setPortOfDischarge(booking.getDestinationPort());
-            }
-            //stuffingDetails.setShipment(shipment);
-
-            stuffingDetails.setStuffingId(shipment.getShipmentId());
-            stuffingDetails.setPackageUnit(units.getValue());
-            stuffingDetails.setCnfAgentName(cnfAgentName.getValue());
-            stuffingDetails.setCnfAgentContactNo(cnfAgentContact.getValue());
-            stuffingDetails.setQuantity(quantity.getValue());
-            StuffingDetails savedStuffingDetails = stuffingDetailsService.saveStuffingDetails(stuffingDetails);
-
-            Set<Shipment> shipmentSet = schedule.getShipment() == null ? new HashSet<>() : schedule.getShipment();
-            shipmentSet.add(shipment);
-            schedule.setPortOfLoading(booking.getLoadingPort());
-            schedule.setPortOfDischarge(booking.getDestinationPort());
-            schedule.setFeederVesselName(vessel.getValue());
-            schedule.setShipment(shipmentSet);
-            Schedule savedSchedule = scheduleService.saveSchedule(schedule);
-
-            shipment.setNumOfContainers(numOfContainers.getValue());
-            shipment.setStuffingDetails(savedStuffingDetails);
-            shipment.setSchedule(savedSchedule);
-            shipment.setNotifyParty(notifyParty.getValue());
-            shipmentService.saveShipment(shipment);
-            Notification notification = new Notification();
-            notification.setDuration(4000);
-            notification.setPosition(Notification.Position.TOP_END);
-            notification.setText("Saved Successfully!");
-            notification.open();
         });
 
         this.add(new H3("Shipping Order"), new Hr(), formLayout);
 
         Anchor printButtonAnchor = getReportDownloadButtonAnchor(shipment, booking);
-
-        Button closeButton = new Button("Close", event -> this.close());
+        Button closeButton = new Button("Close", event -> {
+            shippingOrderView.refreshGrid();
+            this.close();
+        });
         closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+
         this.getFooter().add(saveButton, printButtonAnchor, closeButton);
+    }
+
+    private void saveShipment(Shipment shipment, StuffingDetailsService stuffingDetailsService, ShipmentService shipmentService) {
+        if (stuffingDetails == null) {
+            stuffingDetails = new StuffingDetails();
+            stuffingDetails.setQuantity(quantity.getValue());
+        }
+
+        stuffingDetails.setStuffingId(shipment.getShipmentId());
+        stuffingDetails.setPackageUnit(units.getValue());
+        stuffingDetails.setCnfAgentName(cnfAgentName.getValue());
+        stuffingDetails.setCnfAgentContactNo(cnfAgentContact.getValue());
+        stuffingDetails.setQuantity(quantity.getValue());
+        StuffingDetails savedStuffingDetails = stuffingDetailsService.saveStuffingDetails(stuffingDetails);
+
+        shipment.setNumOfContainers(numOfContainers.getValue());
+        shipment.setStuffingDetails(savedStuffingDetails);
+        shipment.setNotifyParty(notifyParty.getValue());
+        shipmentService.saveShipment(shipment);
+
+        NotificationUtil.getNotification("Saved Successfully!", "", false,
+                NotificationVariant.LUMO_PRIMARY, 4000);
     }
 
 
@@ -180,17 +176,11 @@ public class ShippingOrderDialog extends Dialog {
             cnfAgentContact.setValue(stuffingDetails.getCnfAgentContactNo());
             units.setValue(stuffingDetails.getPackageUnit());
             quantity.setValue(stuffingDetails.getQuantity());
-            //.setValue(stuffingDetails.getStuffingCharge());
-            //.setValue(stuffingDetails.getStuffingDate());
-            //.setValue(stuffingDetails.getStuffingDepot());
         }
-
 
         schedule = shipment.getSchedule();
         if (schedule != null) {
             vessel.setValue(schedule.getFeederVesselName());
-            portOfLoading.setValue(schedule.getPortOfLoading().getPortLabel());
-            portOfDischarge.setValue(schedule.getPortOfDischarge().getPortLabel());
         }
     }
 
@@ -223,7 +213,6 @@ public class ShippingOrderDialog extends Dialog {
         StuffingDetails stuffingDetails = shipment.getStuffingDetails();
         Booking booking = shipment.getBooking();
         Schedule schedule = shipment.getSchedule();
-
 
         paramMap.put("LOGO_URL", "Images/logo_best.png");
 

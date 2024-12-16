@@ -3,14 +3,13 @@ package com.lazoft.forwarderplus.views;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
-import com.lazoft.forwarderplus.views.admin.UserConfigurationView;
 import com.lazoft.forwarderplus.views.blmanager.BLManagerView;
-import com.lazoft.forwarderplus.views.chat.ChatView;
+import com.lazoft.forwarderplus.views.configviews.DataConfigurationView;
+import com.lazoft.forwarderplus.views.configviews.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;
-import com.lazoft.forwarderplus.views.dataconfiguration.DataConfigurationView;
-import com.lazoft.forwarderplus.views.finances.FinancesView;
-import com.lazoft.forwarderplus.views.newbooking.NewBookingView;
-import com.lazoft.forwarderplus.views.shippingorder.ShippingOrderView;
+import com.lazoft.forwarderplus.views.exportviews.NewBookingView;
+import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceView;
+import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -26,8 +25,6 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.Optional;
@@ -37,7 +34,6 @@ import java.util.Optional;
  */
 public class MainLayout extends AppLayout {
 
-    private static final Logger log = LoggerFactory.getLogger(MainLayout.class);
     private H1 viewTitle;
 
     private final AuthenticatedUser authenticatedUser;
@@ -81,9 +77,11 @@ public class MainLayout extends AppLayout {
 
         SideNavItem exportOverview = new SideNavItem("Export Overview");
         exportOverview.setPrefixComponent(LineAwesomeIcon.SHIP_SOLID.create());
-        exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.FOLDER_PLUS_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class,LineAwesomeIcon.BRIEFCASE_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("B/L Manager", BLManagerView.class, LineAwesomeIcon.PAGER_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.WAREHOUSE_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Shipment Invoice", ShippingOrderView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
 
         if (accessChecker.hasAccess(NewBookingView.class)) {
             nav.addItem(exportOverview);
@@ -91,18 +89,21 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {
             nav.addItem(new SideNavItem("View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
         }
-        if (accessChecker.hasAccess(FinancesView.class)) {
-            nav.addItem(new SideNavItem("Finances", FinancesView.class, LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create()));
-        }
+//        if (accessChecker.hasAccess(FinancesView.class)) {
+//            nav.addItem(new SideNavItem("Finances", FinancesView.class, LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create()));
+//        }
+
+        SideNavItem adminActions = new SideNavItem("Configurations");
+        adminActions.setPrefixComponent(LineAwesomeIcon.WRENCH_SOLID.create());
+        adminActions.addItem(new SideNavItem("Data Config", DataConfigurationView.class, LineAwesomeIcon.DATABASE_SOLID.create()));
+        adminActions.addItem(new SideNavItem("User Management", UserConfigurationView.class,LineAwesomeIcon.USER_EDIT_SOLID.create()));
+
         if (accessChecker.hasAccess(DataConfigurationView.class)) {
-            nav.addItem(new SideNavItem("Data Configuration", DataConfigurationView.class, LineAwesomeIcon.WRENCH_SOLID.create()));
+            nav.addItem(adminActions);
         }
-        if (accessChecker.hasAccess(DataConfigurationView.class)) {
-            nav.addItem(new SideNavItem("User Management", UserConfigurationView.class, LineAwesomeIcon.USER_EDIT_SOLID.create()));
-        }
-        if (accessChecker.hasAccess(ChatView.class)) {
-            nav.addItem(new SideNavItem("Chat", ChatView.class, LineAwesomeIcon.SMS_SOLID.create()));
-        }
+//        if (accessChecker.hasAccess(ChatView.class)) {
+//            nav.addItem(new SideNavItem("Chat", ChatView.class, LineAwesomeIcon.SMS_SOLID.create()));
+//        }
         if (accessChecker.hasAccess(AboutView.class)) {
             nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.QUESTION_CIRCLE_SOLID.create()));
         }
@@ -117,9 +118,6 @@ public class MainLayout extends AppLayout {
             User user = maybeUser.get();
 
             Avatar avatar = new Avatar(user.getName());
-//            StreamResource resource = new StreamResource("profile-pic",
-//                    () -> new ByteArrayInputStream(user.getProfilePicture()));
-//            avatar.setImageResource(resource);
             avatar.setThemeName("xsmall");
             avatar.getElement().setAttribute("tabindex", "-1");
 

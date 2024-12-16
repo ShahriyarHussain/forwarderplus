@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ShipmentStatus {
     NEW("New"),
-    SHIPPING_ORDER_CREATED("Shipping Order Done"),
-    SHIPMENT_ADVICE_DONE("Shipment Advice Done"),
+    SHIPPING_ORDER_CREATED("Shipping Order OK"),
+    SHIPMENT_ADVICE_DONE("Shipment Advice OK"),
     SHIPMENT_ADVICE_SENT("Shipment Advice Sent"),
     SHIPPING_INSTRUCTION_SUBMITTED("SI Submitted"),
     BL_DRAFT_SENT_TO_SHIPPER("B/L Draft Sent"),

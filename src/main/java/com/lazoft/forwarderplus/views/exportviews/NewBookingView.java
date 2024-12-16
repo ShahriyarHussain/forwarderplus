@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.newbooking;
+package com.lazoft.forwarderplus.views.exportviews;
 
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
@@ -8,6 +8,7 @@ import com.lazoft.forwarderplus.services.BookingService;
 import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
 import com.vaadin.flow.component.Composite;
@@ -22,18 +23,13 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import jakarta.annotation.security.RolesAllowed;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +41,7 @@ import java.util.List;
 
 @PageTitle("New Booking")
 @Route(value = "new-booking", layout = MainLayout.class)
-@RolesAllowed("USER")
+@RolesAllowed({"USER", "ADMIN"})
 public class NewBookingView extends Composite<VerticalLayout> {
 
     private final TextField bookingNo = new TextField("Booking No");
@@ -65,7 +61,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final List<Port> portList = new LinkedList<>();
 
     private final Button createBooking = new Button("Create Booking");
-    private final Button reset = new Button("Reset");
 
     private final ClientService clientService;
     private final CarrierService carrierService;
@@ -73,7 +68,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final BookingService bookingService;
 
     private User user;
-
 
     public NewBookingView(ClientService clientService, CarrierService carrierService, PortService portService,
                           AuthenticatedUser authenticatedUser, BookingService bookingService) {
@@ -119,6 +113,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         h32.setWidth("max-content");
         getContent().add(layoutRow);
         layoutRow.add(layoutColumn2);
+        Button reset = new Button("Reset");
         layoutColumn2.add(h3, formLayout, new HorizontalLayout(createBooking, reset));
         layoutRow.add(layoutColumn3);
     }
@@ -170,38 +165,18 @@ public class NewBookingView extends Composite<VerticalLayout> {
         createBooking.setIcon(LineAwesomeIcon.PLUS_SOLID.create());
         createBooking.addClickListener(event -> {
             if (!isAllFieldsValid()) {
-                Notification notification = getNotificationComponent(true);
-                notification.setText("Please provide correct data in the marked fields!");
-                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                notification.setDuration(4000);
-                notification.open();
+                NotificationUtil.getNotification("Please provide correct data in the marked fields!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 4000).open();
                 return;
             }
             try {
                 Booking booking = createNewBooking();
                 showBookingConfirmationDialog(booking);
             } catch (Exception e) {
-                Notification notification = getNotificationComponent(true);
-                notification.setText("Unexpected error! " + e.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setDuration(5000);
-                notification.open();
-                e.printStackTrace();
+                NotificationUtil.getNotification("Unexpected error! " + e.getMessage(), e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 5000).open();
             }
         });
-    }
-
-    private Notification getNotificationComponent(boolean isError) {
-        Notification notification = new Notification();
-        Icon icon =  isError ? LumoIcon.CROSS.create() : VaadinIcon.CHECK_CIRCLE.create();
-        Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create(), clickEvent -> notification.close());
-        closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        HorizontalLayout layout = new HorizontalLayout(icon, new Text("Application submitted!"), closeBtn);
-        layout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        notification.add(layout);
-        notification.setPosition(Notification.Position.TOP_END);
-        return notification;
     }
 
     private Booking createNewBooking() {
@@ -338,7 +313,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
         clientLayout.add(clients, addButton);
         return clientLayout;
     }
-
 
     private void showBookingConfirmationDialog(Booking booking) {
         Dialog dialog = new Dialog();

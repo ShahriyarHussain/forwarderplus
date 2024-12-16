@@ -1,8 +1,9 @@
-package com.lazoft.forwarderplus.views.admin;
+package com.lazoft.forwarderplus.views.configviews;
 
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;
 import com.lazoft.forwarderplus.services.UserService;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,11 +14,9 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -28,6 +27,7 @@ public class EditUserDialog extends Dialog {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final User selectedUser;
+    private final UserConfigurationView userConfigurationView;
 
     private final TextField username = new TextField("Username");
     private final TextField fullname = new TextField("Full Name");
@@ -39,11 +39,14 @@ public class EditUserDialog extends Dialog {
     private final Button save = new Button("Save");
 
 
-    public EditUserDialog(UserService userService, PasswordEncoder passwordEncoder, User selectedUser) {
+    public EditUserDialog(UserService userService, PasswordEncoder passwordEncoder, User selectedUser,
+                          UserConfigurationView userConfigurationView) {
         this.passwordEncoder = passwordEncoder;
         this.selectedUser = selectedUser;
         this.userService = userService;
+        this.userConfigurationView = userConfigurationView;
         this.setWidth(800, Unit.PIXELS);
+
         setExistingValues();
         setSaveButtonListener();
         setHeaderTitle("Edit User");
@@ -52,7 +55,10 @@ public class EditUserDialog extends Dialog {
         formLayout.add(username, email, fullname, designation, checkboxGroup, password, roles);
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
         add(formLayout);
-        getFooter().add(save, new Button("Cancel", event -> this.close()));
+        getFooter().add(save, new Button("Cancel", event -> {
+            userConfigurationView.refreshGrid();
+            this.close();
+        }));
     }
 
     private void setExistingValues() {
@@ -93,12 +99,8 @@ public class EditUserDialog extends Dialog {
             selectedUser.setModifiedOn(LocalDateTime.now());
             userService.update(selectedUser);
 
-            Notification notification = new Notification();
-            notification.setText("User Updated!");
-            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            notification.setDuration(4000);
-            notification.setPosition(Notification.Position.TOP_END);
-            notification.open();
+            NotificationUtil.getNotification("User updated successfully!", "", false,
+                    NotificationVariant.LUMO_PRIMARY, 4000).open();
         });
     }
 }

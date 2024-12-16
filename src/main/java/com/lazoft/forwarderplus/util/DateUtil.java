@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.Util;
+package com.lazoft.forwarderplus.util;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

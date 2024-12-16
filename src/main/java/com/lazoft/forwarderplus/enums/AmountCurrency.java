@@ -6,15 +6,16 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum AmountCurrency {
-    USD("US Dollar"),
-    BDT("Taka"),
-    JPY("Japanese Yen"),
-    AUD("Australian Dollar"),
-    CAD("Canadian Dollar"),
-    HKD("Hong Kong Dollar"),
-    CNY("Chinese Yen"),
-    EUR("Euro"),
-    GBP("Pound");
+    GBP("Pound", "£"),
+    EUR("Euro", "€"),
+    USD("US Dollar", "$"),
+    AUD("Australian Dollar", "$"),
+    CAD("Canadian Dollar", "$"),
+    CNY("Chinese Yuan", "¥"),
+    INR("Indian Rupee", "₹"),
+    BDT("Taka", "৳"),
+    JPY("Japanese Yen", "¥");
 
     private final String currencyName;
+    private final String symbol;
 }

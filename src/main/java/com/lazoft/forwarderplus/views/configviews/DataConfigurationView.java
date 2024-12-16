@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.dataconfiguration;
+package com.lazoft.forwarderplus.views.configviews;
 
 import com.lazoft.forwarderplus.entity.SamplePerson;
 import com.lazoft.forwarderplus.services.SamplePersonService;

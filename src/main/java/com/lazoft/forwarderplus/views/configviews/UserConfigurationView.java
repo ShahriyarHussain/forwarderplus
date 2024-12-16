@@ -1,12 +1,11 @@
-package com.lazoft.forwarderplus.views.admin;
+package com.lazoft.forwarderplus.views.configviews;
 
-import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.UserService;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.shippingorder.ShippingOrderDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -235,30 +234,22 @@ public class UserConfigurationView extends Div {
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         create.addClickListener(event -> {
             if (authenticatedUser.get().isEmpty()) {
-                Notification notification = new Notification();
-                notification.setText("User not logged in!");
-                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-                notification.setDuration(4000);
-                notification.setPosition(Notification.Position.TOP_END);
-                notification.open();
+                NotificationUtil.getNotification("User not logged in!", "", false,
+                        NotificationVariant.LUMO_ERROR, 4000).open();
                 event.getSource().getUI().ifPresent(ui -> ui.navigate("login"));
                 return;
             }
             if (user.getUsername().equals(authenticatedUser.get().get().getUsername())) {
-                Notification notification = new Notification();
-                notification.setText("You cannot edit your own User Configuration");
-                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                notification.setDuration(4000);
-                notification.setPosition(Notification.Position.TOP_END);
-                notification.open();
+                NotificationUtil.getNotification("You cannot edit your own configuration", "", false,
+                        NotificationVariant.LUMO_WARNING, 4000).open();
                 return;
             }
-            new EditUserDialog(userService, passwordEncoder, user).open();
+            new EditUserDialog(userService, passwordEncoder, user, this).open();
         });
         return create;
     }
 
-    private void refreshGrid() {
+    public void refreshGrid() {
         grid.getDataProvider().refreshAll();
     }
 
