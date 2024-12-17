@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -46,8 +47,8 @@ public class Shipment {
     @ManyToOne
     private Client notifyParty;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    private ContainerDetails containerDetails;
+    @OneToMany(fetch = FetchType.EAGER)
+    private Set<ContainerDetails> containerDetails;
     @OneToOne(fetch = FetchType.EAGER)
     private StuffingDetails stuffingDetails;
 

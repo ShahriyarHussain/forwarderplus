@@ -10,7 +10,7 @@ import lombok.Setter;
 @Table(name = "CARRIER")
 @Getter
 @Setter
-public class Carrier extends AbstractEntity{
+public class Carrier extends AbstractEntity {
     private String name;
     @NotEmpty
     private String Country;

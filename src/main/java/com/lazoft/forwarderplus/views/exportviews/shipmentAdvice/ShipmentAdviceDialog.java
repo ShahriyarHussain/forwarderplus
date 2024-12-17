@@ -11,17 +11,13 @@ import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ScheduleService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.vaadin.flow.component.accordion.Accordion;
-import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -76,6 +72,7 @@ public class ShipmentAdviceDialog extends Dialog {
         this.setHeight("85%");
         this.setHeaderTitle("Edit Shipment");
 
+        setListeners();
         setUpFormLayout();
         fillUpExistingValues();
 
@@ -101,6 +98,10 @@ public class ShipmentAdviceDialog extends Dialog {
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 
         getFooter().add(closeButton, downloadButton, saveButton);
+    }
+
+    private void setListeners() {
+        editCargo.addClickListener(event -> new EditCargoDialog().open());
     }
 
     private void fillUpExistingValues() {
