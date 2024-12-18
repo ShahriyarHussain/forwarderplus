@@ -72,9 +72,9 @@ public class ShipmentAdviceDialog extends Dialog {
         this.setHeight("85%");
         this.setHeaderTitle("Edit Shipment");
 
-        setListeners();
         setUpFormLayout();
         fillUpExistingValues();
+        setListeners();
 
         Button closeButton = new Button("Close");
         closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -102,6 +102,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
     private void setListeners() {
         editCargo.addClickListener(event -> new EditCargoDialog().open());
+        editSchedule.addClickListener(event -> new EditScheduleDialog().open());
     }
 
     private void fillUpExistingValues() {

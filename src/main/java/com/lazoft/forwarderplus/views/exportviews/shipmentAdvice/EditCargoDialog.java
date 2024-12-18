@@ -44,7 +44,7 @@ public class EditCargoDialog extends Dialog {
     private final Button addContainerBtn = new Button("Add");
     private final Button clearAllBtn = new Button("Clear All");
 
-    Button saveButton = new Button("Save");
+    private final Button saveButton = new Button("Save");
 
     public EditCargoDialog() {
         this.setHeaderTitle("Cargo Details");
