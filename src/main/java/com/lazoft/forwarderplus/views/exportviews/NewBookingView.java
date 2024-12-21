@@ -182,8 +182,8 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private Booking createNewBooking() {
         Booking booking = new Booking();
         booking.setBookingNo(bookingNo.getValue());
-        booking.setContainerType(containerType.getValue().getContainerType());
-        booking.setContainerSize(containerSize.getValue().getContainerSize());
+        booking.setContainerType(containerType.getValue());
+        booking.setContainerSize(containerSize.getValue());
         booking.setNumOfContainers(numberOfContainers.getValue());
         booking.setCommodity(commodity.getValue());
         booking.setRemarks(remarks.getValue());
@@ -320,8 +320,9 @@ public class NewBookingView extends Composite<VerticalLayout> {
         FormLayout bookingConfirmationLayout = new FormLayout();
 
         bookingConfirmationLayout.addFormItem(new Text(booking.getBookingNo()), "Booking No:");
-        bookingConfirmationLayout.addFormItem(new Text(booking.getNumOfContainers() + " X " + booking.getContainerSize() +
-                " " + booking.getContainerType()),  "Containers:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getNumOfContainers() + " X " +
+                booking.getContainerSize().getContainerSize() + " " + booking.getContainerType().getContainerType()),
+                "Containers:");
         bookingConfirmationLayout.addFormItem(new Text(booking.getCommodity()),  "Commodity:");
         bookingConfirmationLayout.addFormItem(new Text(booking.getCarrier().getName()),  "Carrier:");
         bookingConfirmationLayout.addFormItem(new Text(booking.getShipper().getName()),  "Shipper:");

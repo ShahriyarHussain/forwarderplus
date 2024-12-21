@@ -127,7 +127,7 @@ public class ShippingOrderDialog extends Dialog {
         shipmentService.saveShipment(shipment);
 
         NotificationUtil.getNotification("Saved Successfully!", "", false,
-                NotificationVariant.LUMO_PRIMARY, 4000);
+                NotificationVariant.LUMO_PRIMARY, 4000).open();
     }
 
 
@@ -231,7 +231,7 @@ public class ShippingOrderDialog extends Dialog {
 
         paramMap.put("PORT_OF_LOADING", schedule.getPortOfLoading().getPortCityAndCountry());
         paramMap.put("VESSEL", schedule.getFeederVesselName());
-        paramMap.put("PORT_OF_DELIVERY", schedule.getPortOfDischarge().getPortCityAndCountry());
+        paramMap.put("PORT_OF_DELIVERY", schedule.getPortOfDestination().getPortCityAndCountry());
 
         paramMap.put("SHIPPING_LINE", shipment.getCarrier().getName());
 

@@ -1,7 +1,10 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 
 import com.lazoft.forwarderplus.entity.ContainerDetails;
+import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.PackageUnit;
+import com.lazoft.forwarderplus.services.ContainerDetailsService;
+import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
@@ -29,8 +32,10 @@ import java.util.*;
 
 public class EditCargoDialog extends Dialog {
 
-    private final Set<ContainerDetails> containerList = new HashSet<>();
+    private final ContainerDetailsService containerDetailsService;
+    private final ShipmentService shipmentService;
 
+    private final Set<ContainerDetails> containerList = new HashSet<>();
 
     private final IntegerField numOfCont = new IntegerField("Container Quantity");
     private final TextField containerSize = new TextField("Container Size");
@@ -46,7 +51,10 @@ public class EditCargoDialog extends Dialog {
 
     private final Button saveButton = new Button("Save");
 
-    public EditCargoDialog() {
+    public EditCargoDialog(ContainerDetailsService containerDetailsService, ShipmentService shipmentService,
+                           Shipment shipment) {
+        this.containerDetailsService = containerDetailsService;
+        this.shipmentService = shipmentService;
         this.setHeaderTitle("Cargo Details");
         this.setWidth(900, Unit.PIXELS);
         this.getFooter().add(clearAllBtn, new Button("Close"), saveButton);

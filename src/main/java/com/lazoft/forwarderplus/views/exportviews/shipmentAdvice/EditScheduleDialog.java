@@ -1,12 +1,12 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 
-import com.lazoft.forwarderplus.entity.ContainerDetails;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Schedule;
+import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.entity.Transshipment;
-import com.lazoft.forwarderplus.enums.PackageUnit;
-import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.vaadin.flow.component.Text;
+import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.services.ScheduleService;
+import com.lazoft.forwarderplus.services.ShipmentService;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -19,57 +19,91 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class EditScheduleDialog extends Dialog {
 
-    private final Set<Transshipment> transshipmentSet = new HashSet<>();
+    private final ScheduleService scheduleService;
+    private final ShipmentService shipmentService;
+    private final PortService portService;
 
     private final ComboBox<Schedule> existingSchedule = new ComboBox<>("Choose Existing Schedule");
 
     private final TextField feederVessel = new TextField("Feeder Vessel");
-
     private final ComboBox<Port> portOfLoading = new ComboBox<>("Port of Loading");
     private final DatePicker etaPortOfLoading = new DatePicker("Port of Loading ETA");
     private final DatePicker etdPortOfLoading = new DatePicker("Port of Loading ETD");
 
     private final TextField motherVessel = new TextField("Mother Vessel");
     private final ComboBox<Port> motherVesselPort = new ComboBox<>("Mother Vessel Port");
-    private final DatePicker motherETAoConnect = new DatePicker("Mother Vessel Connect Port ETA");
+    private final DatePicker motherVesselPortETA = new DatePicker("Mother Vessel Connect Port ETA");
 
     private final ComboBox<Port> portOfDestination = new ComboBox<>("Port of Destination");
     private final DatePicker etaPortOfDestination = new DatePicker("Port of Destination ETA");
-
-    private final Button addPortButton = new Button(VaadinIcon.PLUS_CIRCLE_O.create());
 
     private final TextField transshipmentVessel = new TextField("Transshipment Vessel");
     private final ComboBox<Port> transshipmentPort = new ComboBox<>("Transshipment Port");
     private final DatePicker transshipmentETA = new DatePicker("Transshipment ETA");
 
+    private final Grid<Transshipment> grid = new Grid<>(Transshipment.class, false);
+
     private final Button addTransshipmentButton = new Button(VaadinIcon.CHECK_CIRCLE.create());
     private final Button clearAllBtn = new Button("Clear All");
-
     private final Button saveButton = new Button("Save");
 
-    public EditScheduleDialog() {
+    private final Set<Transshipment> transshipmentSet = new HashSet<>();
+    private final List<Port> portList = new LinkedList<>();
+    private Schedule schedule;
+    private final Shipment shipment;
+
+    public EditScheduleDialog(PortService portService, ShipmentService shipmentService,
+                              ScheduleService scheduleService, Shipment shipment) {
+
+        this.scheduleService = scheduleService;
+        this.shipmentService = shipmentService;
+        this.portService = portService;
+        this.shipment = shipment;
+        this.schedule = shipment.getSchedule();
         this.setHeaderTitle("Schedule Details");
         this.setWidth(800, Unit.PIXELS);
         this.getFooter().add(clearAllBtn, new Button("Close"), saveButton);
 
+        prepareContainerDetailsGrid();
+
+        setExistingValues();
         setAttributes();
 
-        Grid<Transshipment> grid = getContainerDetailsGrid();
         FormLayout formLayout = getScheduleEditForm();
-
         add(formLayout, new Hr(), grid);
+    }
+
+    private void setExistingValues() {
+        if (schedule == null) {
+            return;
+        }
+        existingSchedule.setValue(schedule);
+
+        feederVessel.setValue(schedule.getFeederVesselName());
+        etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());
+        etdPortOfLoading.setValue(schedule.getPortOfLoadingETD());
+
+        portOfLoading.setValue(schedule.getPortOfLoading());
+        portOfDestination.setValue(schedule.getPortOfDestination());
+        etaPortOfDestination.setValue(schedule.getPortOfDestinationETA());
+
+        motherVessel.setValue(schedule.getMotherVesselName());
+        motherVesselPort.setValue(schedule.getMotherVesselPort());
+        motherVesselPortETA.setValue(schedule.getMotherVesselETA());
+
+        grid.setItems(schedule.getTransshipments());
     }
 
     private void setAttributes() {
@@ -77,10 +111,31 @@ public class EditScheduleDialog extends Dialog {
         addTransshipmentButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         clearAllBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        portList.clear();
+        portList.addAll(portService.getAllPorts());
+
+        portOfLoading.setItems(portList);
+        portOfDestination.setItems(portList);
+        motherVesselPort.setItems(portList);
+        transshipmentPort.setItems(portList);
+
+        portOfLoading.setItemLabelGenerator(Port::getPortLabel);
+        portOfDestination.setItemLabelGenerator(Port::getPortLabel);
+        motherVesselPort.setItemLabelGenerator(Port::getPortLabel);
+        transshipmentPort.setItemLabelGenerator(Port::getPortLabel);
     }
 
-    private Grid<Transshipment> getContainerDetailsGrid() {
-        Grid<Transshipment> grid = new Grid<>(Transshipment.class, false);
+    private void setClickListeners() {
+        saveButton.addClickListener(event -> {
+            if (schedule == null) {
+                schedule = new Schedule();
+            }
+            schedule.setFeederVesselName(feederVessel.getValue());
+        });
+    }
+
+    private void prepareContainerDetailsGrid() {
         grid.addColumn("sl").setHeader("Sl No.").setAutoWidth(true).setSortable(false);
         grid.addColumn(transshipment -> "Test").setHeader("TS Port").setAutoWidth(true).setSortable(false);
         grid.addColumn("vesselName").setHeader("Vessel").setAutoWidth(true).setSortable(false);
@@ -101,14 +156,12 @@ public class EditScheduleDialog extends Dialog {
         addTransshipmentButton.addClickListener(event -> {
             Transshipment transshipment = new Transshipment();
             transshipment.setSl(transshipmentSet.size() + 1);
-            //transshipment.setVesselPort(transshipmentPort.getValue());
             transshipment.setPortEta(transshipmentETA.getValue());
             transshipment.setVesselName(transshipmentVessel.getValue());
             transshipmentSet.add(transshipment);
             grid.setItems(transshipmentSet);
         });
 
-            return grid;
     }
 
     private FormLayout getScheduleEditForm() {
@@ -124,7 +177,7 @@ public class EditScheduleDialog extends Dialog {
                 feederVessel, etaPortOfLoading, etdPortOfLoading,
                 portOfLoading, portOfDestination, etaPortOfDestination,
                 line2,
-                motherVessel, motherVesselPort, motherETAoConnect,
+                motherVessel, motherVesselPort, motherVesselPortETA,
                 line3,
                 transshipmentVessel, transshipmentPort, transhipmentEtaAddLayout);
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 3));
@@ -136,17 +189,6 @@ public class EditScheduleDialog extends Dialog {
     }
 
     private boolean isInvalidEntries() {
-//        if (grossWeight.getValue() == null || noOfPackages.getValue() == 0 || packageUnitComboBox.getValue() == null) {
-//            NotificationUtil.getNotification("Please provide correct weight, quantity and unit",
-//                    "", false, NotificationVariant.LUMO_WARNING, 4000).open();
-//            return true;
-//        }
-//        if (StringUtils.isBlank(containerNo.getValue()) || StringUtils.isBlank(sealNo.getValue())) {
-//            NotificationUtil.getNotification("Container No or Seal No is empty!",
-//                    "", false, NotificationVariant.LUMO_WARNING, 4000).open();
-//            return true;
-//        }
         return false;
     }
-
 }

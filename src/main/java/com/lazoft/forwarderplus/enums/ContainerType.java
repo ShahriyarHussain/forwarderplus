@@ -15,4 +15,5 @@ public enum ContainerType {
     TRANSPORTABLE_TANK("Tanker");
 
     private final String containerType;
+
 }

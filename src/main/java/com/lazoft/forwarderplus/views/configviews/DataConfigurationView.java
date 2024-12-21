@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.views.configviews;
 
-import com.lazoft.forwarderplus.entity.SamplePerson;
-import com.lazoft.forwarderplus.services.SamplePersonService;
+import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
@@ -16,12 +15,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +35,7 @@ public class DataConfigurationView extends Composite<VerticalLayout> {
         VerticalLayout layoutColumn2 = new VerticalLayout();
         MultiSelectListBox textItems = new MultiSelectListBox();
         VerticalLayout layoutColumn3 = new VerticalLayout();
-        Grid multiSelectGrid = new Grid(SamplePerson.class);
+        Grid multiSelectGrid = new Grid(Client.class);
         VerticalLayout layoutColumn4 = new VerticalLayout();
         TextField textField = new TextField();
         Button buttonPrimary = new Button();
@@ -103,11 +99,6 @@ public class DataConfigurationView extends Composite<VerticalLayout> {
     }
 
     private void setGridSampleData(Grid grid) {
-        grid.setItems(query -> samplePersonService.list(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
-                .stream());
     }
 
-    @Autowired()
-    private SamplePersonService samplePersonService;
 }

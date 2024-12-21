@@ -23,8 +23,8 @@ public class Schedule {
     private LocalDate portOfLoadingETD;
 
     @ManyToOne
-    private Port portOfDischarge;
-    private LocalDate portOfDischargeETA;
+    private Port portOfDestination;
+    private LocalDate portOfDestinationETA;
 
     @ManyToOne
     private Port motherVesselPort;

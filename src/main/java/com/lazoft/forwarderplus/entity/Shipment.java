@@ -27,6 +27,7 @@ public class Shipment {
 
     private String marks;
     private String goodsDescription;
+    private String shipperMarks;
     private String clientInvoiceNo;
     private int numOfContainers;
 
@@ -57,7 +58,7 @@ public class Shipment {
     @JoinColumn(name = "scheduleId")
     private Schedule schedule;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bookingNo", nullable = false)
     private Booking booking;
 

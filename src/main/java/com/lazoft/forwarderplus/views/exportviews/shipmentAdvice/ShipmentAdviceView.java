@@ -44,22 +44,28 @@ import java.util.List;
 public class ShipmentAdviceView extends Div {
 
     private final ShipmentService shipmentService;
-    private final AuthenticatedUser authenticatedUser;
-    private final ClientService clientService;
     private final ScheduleService scheduleService;
-    private final StuffingDetailsService stuffingDetailsService;
+    private final CarrierService carrierService;
+    private final ClientService clientService;
+    private final PortService portService;
+    private final ContainerDetailsService containerDetailsService;
+
+    private final AuthenticatedUser authenticatedUser;
+
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
     public ShipmentAdviceView(PortService portService, ShipmentService shipmentService,
                               AuthenticatedUser authenticatedUser, ClientService clientService,
-                              StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService) {
+                              StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService, CarrierService carrierService, PortService portService1, ContainerDetailsService containerDetailsService) {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
         this.clientService = clientService;
         this.scheduleService = scheduleService;
-        this.stuffingDetailsService = stuffingDetailsService;
+        this.carrierService = carrierService;
+        this.portService = portService1;
+        this.containerDetailsService = containerDetailsService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -209,7 +215,8 @@ public class ShipmentAdviceView extends Div {
 //        User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentAdviceDialog(null, null, null, null, shipment).open());
+        create.addClickListener(event -> new ShipmentAdviceDialog(shipmentService, scheduleService,
+                carrierService, clientService, portService, containerDetailsService, shipment).open());
         return create;
     }
 

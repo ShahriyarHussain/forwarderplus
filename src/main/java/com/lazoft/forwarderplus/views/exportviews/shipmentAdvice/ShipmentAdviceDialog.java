@@ -1,15 +1,10 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 
-import com.lazoft.forwarderplus.entity.Carrier;
-import com.lazoft.forwarderplus.entity.Client;
-import com.lazoft.forwarderplus.entity.Commodity;
-import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ContainerType;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.ClientService;
-import com.lazoft.forwarderplus.services.ScheduleService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -23,7 +18,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class ShipmentAdviceDialog extends Dialog {
 
@@ -31,6 +34,8 @@ public class ShipmentAdviceDialog extends Dialog {
     private final ScheduleService scheduleService;
     private final CarrierService carrierService;
     private final ClientService clientService;
+    private final PortService portService;
+    private final ContainerDetailsService containerDetailsService;
     private final Shipment shipment;
 
 
@@ -39,7 +44,7 @@ public class ShipmentAdviceDialog extends Dialog {
     private final TextArea goodsDescription = new TextArea("Goods Description");
     private final TextArea shipperMarks = new TextArea("Shipper Marks");
     private final TextField bookingNo = new TextField("Booking No");
-    private final TextField shipperInvoiceNo = new TextField("Shipper Invoice No");
+    private final TextField clientInvoiceNo = new TextField("Shipper Invoice No");
     private final ComboBox<ContainerType> containerType = new ComboBox<>("Container Type");
     private final ComboBox<ContainerSize> containerSize = new ComboBox<>("Container Size");
     private final IntegerField numOfContainers = new IntegerField("Number of Containers");
@@ -56,23 +61,29 @@ public class ShipmentAdviceDialog extends Dialog {
     private final TextField approxTime = new TextField("Approx. Transit");
     private final Button editSchedule = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
-    private final TextField quantity = new TextField("Quantity");
+    private final IntegerField quantity = new IntegerField("Quantity");
     private final TextField unit = new TextField("Unit");
     private final TextField grossWeight = new TextField("Weight");
     private final Button editCargo = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
-                                CarrierService carrierService, ClientService clientService, Shipment shipment) {
+                                CarrierService carrierService, ClientService clientService, PortService portService,
+                                ContainerDetailsService containerDetailsService, Shipment shipment) {
+
         this.shipmentService = shipmentService;
         this.scheduleService = scheduleService;
         this.carrierService = carrierService;
         this.clientService = clientService;
+        this.portService = portService;
+        this.containerDetailsService = containerDetailsService;
         this.shipment = shipment;
+
         this.setWidth("85%");
         this.setHeight("85%");
         this.setHeaderTitle("Edit Shipment");
 
         setUpFormLayout();
+        setFieldAttributes();
         fillUpExistingValues();
         setListeners();
 
@@ -101,12 +112,83 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setListeners() {
-        editCargo.addClickListener(event -> new EditCargoDialog().open());
-        editSchedule.addClickListener(event -> new EditScheduleDialog().open());
+        editCargo.addClickListener(event -> new EditCargoDialog(containerDetailsService, shipmentService, shipment).open());
+        editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService, shipment).open());
+        generateHbl.addClickListener(event -> {});
+    }
+
+    private void setFieldAttributes() {
+        bookingNo.setReadOnly(true);
+        generateHbl.setTooltipText("Generate A Number");
+        generateHbl.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        containerType.setItems(ContainerType.values());
+        containerType.setItemLabelGenerator(ContainerType::getContainerType);
+        containerSize.setItems(ContainerSize.values());
+        containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
+
+        carrierComboBox.setItems(carrierService.getAllCarriers());
+        List<Client> clients = clientService.getAllClients();
+        shipper.setItemLabelGenerator(Client::getName);
+        shipper.setItems(clients.stream().filter(client -> client.getType() == ClientType.SHIPPER
+                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+        consignee.setItemLabelGenerator(Client::getName);
+        consignee.setItems(clients.stream().filter(client -> client.getType() == ClientType.CONSIGNEE
+                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+        notifyParty.setItemLabelGenerator(Client::getName);
+        notifyParty.setItems(clients.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
+                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+
+        schedule.setReadOnly(true);
+        approxTime.setReadOnly(true);
+        departureDate.setReadOnly(true);
+        arrivalDate.setReadOnly(true);
+
+        quantity.setReadOnly(true);
+        unit.setReadOnly(true);
+        grossWeight.setReadOnly(true);
     }
 
     private void fillUpExistingValues() {
+        bookingNo.setValue(shipment.getBooking().getBookingNo());
+        clientInvoiceNo.setValue(StringUtils.defaultIfBlank(shipment.getClientInvoiceNo(), ""));
+        mblNo.setValue(StringUtils.defaultIfBlank(shipment.getMblNo(), ""));
+        hblNo.setValue(StringUtils.defaultIfBlank(shipment.getHblNo(), ""));
+        containerType.setValue(shipment.getBooking().getContainerType());
+        containerSize.setValue(shipment.getBooking().getContainerSize());
+        numOfContainers.setValue(shipment.getNumOfContainers());
+        carrierComboBox.setValue(shipment.getCarrier());
+        shipper.setValue(shipment.getShipper());
+        consignee.setValue(shipment.getConsignee());
+        notifyParty.setValue(shipment.getNotifyParty());
+        goodsDescription.setValue(StringUtils.defaultIfBlank(shipment.getGoodsDescription(), ""));
+        shipperMarks.setValue(StringUtils.defaultIfBlank(shipment.getShipperMarks(), ""));
 
+        fillUpScheduleValues();
+        fillUpCargoValues();
+    }
+
+    private void fillUpScheduleValues() {
+        Schedule scheduleData = shipment.getSchedule();
+        if (scheduleData == null) {
+            return;
+        }
+        schedule.setValue(scheduleData.getPortOfLoading().getPortCityAndCountry() + " To "
+                + scheduleData.getPortOfDestination().getPortCountry());
+        approxTime.setValue(Duration.between(scheduleData.getPortOfLoadingETD(), scheduleData.getPortOfDestinationETA())
+                .toDays() + " Days (Approx.)");
+        departureDate.setValue(scheduleData.getPortOfDestinationETA());
+        arrivalDate.setValue(scheduleData.getPortOfLoadingETD());
+    }
+
+    private void fillUpCargoValues() {
+        if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
+            return;
+        }
+        ContainerDetails containerDetails = shipment.getContainerDetails().stream().findFirst().get();
+        quantity.setValue(containerDetails.getNoOfPackages());
+        unit.setValue(containerDetails.getPackageUnit().toString());
+        grossWeight.setValue(containerDetails.getGrossWeight().toString());
     }
 
     public void setUpFormLayout() {
@@ -152,13 +234,10 @@ public class ShipmentAdviceDialog extends Dialog {
 
     private FormLayout getShipmentInfoFormLayout() {
         FormLayout shipmentInfoLayout = new FormLayout();
-        bookingNo.setReadOnly(true);
-        generateHbl.setTooltipText("Generate A Number");
-        generateHbl.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         HorizontalLayout hblComponent = new HorizontalLayout(hblNo, generateHbl);
         hblComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
         hblComponent.setAlignItems(FlexComponent.Alignment.END);
-        shipmentInfoLayout.add(bookingNo, shipperInvoiceNo, mblNo, hblComponent,
+        shipmentInfoLayout.add(bookingNo, clientInvoiceNo, mblNo, hblComponent,
                 containerType, numOfContainers, containerSize, commodities,
                 carrierComboBox, shipper, consignee, notifyParty,
                 goodsDescription, shipperMarks);

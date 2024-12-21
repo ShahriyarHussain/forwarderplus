@@ -1,5 +1,7 @@
 package com.lazoft.forwarderplus.entity;
 
+import com.lazoft.forwarderplus.enums.ContainerSize;
+import com.lazoft.forwarderplus.enums.ContainerType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,8 +16,8 @@ public class Booking {
 
     @Id
     private String bookingNo;
-    private String containerType;
-    private String containerSize;
+    private ContainerType containerType;
+    private ContainerSize containerSize;
     private int numOfContainers;
     private String commodity;
     private String remarks;
