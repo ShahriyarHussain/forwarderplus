@@ -54,7 +54,6 @@ public class ShippingOrderDialog extends Dialog {
     private final ComboBox<PackageUnit> units = new ComboBox<>("Units");
     private final IntegerField numOfContainers = new IntegerField("Number of Containers");
     private StuffingDetails stuffingDetails;
-    private Schedule schedule;
 
     private final Booking booking;
     private final User user;
@@ -108,7 +107,8 @@ public class ShippingOrderDialog extends Dialog {
         this.getFooter().add(saveButton, printButtonAnchor, closeButton);
     }
 
-    private void saveShipment(Shipment shipment, StuffingDetailsService stuffingDetailsService, ShipmentService shipmentService) {
+    private void saveShipment(Shipment shipment, StuffingDetailsService stuffingDetailsService,
+                              ShipmentService shipmentService) {
         if (stuffingDetails == null) {
             stuffingDetails = new StuffingDetails();
             stuffingDetails.setQuantity(quantity.getValue());
@@ -129,7 +129,6 @@ public class ShippingOrderDialog extends Dialog {
         NotificationUtil.getNotification("Saved Successfully!", "", false,
                 NotificationVariant.LUMO_PRIMARY, 4000).open();
     }
-
 
     private HorizontalLayout getClientLayout() {
         HorizontalLayout clientLayout = new HorizontalLayout();
@@ -155,7 +154,6 @@ public class ShippingOrderDialog extends Dialog {
         return clientLayout;
     }
 
-
     protected void setExistingValues(Shipment shipment) {
         documentDate.setValue(LocalDate.now());
         units.setItems(PackageUnit.values());
@@ -176,11 +174,6 @@ public class ShippingOrderDialog extends Dialog {
             cnfAgentContact.setValue(stuffingDetails.getCnfAgentContactNo());
             units.setValue(stuffingDetails.getPackageUnit());
             quantity.setValue(stuffingDetails.getQuantity());
-        }
-
-        schedule = shipment.getSchedule();
-        if (schedule != null) {
-            vessel.setValue(schedule.getFeederVesselName());
         }
     }
 

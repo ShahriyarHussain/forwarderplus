@@ -15,17 +15,16 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class ShipmentAdviceDialog extends Dialog {
@@ -35,9 +34,7 @@ public class ShipmentAdviceDialog extends Dialog {
     private final CarrierService carrierService;
     private final ClientService clientService;
     private final PortService portService;
-    private final ContainerDetailsService containerDetailsService;
     private final Shipment shipment;
-
 
     private final TextField mblNo = new TextField("Master B/L No:");
     private final TextField hblNo = new TextField("House B/L No:");
@@ -61,21 +58,20 @@ public class ShipmentAdviceDialog extends Dialog {
     private final TextField approxTime = new TextField("Approx. Transit");
     private final Button editSchedule = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
-    private final IntegerField quantity = new IntegerField("Quantity");
+    private final IntegerField totalQuantity = new IntegerField("Total Quantity");
     private final TextField unit = new TextField("Unit");
-    private final TextField grossWeight = new TextField("Weight");
+    private final BigDecimalField totalGrossWeight = new BigDecimalField("Total Weight");
     private final Button editCargo = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
                                 CarrierService carrierService, ClientService clientService, PortService portService,
-                                ContainerDetailsService containerDetailsService, Shipment shipment) {
+                                Shipment shipment) {
 
         this.shipmentService = shipmentService;
         this.scheduleService = scheduleService;
         this.carrierService = carrierService;
         this.clientService = clientService;
         this.portService = portService;
-        this.containerDetailsService = containerDetailsService;
         this.shipment = shipment;
 
         this.setWidth("85%");
@@ -112,7 +108,7 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setListeners() {
-        editCargo.addClickListener(event -> new EditCargoDialog(containerDetailsService, shipmentService, shipment).open());
+        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService).open());
         editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService, shipment).open());
         generateHbl.addClickListener(event -> {});
     }
@@ -128,6 +124,8 @@ public class ShipmentAdviceDialog extends Dialog {
         containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
         carrierComboBox.setItems(carrierService.getAllCarriers());
+        carrierComboBox.setItemLabelGenerator(Carrier::getName);
+
         List<Client> clients = clientService.getAllClients();
         shipper.setItemLabelGenerator(Client::getName);
         shipper.setItems(clients.stream().filter(client -> client.getType() == ClientType.SHIPPER
@@ -144,9 +142,9 @@ public class ShipmentAdviceDialog extends Dialog {
         departureDate.setReadOnly(true);
         arrivalDate.setReadOnly(true);
 
-        quantity.setReadOnly(true);
+        totalQuantity.setReadOnly(true);
         unit.setReadOnly(true);
-        grossWeight.setReadOnly(true);
+        totalGrossWeight.setReadOnly(true);
     }
 
     private void fillUpExistingValues() {
@@ -185,16 +183,23 @@ public class ShipmentAdviceDialog extends Dialog {
         if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
             return;
         }
-        ContainerDetails containerDetails = shipment.getContainerDetails().stream().findFirst().get();
-        quantity.setValue(containerDetails.getNoOfPackages());
-        unit.setValue(containerDetails.getPackageUnit().toString());
-        grossWeight.setValue(containerDetails.getGrossWeight().toString());
+        List<ContainerDetails> containerDetailsList = shipment.getContainerDetails();
+        BigDecimal totalWeightValue = BigDecimal.ZERO;
+        int totalQuantityValue = 0;
+        for (ContainerDetails container : containerDetailsList) {
+            totalWeightValue = totalWeightValue.add(container.getGrossWeight());
+            totalQuantityValue += container.getNoOfPackages();
+        }
+
+        totalQuantity.setValue(totalQuantityValue);
+        unit.setValue(containerDetailsList.get(0).getPackageUnit().toString());
+        totalGrossWeight.setValue(totalWeightValue);
     }
 
     public void setUpFormLayout() {
         FormLayout shipmentInfoLayout = getShipmentInfoFormLayout();
         FormLayout scheduleLayout = getScheduleInfoFormLayout();
-        FormLayout cargoDetailsLayout = getCargoDetailsFormLayout();
+        FormLayout containerDetailsLayout = getContainerDetailsFormLayout();
 
         Accordion shipmentPanel = new Accordion();
         shipmentPanel.add("Shipment Info", shipmentInfoLayout);
@@ -202,21 +207,21 @@ public class ShipmentAdviceDialog extends Dialog {
         Accordion schedulePanel = new Accordion();
         schedulePanel.add("Schedule Info", scheduleLayout);
 
-        Accordion cargoDetailsPanel = new Accordion();
-        cargoDetailsPanel.add("Cargo Details", cargoDetailsLayout);
-        add(shipmentPanel, schedulePanel, cargoDetailsPanel);
+        Accordion containerDetailsPanel = new Accordion();
+        containerDetailsPanel.add("Container Details", containerDetailsLayout);
+        add(shipmentPanel, schedulePanel, containerDetailsPanel);
     }
 
-    private FormLayout getCargoDetailsFormLayout() {
-        FormLayout cargoDetailsLayout = new FormLayout();
+    private FormLayout getContainerDetailsFormLayout() {
+        FormLayout containerDetailsLayout = new FormLayout();
         editCargo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editCargo.setTooltipText("Edit Cargo Details");
-        HorizontalLayout editCargoLayout = new HorizontalLayout(grossWeight, editCargo);
-        editCargoLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        editCargoLayout.setAlignItems(FlexComponent.Alignment.END);
-        cargoDetailsLayout.add(quantity, unit, editCargoLayout);
-        cargoDetailsLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
-        return cargoDetailsLayout;
+        editCargo.setTooltipText("Edit Container Details");
+        HorizontalLayout editContainerLayout = new HorizontalLayout(unit, editCargo);
+        editContainerLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        editContainerLayout.setAlignItems(FlexComponent.Alignment.END);
+        containerDetailsLayout.add(totalGrossWeight, totalQuantity, unit, editContainerLayout);
+        containerDetailsLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
+        return containerDetailsLayout;
     }
 
     private FormLayout getScheduleInfoFormLayout() {

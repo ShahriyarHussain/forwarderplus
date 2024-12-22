@@ -3,7 +3,6 @@ package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 import com.lazoft.forwarderplus.entity.ContainerDetails;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.PackageUnit;
-import com.lazoft.forwarderplus.services.ContainerDetailsService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Text;
@@ -26,16 +25,19 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-public class EditCargoDialog extends Dialog {
-
-    private final ContainerDetailsService containerDetailsService;
+@Slf4j
+public class EditContainerDetailsLayout extends Dialog {
     private final ShipmentService shipmentService;
 
-    private final Set<ContainerDetails> containerList = new HashSet<>();
+    private final List<ContainerDetails> containerList = new LinkedList<>();
+    private final Shipment shipment;
 
     private final IntegerField numOfCont = new IntegerField("Container Quantity");
     private final TextField containerSize = new TextField("Container Size");
@@ -47,24 +49,39 @@ public class EditCargoDialog extends Dialog {
     private final TextArea containerNo = new TextArea("Container No.");
     private final TextArea sealNo = new TextArea("Seal No.");
     private final Button addContainerBtn = new Button("Add");
-    private final Button clearAllBtn = new Button("Clear All");
+    private final Button close = new Button("Close");
+
+    Grid<ContainerDetails> grid = new Grid<>(ContainerDetails.class);
 
     private final Button saveButton = new Button("Save");
 
-    public EditCargoDialog(ContainerDetailsService containerDetailsService, ShipmentService shipmentService,
-                           Shipment shipment) {
-        this.containerDetailsService = containerDetailsService;
+    public EditContainerDetailsLayout(Shipment shipment, ShipmentService shipmentService) {
+
+        this.shipment = shipment;
         this.shipmentService = shipmentService;
-        this.setHeaderTitle("Cargo Details");
+        this.setHeaderTitle("Container Details");
         this.setWidth(900, Unit.PIXELS);
-        this.getFooter().add(clearAllBtn, new Button("Close"), saveButton);
+        this.getFooter().add(close, new Button("Clear All"), saveButton);
+        this.setCloseOnOutsideClick(false);
 
-        setAttributes();
-
-        Grid<ContainerDetails> grid = getContainerDetailsGrid();
+        grid = getContainerDetailsGrid();
         FormLayout formLayout = getCargoDetailsForm();
 
+        setAttributes();
+        setListeners();
+        fillUpExistingValues();
+
         add(formLayout, grid);
+    }
+
+    private void fillUpExistingValues() {
+        if (shipment.getContainerDetails() != null && !shipment.getContainerDetails().isEmpty()) {
+            containerList.addAll(shipment.getContainerDetails());
+        }
+        grid.setItems(containerList);
+        numOfCont.setValue(shipment.getNumOfContainers());
+        containerSize.setValue(shipment.getBooking().getContainerSize().getContainerSize());
+        containerType.setValue(shipment.getBooking().getContainerType().getContainerType());
     }
 
     private void setAttributes() {
@@ -76,7 +93,50 @@ public class EditCargoDialog extends Dialog {
         containerType.setReadOnly(true);
         addContainerBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        clearAllBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        close.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        packageUnitComboBox.setItems(PackageUnit.values());
+    }
+
+    private void setListeners() {
+        saveButton.addClickListener(event -> {
+            try {
+                shipmentService.addContainerDetailsToShipment(shipment, containerList);
+                NotificationUtil.getNotification("Saved Successfully!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 3000).open();
+            } catch (Exception e) {
+                log.error("Error is saving container details", e);
+                NotificationUtil.getNotification("Unexpected Error! Could not save data.", e.getMessage(), true,
+                        NotificationVariant.LUMO_PRIMARY, 5000).open();
+            }
+        });
+
+        addContainerBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        addContainerBtn.addClickListener(event -> {
+            boolean itemExists = false;
+            StringBuilder duplicateContainers = new StringBuilder();
+
+            List<ContainerDetails> containerDetails = getContainerDetailsFromEntry();
+            for (ContainerDetails containerDetail : containerDetails) {
+                if (containerList.contains(containerDetail)) {
+                    itemExists = true;
+                    duplicateContainers.append("Container/Seal: ").append(containerDetail.getContainerNo()).append("/")
+                            .append(containerDetail.getSealNo());
+                    continue;
+                }
+                containerList.add(containerDetail);
+            }
+            grid.setItems(containerList);
+
+            if (itemExists) {
+                NotificationUtil.getNotification("Valid Items Added. Some items were skipped because they already exist",
+                        duplicateContainers.toString(), true, NotificationVariant.LUMO_WARNING, 5000).open();
+            } else {
+                NotificationUtil.getNotification("Added Successfully!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 3000).open();
+            }
+        });
+
+        close.addClickListener(event -> close());
     }
 
     private Grid<ContainerDetails> getContainerDetailsGrid() {
@@ -97,16 +157,6 @@ public class EditCargoDialog extends Dialog {
         }).setHeader("Delete");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.setItems(containerList);
-
-        packageUnitComboBox.setItems(PackageUnit.values());
-
-        addContainerBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-        addContainerBtn.addClickListener(event -> {
-            List<ContainerDetails> containerDetails = getContainerDetailsFromEntry();
-            containerList.addAll(containerDetails);
-            grid.setItems(containerList);
-        });
         return grid;
     }
 
@@ -144,7 +194,7 @@ public class EditCargoDialog extends Dialog {
         List<ContainerDetails> containerDetailsList = new LinkedList<>();
         for (int i = 0; i < containers.size(); i++) {
             containerDetailsList.add(new ContainerDetails(containers.get(i), sealNumbers.get(i), grossWeight.getValue(),
-                    noOfPackages.getValue(), packageUnitComboBox.getValue()));
+                    noOfPackages.getValue(), packageUnitComboBox.getValue(), shipment.getShipmentId()));
         }
         return containerDetailsList;
     }

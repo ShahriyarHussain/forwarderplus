@@ -192,9 +192,9 @@ public class ShippingOrderView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addComponentColumn(this::getCreateButtonForShipment).setTextAlign(ColumnTextAlign.CENTER)
+        grid.addComponentColumn(this::getCreateShippingOrderButton).setTextAlign(ColumnTextAlign.CENTER)
                 .setHeader("Shipping Order").setAutoWidth(true);
-        grid.addItemDoubleClickListener(event -> getCreateButtonForShipment(event.getItem()).click());
+        grid.addItemDoubleClickListener(event -> getCreateShippingOrderButton(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -209,7 +209,7 @@ public class ShippingOrderView extends Div {
         grid.getDataProvider().refreshAll();
     }
 
-    private Button getCreateButtonForShipment(Shipment shipment) {
+    private Button getCreateShippingOrderButton(Shipment shipment) {
         User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);

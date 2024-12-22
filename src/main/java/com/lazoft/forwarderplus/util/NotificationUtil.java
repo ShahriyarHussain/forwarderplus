@@ -26,7 +26,7 @@ public class NotificationUtil {
         if (isExpandable) {
             Button expandBtn = new Button("View", clickEvent -> {
                 clickEvent.getSource().setVisible(false);
-                text.setText(message + ": " + expandedMessage);
+                text.setText(message + ": " + System.lineSeparator() + expandedMessage);
             });
             layout = new HorizontalLayout(icon, text, expandBtn, closeBtn);
         } else {
