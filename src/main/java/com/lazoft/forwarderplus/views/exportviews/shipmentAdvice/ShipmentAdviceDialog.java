@@ -100,7 +100,7 @@ public class ShipmentAdviceDialog extends Dialog {
         Button saveButton = new Button("Save");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button downloadButton = new Button("Download");
+        Button downloadButton = new Button("Download as PDF");
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 

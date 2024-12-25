@@ -106,7 +106,7 @@ public class EditContainerDetailsLayout extends Dialog {
             } catch (Exception e) {
                 log.error("Error is saving container details", e);
                 NotificationUtil.getNotification("Unexpected Error! Could not save data.", e.getMessage(), true,
-                        NotificationVariant.LUMO_PRIMARY, 5000).open();
+                        NotificationVariant.LUMO_ERROR, 5000).open();
             }
         });
 

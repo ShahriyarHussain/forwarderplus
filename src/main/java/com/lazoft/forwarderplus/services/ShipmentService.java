@@ -2,6 +2,7 @@ package com.lazoft.forwarderplus.services;
 
 import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.ContainerDetails;
+import com.lazoft.forwarderplus.entity.Schedule;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.repository.ShipmentRepository;
@@ -22,6 +23,7 @@ import java.util.Set;
 public class ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final ContainerDetailsService containerDetailsService;
+    private final ScheduleService scheduleService;
 
     public List<Shipment> getAll() {return shipmentRepository.findAll();}
 
@@ -61,6 +63,12 @@ public class ShipmentService {
     public void addContainerDetailsToShipment(Shipment shipment, List<ContainerDetails> containerList) {
         List<ContainerDetails> savedContainerDetails = containerDetailsService.saveAll(containerList);
         shipment.setContainerDetails(savedContainerDetails);
+        saveShipment(shipment);
+    }
+
+    public void addScheduleToShipment(Shipment shipment, Schedule schedule) {
+        Schedule savedSchedule = scheduleService.saveSchedule(schedule);
+        shipment.setSchedule(savedSchedule);
         saveShipment(shipment);
     }
 }

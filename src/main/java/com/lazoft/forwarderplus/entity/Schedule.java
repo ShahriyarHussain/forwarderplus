@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Entity
@@ -38,5 +40,11 @@ public class Schedule {
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER)
     private Set<Transshipment> transshipments;
+
+    public String getScheduleSummary() {
+        return portOfLoading.getPortName() + " To " + portOfDestination.getPortName() + ", Dept.: " +
+                portOfLoadingETD.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")) + ", Transit: " +
+                Duration.between(portOfLoadingETD, portOfDestinationETA).toDays();
+    }
 
 }
