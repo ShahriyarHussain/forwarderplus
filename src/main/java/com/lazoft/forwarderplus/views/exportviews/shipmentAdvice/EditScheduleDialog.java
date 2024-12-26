@@ -23,6 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDate;
@@ -80,9 +81,9 @@ public class EditScheduleDialog extends Dialog {
         this.setWidth(800, Unit.PIXELS);
         this.getFooter().add(clearAllBtn, new Button("Close"), saveButton);
 
-        prepareContainerDetailsGrid();
+        prepareTransshipmentGrid();
 
-        setExistingValues();
+        setExistingValues(schedule);
         setAttributes();
         setClickListeners();
 
@@ -90,7 +91,7 @@ public class EditScheduleDialog extends Dialog {
         add(formLayout, new Hr(), grid);
     }
 
-    private void setExistingValues() {
+    private void setExistingValues(Schedule schedule) {
         if (schedule == null) {
             return;
         }
@@ -124,7 +125,8 @@ public class EditScheduleDialog extends Dialog {
     }
 
     private void setAttributes() {
-        existingSchedule.setHelperText("Autofill with existing schedule");
+        existingSchedule.setPlaceholder("Autofill with existing schedule");
+        existingSchedule.setWidth("90%");
         existingSchedule.setItemLabelGenerator(Schedule::getScheduleSummary);
 
         selectSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -150,9 +152,12 @@ public class EditScheduleDialog extends Dialog {
     private void setClickListeners() {
         saveButton.addClickListener(event -> {
             try {
-                if (schedule == null) {
-                    setValuesToNewSchedule();
+                if (isInvalidEntries()) {
+                    NotificationUtil.getNotification("Please provide correct entries in required fields", "",
+                            false, NotificationVariant.LUMO_WARNING, 3000).open();
+                    return;
                 }
+                setValuesToSchedule();
                 shipmentService.addScheduleToShipment(shipment, schedule);
                 NotificationUtil.getNotification("Schedule Saved Successfully!", "", false,
                         NotificationVariant.LUMO_PRIMARY, 3000).open();
@@ -169,27 +174,32 @@ public class EditScheduleDialog extends Dialog {
                         NotificationVariant.LUMO_WARNING, 4000).open();
             }
             Schedule selectedSchedule = existingSchedule.getValue();
-            if (selectedSchedule != null) {
-                feederVessel.setValue(selectedSchedule.getFeederVesselName());
-                etaPortOfLoading.setValue(selectedSchedule.getPortOfLoadingETA());
-                etdPortOfLoading.setValue(selectedSchedule.getPortOfLoadingETD());
-
-                portOfLoading.setValue(selectedSchedule.getPortOfLoading());
-                portOfDestination.setValue(selectedSchedule.getPortOfDestination());
-                etaPortOfDestination.setValue(selectedSchedule.getPortOfDestinationETA());
-
-                motherVessel.setValue(selectedSchedule.getMotherVesselName());
-                motherVesselPort.setValue(selectedSchedule.getMotherVesselPort());
-                motherVesselPortETA.setValue(selectedSchedule.getMotherVesselETA());
-            }
+            setExistingValues(selectedSchedule);
         });
     }
 
-    private void setValuesToNewSchedule() {
+    private void setValuesToSchedule() {
+        if (schedule == null) {
+            schedule = new Schedule();
+        }
 
+        schedule.setFeederVesselName(feederVessel.getValue());
+        schedule.setPortOfLoadingETA(etaPortOfLoading.getValue());
+        schedule.setPortOfLoadingETD(etdPortOfLoading.getValue());
+
+        schedule.setPortOfLoading(portOfLoading.getValue());
+        schedule.setPortOfDestination(portOfDestination.getValue());
+        schedule.setPortOfDestinationETA(etaPortOfDestination.getValue());
+
+        schedule.setMotherVesselName(motherVessel.getValue());
+        schedule.setMotherVesselPort(motherVesselPort.getValue());
+        schedule.setMotherVesselETA(motherVesselPortETA.getValue());
+
+        schedule.setTransshipments(new HashSet<>());
+        schedule.getTransshipments().addAll(transshipmentSet);
     }
 
-    private void prepareContainerDetailsGrid() {
+    private void prepareTransshipmentGrid() {
         grid.addColumn("sl").setHeader("Sl No.").setAutoWidth(true).setSortable(false);
         grid.addColumn(transshipment -> "Test").setHeader("TS Port").setAutoWidth(true).setSortable(false);
         grid.addColumn("vesselName").setHeader("Vessel").setAutoWidth(true).setSortable(false);
@@ -221,8 +231,8 @@ public class EditScheduleDialog extends Dialog {
     private FormLayout getScheduleEditForm() {
         FormLayout formLayout = new FormLayout();
 
-        HorizontalLayout chooseExistingShipmentLayout = new HorizontalLayout(existingSchedule, addTransshipmentButton);
-        chooseExistingShipmentLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        HorizontalLayout chooseExistingShipmentLayout = new HorizontalLayout(existingSchedule, selectSchedule);
+        chooseExistingShipmentLayout.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         chooseExistingShipmentLayout.setAlignItems(FlexComponent.Alignment.END);
 
         HorizontalLayout transhipmentEtaAddLayout = new HorizontalLayout(transshipmentETA, addTransshipmentButton);
@@ -230,7 +240,7 @@ public class EditScheduleDialog extends Dialog {
         transhipmentEtaAddLayout.setAlignItems(FlexComponent.Alignment.END);
 
         Hr line1 = new Hr(), line2 = new Hr(), line3 = new Hr();
-        formLayout.add(existingSchedule,
+        formLayout.add(chooseExistingShipmentLayout,
                 line1,
                 feederVessel, etaPortOfLoading, etdPortOfLoading,
                 portOfLoading, portOfDestination, etaPortOfDestination,
@@ -247,6 +257,77 @@ public class EditScheduleDialog extends Dialog {
     }
 
     private boolean isInvalidEntries() {
-        return false;
+        boolean isInvalid = false;
+
+        if (etaPortOfLoading.getValue() == null) {
+            etaPortOfLoading.setInvalid(true);
+            etaPortOfLoading.setErrorMessage("Please select a date");
+            isInvalid = true;
+        }
+        if (etdPortOfLoading.getValue() == null) {
+            etdPortOfLoading.setInvalid(true);
+            etdPortOfLoading.setErrorMessage("Please select a date");
+            isInvalid = true;
+        }
+
+        if (etdPortOfLoading.getValue().isBefore(etaPortOfLoading.getValue())) {
+            etdPortOfLoading.setInvalid(true);
+            etdPortOfLoading.setErrorMessage("Origin departure cannot be earlier than arrival");
+            isInvalid = true;
+        }
+
+        if (portOfLoading.getValue() == null) {
+            portOfLoading.setInvalid(true);
+            portOfLoading.setErrorMessage("Please provide correct value");
+            isInvalid = true;
+        }
+        if (portOfDestination.getValue() == null) {
+            portOfDestination.setInvalid(true);
+            portOfDestination.setErrorMessage("Please provide correct value");
+            isInvalid = true;
+        }
+        if (etaPortOfDestination.getValue() == null) {
+            etaPortOfDestination.setInvalid(true);
+            etaPortOfDestination.setErrorMessage("Please provide correct value");
+            isInvalid = true;
+        }
+
+        if (etaPortOfDestination.getValue().isBefore(etaPortOfLoading.getValue()) ||
+                etaPortOfDestination.getValue().isBefore(etaPortOfDestination.getValue())) {
+            etaPortOfDestination.setInvalid(true);
+            etaPortOfDestination.setErrorMessage("Destination arrival cannot be earlier than origin arrival/departure");
+            isInvalid = true;
+        }
+
+        if (StringUtils.isBlank(motherVessel.getValue())) {
+            motherVessel.setInvalid(true);
+            motherVessel.setErrorMessage("Must provide mother vessel name");
+            isInvalid = true;
+        }
+        if (motherVesselPort.getValue() == null) {
+            motherVesselPort.setInvalid(true);
+            motherVesselPort.setErrorMessage("Must provide mother vessel port");
+            isInvalid = true;
+        }
+        if (motherVesselPortETA.getValue() == null) {
+            motherVesselPortETA.setInvalid(true);
+            motherVesselPortETA.setErrorMessage("Please provide mother vessel ETA");
+            isInvalid = true;
+        }
+        return isInvalid;
+    }
+
+    private void resetInvalid() {
+        feederVessel.setInvalid(false);
+        etaPortOfLoading.setInvalid(false);
+        etdPortOfLoading.setInvalid(false);
+
+        portOfLoading.setInvalid(false);
+        portOfDestination.setInvalid(false);
+        etaPortOfDestination.setInvalid(false);
+
+        motherVessel.setInvalid(false);
+        motherVesselPort.setInvalid(false);
+        motherVesselPortETA.setInvalid(false);
     }
 }
