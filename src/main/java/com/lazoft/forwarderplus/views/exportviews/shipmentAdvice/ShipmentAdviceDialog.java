@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.math.BigDecimal;
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -108,8 +108,9 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setListeners() {
-        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService).open());
-        editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService, shipment).open());
+        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService, this).open());
+        editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService,
+                shipment, this).open());
         generateHbl.addClickListener(event -> {});
     }
 
@@ -147,7 +148,7 @@ public class ShipmentAdviceDialog extends Dialog {
         totalGrossWeight.setReadOnly(true);
     }
 
-    private void fillUpExistingValues() {
+    public void fillUpExistingValues() {
         bookingNo.setValue(shipment.getBooking().getBookingNo());
         clientInvoiceNo.setValue(StringUtils.defaultIfBlank(shipment.getClientInvoiceNo(), ""));
         mblNo.setValue(StringUtils.defaultIfBlank(shipment.getMblNo(), ""));
@@ -172,9 +173,9 @@ public class ShipmentAdviceDialog extends Dialog {
             return;
         }
         schedule.setValue(scheduleData.getPortOfLoading().getPortCityAndCountry() + " To "
-                + scheduleData.getPortOfDestination().getPortCountry());
-        approxTime.setValue(Duration.between(scheduleData.getPortOfLoadingETD(), scheduleData.getPortOfDestinationETA())
-                .toDays() + " Days (Approx.)");
+                + scheduleData.getPortOfDestination().getPortCityAndCountry());
+        approxTime.setValue(ChronoUnit.DAYS.between(scheduleData.getPortOfLoadingETD(),
+                scheduleData.getPortOfDestinationETA()) + " Days (Approx.)");
         departureDate.setValue(scheduleData.getPortOfDestinationETA());
         arrivalDate.setValue(scheduleData.getPortOfLoadingETD());
     }

@@ -38,6 +38,7 @@ public class EditContainerDetailsLayout extends Dialog {
 
     private final List<ContainerDetails> containerList = new LinkedList<>();
     private final Shipment shipment;
+    private final ShipmentAdviceDialog shipmentAdviceDialog;
 
     private final IntegerField numOfCont = new IntegerField("Container Quantity");
     private final TextField containerSize = new TextField("Container Size");
@@ -55,8 +56,10 @@ public class EditContainerDetailsLayout extends Dialog {
 
     private final Button saveButton = new Button("Save");
 
-    public EditContainerDetailsLayout(Shipment shipment, ShipmentService shipmentService) {
+    public EditContainerDetailsLayout(Shipment shipment, ShipmentService shipmentService,
+                                      ShipmentAdviceDialog shipmentAdviceDialog) {
 
+        this.shipmentAdviceDialog = shipmentAdviceDialog;
         this.shipment = shipment;
         this.shipmentService = shipmentService;
         this.setHeaderTitle("Container Details");
@@ -136,7 +139,10 @@ public class EditContainerDetailsLayout extends Dialog {
             }
         });
 
-        close.addClickListener(event -> close());
+        close.addClickListener(event -> {
+            shipmentAdviceDialog.fillUpExistingValues();
+            close();
+        });
     }
 
     private Grid<ContainerDetails> getContainerDetailsGrid() {
