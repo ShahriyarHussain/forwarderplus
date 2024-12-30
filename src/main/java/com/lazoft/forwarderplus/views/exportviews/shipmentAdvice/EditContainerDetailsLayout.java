@@ -27,8 +27,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,12 +50,14 @@ public class EditContainerDetailsLayout extends Dialog {
     private final ComboBox<PackageUnit> packageUnitComboBox = new ComboBox<>("Unit");
     private final TextArea containerNo = new TextArea("Container No.");
     private final TextArea sealNo = new TextArea("Seal No.");
-    private final Button addContainerBtn = new Button("Add");
+    private final Button addContainerBtn = new Button(LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
     private final Button close = new Button("Close");
 
     Grid<ContainerDetails> grid = new Grid<>(ContainerDetails.class);
 
     private final Button saveButton = new Button("Save");
+
+    private boolean disallowSave = true;
 
     public EditContainerDetailsLayout(Shipment shipment, ShipmentService shipmentService,
                                       ShipmentAdviceDialog shipmentAdviceDialog) {
@@ -97,12 +100,20 @@ public class EditContainerDetailsLayout extends Dialog {
         addContainerBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         close.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        packageUnitComboBox.setWidth("80%");
         packageUnitComboBox.setItems(PackageUnit.values());
     }
 
     private void setListeners() {
         saveButton.addClickListener(event -> {
             try {
+                if (numOfCont.getValue() != containerList.size() && disallowSave) {
+                    NotificationUtil.getNotification("Number of containers does not match with specified data in " +
+                                    "Shipment Details. If you still want to save, click Save again.",
+                            "", false, NotificationVariant.LUMO_WARNING, 6000).open();
+                    disallowSave = false;
+                    return;
+                }
                 shipmentService.addContainerDetailsToShipment(shipment, containerList);
                 NotificationUtil.getNotification("Saved Successfully!", "", false,
                         NotificationVariant.LUMO_PRIMARY, 3000).open();
@@ -113,36 +124,50 @@ public class EditContainerDetailsLayout extends Dialog {
             }
         });
 
-        addContainerBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         addContainerBtn.addClickListener(event -> {
-            boolean itemExists = false;
-            StringBuilder duplicateContainers = new StringBuilder();
-
-            List<ContainerDetails> containerDetails = getContainerDetailsFromEntry();
-            for (ContainerDetails containerDetail : containerDetails) {
-                if (containerList.contains(containerDetail)) {
-                    itemExists = true;
-                    duplicateContainers.append("Container/Seal: ").append(containerDetail.getContainerNo()).append("/")
-                            .append(containerDetail.getSealNo());
-                    continue;
-                }
-                containerList.add(containerDetail);
-            }
-            grid.setItems(containerList);
-
-            if (itemExists) {
-                NotificationUtil.getNotification("Valid Items Added. Some items were skipped because they already exist",
-                        duplicateContainers.toString(), true, NotificationVariant.LUMO_WARNING, 5000).open();
-            } else {
-                NotificationUtil.getNotification("Added Successfully!", "", false,
-                        NotificationVariant.LUMO_PRIMARY, 3000).open();
-            }
+            addContainersToList();
         });
 
         close.addClickListener(event -> {
             shipmentAdviceDialog.fillUpExistingValues();
             close();
         });
+    }
+
+    private void addContainersToList() {
+        if (isInvalidEntries()) {
+            return;
+        }
+
+        List<String> containers = getBulkEntryItemsAsListFromString(containerNo.getValue());
+        List<String> sealNumbers = getBulkEntryItemsAsListFromString(sealNo.getValue());
+        StringBuilder duplicateContainers = new StringBuilder();
+        List<ContainerDetails> containerDetailsList = new LinkedList<>();
+
+        for (int i = 0; i < containers.size(); i++) {
+            containerDetailsList.add(new ContainerDetails(containers.get(i), sealNumbers.get(i), grossWeight.getValue(),
+                    noOfPackages.getValue(), packageUnitComboBox.getValue(), shipment.getShipmentId()));
+        }
+
+        boolean itemExists = false;
+        for (ContainerDetails containerDetail : containerDetailsList) {
+            if (containerList.contains(containerDetail)) {
+                itemExists = true;
+                duplicateContainers.append("Container/Seal: ").append(containerDetail.getContainerNo()).append("/")
+                        .append(containerDetail.getSealNo());
+                continue;
+            }
+            containerList.add(containerDetail);
+        }
+        grid.setItems(containerList);
+
+        if (itemExists) {
+            NotificationUtil.getNotification("Valid Items Added. Some items were skipped because they already exist",
+                    duplicateContainers.toString(), true, NotificationVariant.LUMO_WARNING, 6000).open();
+        } else {
+            NotificationUtil.getNotification("Added Successfully!", "", false,
+                    NotificationVariant.LUMO_PRIMARY, 3000).open();
+        }
     }
 
     private Grid<ContainerDetails> getContainerDetailsGrid() {
@@ -181,42 +206,51 @@ public class EditContainerDetailsLayout extends Dialog {
         formLayout.setColspan(line, 4);
         formLayout.setColspan(containerNo, 2);
         formLayout.setColspan(sealNo, 2);
+        formLayout.setColspan(unitAndAddBtn, 2);
         return formLayout;
     }
 
-    private List<ContainerDetails> getContainerDetailsFromEntry() {
-        if (isInvalidEntries()) {
-            return new ArrayList<>();
-        }
-
-        List<String> containers = getBulkEntryItemsAsListFromString(containerNo.getValue());
-        List<String> sealNumbers = getBulkEntryItemsAsListFromString(sealNo.getValue());
-
-        if (containers.size() != sealNumbers.size()) {
-            NotificationUtil.getNotification("Container No and Seal No quantity are not same!",
-                    "", false, NotificationVariant.LUMO_WARNING, 4000).open();
-        }
-
-        List<ContainerDetails> containerDetailsList = new LinkedList<>();
-        for (int i = 0; i < containers.size(); i++) {
-            containerDetailsList.add(new ContainerDetails(containers.get(i), sealNumbers.get(i), grossWeight.getValue(),
-                    noOfPackages.getValue(), packageUnitComboBox.getValue(), shipment.getShipmentId()));
-        }
-        return containerDetailsList;
-    }
-
     private boolean isInvalidEntries() {
-        if (grossWeight.getValue() == null || noOfPackages.getValue() == 0 || packageUnitComboBox.getValue() == null) {
-            NotificationUtil.getNotification("Please provide correct weight, quantity and unit",
-                    "", false, NotificationVariant.LUMO_WARNING, 4000).open();
-            return true;
+        disallowSave = true;
+        boolean isInvalid = false;
+        if (grossWeight.getValue() == null || grossWeight.getValue().compareTo(BigDecimal.ZERO) <= 0) {
+            grossWeight.setInvalid(true);
+            grossWeight.setErrorMessage("Gross weight cannot be null or ZERO");
+            isInvalid = true;
         }
-        if (StringUtils.isBlank(containerNo.getValue()) || StringUtils.isBlank(sealNo.getValue())) {
-            NotificationUtil.getNotification("Container No or Seal No is empty!",
-                    "", false, NotificationVariant.LUMO_WARNING, 4000).open();
-            return true;
+        if (noOfPackages.getValue() == null || noOfPackages.getValue() == 0) {
+            noOfPackages.setInvalid(true);
+            noOfPackages.setErrorMessage("Quantity cannot be ZERO");
+            isInvalid = true;
         }
-        return false;
+        if (packageUnitComboBox.getValue() == null) {
+            packageUnitComboBox.setInvalid(true);
+            packageUnitComboBox.setErrorMessage("Must select a unit");
+            isInvalid = true;
+        }
+        if (StringUtils.isBlank(containerNo.getValue())) {
+            containerNo.setInvalid(true);
+            containerNo.setErrorMessage("Must provide container no.");
+            isInvalid = true;
+        }
+        if (StringUtils.isBlank(sealNo.getValue())) {
+            sealNo.setInvalid(true);
+            sealNo.setErrorMessage("Must provide seal no.");
+            isInvalid = true;
+        }
+        int numOfContainers = getBulkEntryItemsAsListFromString(containerNo.getValue()).size();
+        if (numOfContainers !=
+                getBulkEntryItemsAsListFromString(sealNo.getValue()).size()) {
+            String errorMessage = "Number of Container and Seal No should be same!";
+            containerNo.setInvalid(true);
+            sealNo.setInvalid(true);
+            containerNo.setErrorMessage(errorMessage);
+            sealNo.setErrorMessage(errorMessage);
+            NotificationUtil.getNotification(errorMessage,"", false,
+                    NotificationVariant.LUMO_WARNING, 4000).open();
+            isInvalid = true;
+        }
+        return isInvalid;
     }
 
     private List<String> getBulkEntryItemsAsListFromString(String items) {

@@ -5,28 +5,39 @@ import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ContainerType;
 import com.lazoft.forwarderplus.services.*;
+import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ShipmentAdviceDialog extends Dialog {
 
     private final ShipmentService shipmentService;
@@ -48,20 +59,33 @@ public class ShipmentAdviceDialog extends Dialog {
     private final ComboBox<Client> shipper = new ComboBox<>("Shipper");
     private final ComboBox<Client> consignee = new ComboBox<>("Consignee");
     private final ComboBox<Client> notifyParty = new ComboBox<>("Notify Party");
-    private final ComboBox<Commodity> commodities = new ComboBox<>("Commodities");
+    private final TextField commodities = new TextField("Commodities");
     private final ComboBox<Carrier> carrierComboBox = new ComboBox<>("Carrier");
     private final Button generateHbl = new Button(LineAwesomeIcon.ATOM_SOLID.create());
 
     private final TextField schedule = new TextField("Schedule");
     private final DatePicker departureDate = new DatePicker("ETD Origin:");
     private final DatePicker arrivalDate = new DatePicker("ETA Destination:");
-    private final TextField approxTime = new TextField("Approx. Transit");
+    private final TextField approxTime = new TextField("Transit Time");
     private final Button editSchedule = new Button(LineAwesomeIcon.PEN_SOLID.create());
+
+    private final Checkbox useHbl = new Checkbox("Use HB/L instead MB/L?");
+    private final Checkbox useConsignee = new Checkbox("Use Consignee instead of Notify ?");
+    private final DatePicker adviceDate = new DatePicker("Advice Date");
+    private final Checkbox showRespondentEmail = new Checkbox("Show email?");
+    private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
+    private final ComboBox<User> respondent = new ComboBox<>("Report Correspondent");
 
     private final IntegerField totalQuantity = new IntegerField("Total Quantity");
     private final TextField unit = new TextField("Unit");
-    private final BigDecimalField totalGrossWeight = new BigDecimalField("Total Weight");
+    private final BigDecimalField totalGrossWeight = new BigDecimalField("Total Weight (KGs)");
     private final Button editCargo = new Button(LineAwesomeIcon.PEN_SOLID.create());
+
+    Button saveButton = new Button("Save");
+    Button downloadButton = new Button("Download as PDF");
+    private final Button closeButton = new Button("Close");
+
+    private boolean isSaved = false;
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
                                 CarrierService carrierService, ClientService clientService, PortService portService,
@@ -83,9 +107,54 @@ public class ShipmentAdviceDialog extends Dialog {
         fillUpExistingValues();
         setListeners();
 
-        Button closeButton = new Button("Close");
-        closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        getFooter().add(closeButton, downloadButton, saveButton);
+    }
+
+    private void setListeners() {
+        editCargo.addClickListener(event -> new EditContainerDetailsLayout(
+                shipment, shipmentService, this).open());
+
+        editSchedule.addClickListener(event -> new EditScheduleDialog(
+                portService, shipmentService, scheduleService,shipment, this).open());
+
+        generateHbl.addClickListener(event -> {
+        });
+
+        saveButton.addClickListener(event -> {
+            if (isInvalidEntriesForSave()) {
+                return;
+            }
+            setValuesToShipmentForSaving();
+            try {
+                shipmentService.saveShipment(shipment);
+                isSaved = true;
+                NotificationUtil.getNotification("Saved Successfully!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 3000).open();
+            } catch (Exception e) {
+                log.error("Error is saving container details", e);
+                NotificationUtil.getNotification("Unexpected Error! Could not save data.", e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 5000).open();
+            }
+        });
+
+        downloadButton.addClickListener(event -> {
+            List<String> errors = findErrorsForReportData();
+            if (!errors.isEmpty()) {
+                Dialog dialog = new Dialog();
+                dialog.setHeaderTitle("Errors in Data");
+                ListBox<String> listBox = new ListBox<>();
+                listBox.setItems(errors);
+                dialog.add(new H4("Please fix the following before downloading Advice"), listBox);
+                dialog.getFooter().add(new Button("Close", e -> dialog.close()));
+                dialog.open();
+            }
+        });
+
         closeButton.addClickListener(event -> {
+            if (isSaved) {
+                this.close();
+                return;
+            }
             ConfirmDialog confirmDialog = new ConfirmDialog();
             confirmDialog.setHeader("Close Shipment Edit Window ?");
             confirmDialog.setText("Are you sure you want to close ? All unsaved changes will be lost.");
@@ -96,28 +165,81 @@ public class ShipmentAdviceDialog extends Dialog {
             confirmDialog.setCancelButton(cancel);
             confirmDialog.open();
         });
-
-        Button saveButton = new Button("Save");
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button downloadButton = new Button("Download as PDF");
-        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
-        downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-
-        getFooter().add(closeButton, downloadButton, saveButton);
     }
 
-    private void setListeners() {
-        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService, this).open());
-        editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService,
-                shipment, this).open());
-        generateHbl.addClickListener(event -> {});
+    private void setValuesToShipmentForSaving() {
+        if (!StringUtils.isBlank(clientInvoiceNo.getValue())) {
+            shipment.setClientInvoiceNo(clientInvoiceNo.getValue());
+        }
+        if (!StringUtils.isBlank(mblNo.getValue())) {
+            shipment.setMblNo(mblNo.getValue());
+        }
+        if (!StringUtils.isBlank(hblNo.getValue())) {
+            shipment.setHblNo(hblNo.getValue());
+        }
+        if (!StringUtils.isBlank(commodities.getValue())) {
+            shipment.setCommodity(commodities.getValue());
+        }
+        if (carrierComboBox.getValue() != null) {
+            shipment.setCarrier(carrierComboBox.getValue());
+        }
+        if (shipper.getValue() != null) {
+            shipment.setShipper(shipper.getValue());
+        }
+        if (consignee.getValue() != null) {
+            shipment.setConsignee(consignee.getValue());
+        }
+        if (notifyParty.getValue() != null) {
+            shipment.setNotifyParty(notifyParty.getValue());
+        }
+        if (!StringUtils.isBlank(goodsDescription.getValue())) {
+            shipment.setGoodsDescription(goodsDescription.getValue());
+        }
+        if (!StringUtils.isBlank(shipperMarks.getValue())) {
+            shipment.setShipperMarks(shipperMarks.getValue());
+        }
+    }
+
+    private boolean isInvalidEntriesForSave() {
+        boolean isInvalid = false;
+        if (containerType.getValue() == null) {
+            containerType.setInvalid(true);
+            containerType.setErrorMessage("Must provide container type");
+            isInvalid = true;
+        }
+        if (containerSize.getValue() == null) {
+            containerSize.setInvalid(true);
+            containerSize.setErrorMessage("Must provide container size");
+            isInvalid = true;
+        }
+        if (numOfContainers.getValue() == null || numOfContainers.getValue() < 1) {
+            numOfContainers.setInvalid(true);
+            numOfContainers.setErrorMessage("Cannot be empty or ZERO");
+            isInvalid = true;
+        }
+        if (shipper.getValue() == null) {
+            shipper.setInvalid(true);
+            shipper.setErrorMessage("Must provide shipper");
+            isInvalid = true;
+        }
+        if (consignee.getValue() == null && notifyParty.getValue() == null) {
+            notifyParty.setInvalid(true);
+            notifyParty.setErrorMessage("Must provide either Consignee or notify party");
+            isInvalid = true;
+        }
+        if (carrierComboBox.getValue() == null) {
+            carrierComboBox.setInvalid(true);
+            carrierComboBox.setErrorMessage("Must provide Carrier");
+            isInvalid = true;
+        }
+        return isInvalid;
     }
 
     private void setFieldAttributes() {
         bookingNo.setReadOnly(true);
         generateHbl.setTooltipText("Generate A Number");
         generateHbl.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        hblNo.setWidth("80%");
 
         containerType.setItems(ContainerType.values());
         containerType.setItemLabelGenerator(ContainerType::getContainerType);
@@ -127,6 +249,9 @@ public class ShipmentAdviceDialog extends Dialog {
         carrierComboBox.setItems(carrierService.getAllCarriers());
         carrierComboBox.setItemLabelGenerator(Carrier::getName);
 
+        adviceDate.setValue(LocalDate.now());
+        //respondent.setItems(Collections.singleton())
+
         List<Client> clients = clientService.getAllClients();
         shipper.setItemLabelGenerator(Client::getName);
         shipper.setItems(clients.stream().filter(client -> client.getType() == ClientType.SHIPPER
@@ -134,6 +259,7 @@ public class ShipmentAdviceDialog extends Dialog {
         consignee.setItemLabelGenerator(Client::getName);
         consignee.setItems(clients.stream().filter(client -> client.getType() == ClientType.CONSIGNEE
                 || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+
         notifyParty.setItemLabelGenerator(Client::getName);
         notifyParty.setItems(clients.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
                 || client.getType() == ClientType.ALL).collect(Collectors.toList()));
@@ -146,6 +272,11 @@ public class ShipmentAdviceDialog extends Dialog {
         totalQuantity.setReadOnly(true);
         unit.setReadOnly(true);
         totalGrossWeight.setReadOnly(true);
+
+        closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
     }
 
     public void fillUpExistingValues() {
@@ -157,6 +288,7 @@ public class ShipmentAdviceDialog extends Dialog {
         containerSize.setValue(shipment.getBooking().getContainerSize());
         numOfContainers.setValue(shipment.getNumOfContainers());
         carrierComboBox.setValue(shipment.getCarrier());
+        commodities.setValue(shipment.getCommodity());
         shipper.setValue(shipment.getShipper());
         consignee.setValue(shipment.getConsignee());
         notifyParty.setValue(shipment.getNotifyParty());
@@ -198,19 +330,19 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     public void setUpFormLayout() {
-        FormLayout shipmentInfoLayout = getShipmentInfoFormLayout();
-        FormLayout scheduleLayout = getScheduleInfoFormLayout();
-        FormLayout containerDetailsLayout = getContainerDetailsFormLayout();
-
         Accordion shipmentPanel = new Accordion();
-        shipmentPanel.add("Shipment Info", shipmentInfoLayout);
+        shipmentPanel.add("Shipment Info", getShipmentInfoFormLayout());
 
         Accordion schedulePanel = new Accordion();
-        schedulePanel.add("Schedule Info", scheduleLayout);
+        schedulePanel.add("Schedule Info", getScheduleInfoFormLayout());
 
         Accordion containerDetailsPanel = new Accordion();
-        containerDetailsPanel.add("Container Details", containerDetailsLayout);
-        add(shipmentPanel, schedulePanel, containerDetailsPanel);
+        containerDetailsPanel.add("Container Details", getContainerDetailsFormLayout());
+
+        Accordion reportOptionsPanel = new Accordion();
+        containerDetailsPanel.add("Report Options", getReportOptionsFormLayout());
+
+        add(shipmentPanel, schedulePanel, containerDetailsPanel, reportOptionsPanel);
     }
 
     private FormLayout getContainerDetailsFormLayout() {
@@ -234,7 +366,7 @@ public class ShipmentAdviceDialog extends Dialog {
         editScheduleLayout.setAlignItems(FlexComponent.Alignment.END);
         scheduleLayout.add(schedule, approxTime, departureDate, editScheduleLayout);
         scheduleLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
-        scheduleLayout.setColspan(schedule,2);
+        scheduleLayout.setColspan(schedule, 2);
         return scheduleLayout;
     }
 
@@ -248,8 +380,118 @@ public class ShipmentAdviceDialog extends Dialog {
                 carrierComboBox, shipper, consignee, notifyParty,
                 goodsDescription, shipperMarks);
         shipmentInfoLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
-        shipmentInfoLayout.setColspan(goodsDescription,2);
-        shipmentInfoLayout.setColspan(shipperMarks,2);
+        shipmentInfoLayout.setColspan(goodsDescription, 2);
+        shipmentInfoLayout.setColspan(shipperMarks, 2);
         return shipmentInfoLayout;
+    }
+
+    private FormLayout getReportOptionsFormLayout() {
+        FormLayout reportConfigLayout = new FormLayout();
+        VerticalLayout verticalLayout = new VerticalLayout(useHbl, useConsignee, showRespondentEmail, hideRespondentPhone);
+        reportConfigLayout.add(verticalLayout, adviceDate, respondent);
+        reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
+        reportConfigLayout.setColspan(respondent, 2);
+        return reportConfigLayout;
+    }
+
+    private Map<String, Object> prepareParamsForShipmentAdvice() {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("LOGO_URL", "image-path");
+
+        paramMap.put("ADVICE_DATE", DateUtil.getCurrentDateAsString());
+        paramMap.put("MBL_NO", mblNo.getValue());
+        paramMap.put("HBL_NO", hblNo.getValue());
+        paramMap.put("BOOKING_NO", shipment.getBooking().getBookingNo());
+        paramMap.put("SHIPPER_INVOICE_NO", shipment.getClientInvoiceNo());
+
+        StuffingDetails stuffingDetails = shipment.getStuffingDetails();
+        paramMap.put("STUFFING_DATE", "need date");
+        paramMap.put("STUFFING_DEPOT", stuffingDetails.getStuffingDepot());
+        paramMap.put("SHIPPER_NAME", shipment.getShipper().getName());
+        paramMap.put("CONSIGNEE", shipment.getNotifyParty().getName());
+
+        paramMap.put("NUM_OF_CONTAINER", shipment.getNumOfContainers() + "X" +
+                shipment.getBooking().getContainerSize().getContainerSize());
+        paramMap.put("COMMODITY", shipment.getBooking().getCommodity());
+        paramMap.put("QUANTITY", totalQuantity.getValue());
+        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue());
+
+        Schedule shipmentSchedule = shipment.getSchedule();
+        paramMap.put("PORT_OF_LOADING", shipmentSchedule.getPortOfLoading().getPortShortCode());
+        paramMap.put("MV_CONNECT_PORT", shipmentSchedule.getMotherVesselPort().getPortShortCode());
+        paramMap.put("FEEDER", shipmentSchedule.getFeederVesselName());
+
+        paramMap.put("POL_ETA", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETA()));
+        paramMap.put("POL_ETD", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETD()));
+        paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMotherVesselETA()));
+
+        List<ContainerDetails> containerDetails = shipment.getContainerDetails();
+        paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getContainerNo)
+                .reduce((container1, container2) -> container1 + ", " + container2));
+        paramMap.put("CONTAINERS", containerDetails.stream().map(ContainerDetails::getSealNo)
+                .reduce((seal1, seal2) -> seal1 + ", " + seal2));
+
+//        paramMap.put("SIGNED_BY", contactDetails.getName());
+//        paramMap.put("SIGNED_BY_EMAIL", contactDetails.getEmail());
+//        paramMap.put("SIGNED_BY_CONTACT", contactDetails.getContactNo());
+
+        return paramMap;
+    }
+
+    private List<String> findErrorsForReportData() {
+        List<String> errorReasons = new LinkedList<>();
+        if (containerType.getValue() == null) {
+            errorReasons.add("Must provide container type");
+        }
+        if (containerSize.getValue() == null) {
+            errorReasons.add("Must provide container size");
+        }
+        if (numOfContainers.getValue() == null || numOfContainers.getValue() < 1) {
+            errorReasons.add("Cannot be empty or ZERO");
+        }
+        if (shipper.getValue() == null) {
+            errorReasons.add("Must provide shipper");
+        }
+        if (consignee.getValue() == null && notifyParty.getValue() == null) {
+            errorReasons.add("Must provide either Consignee or notify party");
+        }
+        if (carrierComboBox.getValue() == null) {
+            errorReasons.add("Must provide Carrier");
+        }
+        if (StringUtils.isBlank(commodities.getValue())) {
+            errorReasons.add("Must provide Carrier");
+        }
+        if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
+            errorReasons.add("Container/Cargo details not provided");
+        }
+        errorReasons.addAll(validateScheduleForReport(shipment.getSchedule()));
+        return errorReasons;
+    }
+
+    private List<String> validateScheduleForReport(Schedule schedule) {
+        List<String> errorReasons = new LinkedList<>();
+        if (schedule == null) {
+            errorReasons.add("Schedule details not provided");
+            return errorReasons;
+        }
+        if (schedule.getPortOfLoading() == null) {
+            errorReasons.add("Port of loading not provided");
+        }
+        if (schedule.getPortOfLoadingETA() == null) {
+            errorReasons.add("Port of Loading ETA not provided");
+        }
+        if (schedule.getPortOfLoadingETD() == null) {
+            errorReasons.add("Port of Loading ETD not provided");
+        }
+        if (schedule.getPortOfDestination() == null) {
+            errorReasons.add("Port of Destination not provided");
+        }
+        if (schedule.getPortOfDestinationETA() == null) {
+            errorReasons.add("Port of Destination ETA not provided");
+        }
+        if (StringUtils.isBlank(schedule.getMotherVesselName()) && StringUtils.isBlank(schedule.getFeederVesselName())) {
+            errorReasons.add("Must specify either Mother Vessel or Feeder Vessel");
+        }
+        return errorReasons;
     }
 }

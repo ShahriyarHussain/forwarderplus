@@ -94,14 +94,17 @@ public class EditScheduleDialog extends Dialog {
 
     private void setExistingValues(Schedule schedule) {
         if (schedule == null) {
+            portOfLoading.setValue(shipment.getBooking().getLoadingPort());
+            portOfDestination.setValue(shipment.getBooking().getDestinationPort());
             return;
         }
 
         feederVessel.setValue(schedule.getFeederVesselName());
+
+        portOfLoading.setValue(schedule.getPortOfLoading());
         etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());
         etdPortOfLoading.setValue(schedule.getPortOfLoadingETD());
 
-        portOfLoading.setValue(schedule.getPortOfLoading());
         portOfDestination.setValue(schedule.getPortOfDestination());
         etaPortOfDestination.setValue(schedule.getPortOfDestinationETA());
 
@@ -132,6 +135,8 @@ public class EditScheduleDialog extends Dialog {
         existingSchedule.setPlaceholder("Autofill with existing schedule");
         existingSchedule.setWidth("90%");
         existingSchedule.setItemLabelGenerator(Schedule::getScheduleSummary);
+
+        transshipmentETA.setWidth("90%");
 
         selectSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addTransshipmentButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -269,7 +274,6 @@ public class EditScheduleDialog extends Dialog {
     }
 
     private boolean isInvalidEntries() {
-        resetInvalid();
         boolean isInvalid = false;
 
         if (etaPortOfLoading.getValue() == null) {
@@ -280,7 +284,7 @@ public class EditScheduleDialog extends Dialog {
         if (etdPortOfLoading.getValue() == null) {
             etdPortOfLoading.setInvalid(true);
             etdPortOfLoading.setErrorMessage("Please select a date");
-            isInvalid = true;
+            return true;
         }
         if (etdPortOfLoading.getValue().isBefore(etaPortOfLoading.getValue())) {
             etdPortOfLoading.setInvalid(true);
@@ -300,7 +304,7 @@ public class EditScheduleDialog extends Dialog {
         if (etaPortOfDestination.getValue() == null) {
             etaPortOfDestination.setInvalid(true);
             etaPortOfDestination.setErrorMessage("Please provide correct value");
-            isInvalid = true;
+            return true;
         }
         if (etaPortOfDestination.getValue().isBefore(etaPortOfLoading.getValue()) ||
                 etaPortOfDestination.getValue().isBefore(etaPortOfDestination.getValue())) {
@@ -324,19 +328,5 @@ public class EditScheduleDialog extends Dialog {
             isInvalid = true;
         }
         return isInvalid;
-    }
-
-    private void resetInvalid() {
-        feederVessel.setInvalid(false);
-        etaPortOfLoading.setInvalid(false);
-        etdPortOfLoading.setInvalid(false);
-
-        portOfLoading.setInvalid(false);
-        portOfDestination.setInvalid(false);
-        etaPortOfDestination.setInvalid(false);
-
-        motherVessel.setInvalid(false);
-        motherVesselPort.setInvalid(false);
-        motherVesselPortETA.setInvalid(false);
     }
 }

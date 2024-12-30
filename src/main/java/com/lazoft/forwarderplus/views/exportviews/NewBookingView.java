@@ -185,12 +185,12 @@ public class NewBookingView extends Composite<VerticalLayout> {
         booking.setContainerType(containerType.getValue());
         booking.setContainerSize(containerSize.getValue());
         booking.setNumOfContainers(numberOfContainers.getValue());
-        booking.setCommodity(commodity.getValue());
         booking.setRemarks(remarks.getValue());
         booking.setCreatedBy(user);
         booking.setCreatedOn(LocalDateTime.now());
         booking.setLoadingPort(loadingPort.getValue());
         booking.setDestinationPort(destinationPort.getValue());
+        booking.setCommodity(commodity.getValue());
         booking.setShipper(clients.getValue());
         booking.setNumOfShipments(numOfShipments.getValue());
         booking.setCarrier(carrier.getValue());
@@ -323,7 +323,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         bookingConfirmationLayout.addFormItem(new Text(booking.getNumOfContainers() + " X " +
                 booking.getContainerSize().getContainerSize() + " " + booking.getContainerType().getContainerType()),
                 "Containers:");
-        bookingConfirmationLayout.addFormItem(new Text(booking.getCommodity()),  "Commodity:");
+        bookingConfirmationLayout.addFormItem(new Text(booking.getShipments().get(0).getCommodity()),  "Commodity:");
         bookingConfirmationLayout.addFormItem(new Text(booking.getCarrier().getName()),  "Carrier:");
         bookingConfirmationLayout.addFormItem(new Text(booking.getShipper().getName()),  "Shipper:");
 

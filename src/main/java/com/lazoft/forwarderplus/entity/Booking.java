@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -19,7 +20,6 @@ public class Booking {
     private ContainerType containerType;
     private ContainerSize containerSize;
     private int numOfContainers;
-    private String commodity;
     private String remarks;
     private LocalDateTime createdOn;
 
@@ -34,10 +34,12 @@ public class Booking {
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true,
             fetch = FetchType.LAZY)
-    private Set<Shipment> shipments;
+    private List<Shipment> shipments;
 
     @Transient
     private int numOfShipments;
     @Transient
     private Carrier carrier;
+    @Transient
+    private String commodity;
 }

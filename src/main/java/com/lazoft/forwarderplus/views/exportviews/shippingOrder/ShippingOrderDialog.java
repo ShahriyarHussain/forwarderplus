@@ -209,7 +209,7 @@ public class ShippingOrderDialog extends Dialog {
 
         paramMap.put("LOGO_URL", "Images/logo_best.png");
 
-        paramMap.put("DATE", DateUtil.getCurrentDate());
+        paramMap.put("DATE", DateUtil.getCurrentDateAsString());
         paramMap.put("BOOKING_NO", booking.getBookingNo());
 
         paramMap.put("CNF_AGENT", stuffingDetails.getCnfAgentName());

@@ -29,6 +29,7 @@ public class Shipment {
     private String goodsDescription;
     private String shipperMarks;
     private String clientInvoiceNo;
+    private String commodity;
     private int numOfContainers;
 
     @Enumerated(EnumType.STRING)
@@ -48,7 +49,7 @@ public class Shipment {
     @ManyToOne
     private Client notifyParty;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContainerDetails> containerDetails;
     @OneToOne(fetch = FetchType.EAGER)
     private StuffingDetails stuffingDetails;

@@ -16,4 +16,8 @@ public class ContainerDetailsService {
     public List<ContainerDetails> saveAll(List<ContainerDetails> containerList) {
         return containerRepository.saveAll(containerList);
     }
+
+    public void deleteAll(List<ContainerDetails> containerDetails) {
+        containerRepository.deleteAll(containerDetails);
+    }
 }

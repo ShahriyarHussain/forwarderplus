@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -22,8 +23,9 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
         savedBooking.setCarrier(booking.getCarrier());
         savedBooking.setNumOfShipments(booking.getNumOfShipments());
+        savedBooking.setCommodity(booking.getCommodity());
 
-        Set<Shipment> shipments = shipmentService.createShipmentFromBooking(savedBooking);
+        List<Shipment> shipments = shipmentService.createShipmentFromBooking(savedBooking);
         savedBooking.setShipments(shipments);
         return bookingRepository.save(savedBooking);
     }

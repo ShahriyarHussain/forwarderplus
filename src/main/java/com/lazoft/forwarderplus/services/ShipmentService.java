@@ -10,9 +10,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,8 +32,8 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    public Set<Shipment> saveAllShipments(Set<Shipment> shipments) {
-        Set<Shipment> savedShipments = new HashSet<>();
+    public List<Shipment> saveAllShipments(List<Shipment> shipments) {
+        List<Shipment> savedShipments = new LinkedList<>();
         for (Shipment shipment : shipments) {
             savedShipments.add(saveShipment(shipment));
         }
@@ -43,23 +45,28 @@ public class ShipmentService {
         return shipmentRepository.findAll(filter, pageable);
     }
 
-    public Set<Shipment> createShipmentFromBooking(Booking booking) {
-        Set<Shipment> shipments = new HashSet<>();
+    public List<Shipment> createShipmentFromBooking(Booking booking) {
+        List<Shipment> shipments = new LinkedList<>();
         for (int i = 0; i < booking.getNumOfShipments(); i++) {
             Shipment shipment = new Shipment();
             shipment.setCreatedOn(LocalDateTime.now());
             shipment.setCreatedBy(booking.getCreatedBy());
             shipment.setBooking(booking);
-            shipments.add(shipment);
             shipment.setShipper(booking.getShipper());
             shipment.setCarrier(booking.getCarrier());
-            shipment.setNumOfContainers(booking.getNumOfContainers() / booking.getNumOfShipments());
+            shipment.setNumOfContainers(booking.getNumOfContainers());
             shipment.setStatus(ShipmentStatus.NEW);
+            shipment.setCommodity(booking.getCommodity());
+            shipments.add(shipment);
         }
         return saveAllShipments(shipments);
     }
 
+    @Transactional
     public void addContainerDetailsToShipment(Shipment shipment, List<ContainerDetails> containerList) {
+        shipment.setContainerDetails(new LinkedList<>());
+        saveShipment(shipment);
+        containerDetailsService.deleteAll(shipment.getContainerDetails());
         List<ContainerDetails> savedContainerDetails = containerDetailsService.saveAll(containerList);
         shipment.setContainerDetails(savedContainerDetails);
         saveShipment(shipment);

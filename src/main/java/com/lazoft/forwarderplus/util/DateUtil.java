@@ -5,7 +5,11 @@ import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
 
-    public static String getCurrentDate() {
+    public static String getCurrentDateAsString() {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+    }
+
+    public static String getDateAsString(LocalDate date) {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
     }
 
