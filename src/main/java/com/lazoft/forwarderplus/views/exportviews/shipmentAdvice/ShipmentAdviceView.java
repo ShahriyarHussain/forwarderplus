@@ -4,6 +4,7 @@ import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -47,21 +48,24 @@ public class ShipmentAdviceView extends Div {
     private final CarrierService carrierService;
     private final ClientService clientService;
     private final PortService portService;
+    private final UserService userService;
 
-    //private final AuthenticatedUser authenticatedUser;
+    private final AuthenticatedUser authenticatedUser;
 
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
     public ShipmentAdviceView(PortService portService, ShipmentService shipmentService, ClientService clientService,
-                              ScheduleService scheduleService, CarrierService carrierService) {
+                              ScheduleService scheduleService, CarrierService carrierService, UserService userService,
+                              AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
-        //this.authenticatedUser = authenticatedUser;
         this.clientService = clientService;
         this.scheduleService = scheduleService;
         this.carrierService = carrierService;
         this.portService = portService;
+        this.userService = userService;
+        this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -212,7 +216,7 @@ public class ShipmentAdviceView extends Div {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         create.addClickListener(event -> new ShipmentAdviceDialog(shipmentService, scheduleService,
-                carrierService, clientService, portService, shipment).open());
+                carrierService, clientService, portService, userService, shipment, authenticatedUser).open());
         return create;
     }
 

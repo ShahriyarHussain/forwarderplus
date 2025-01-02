@@ -10,7 +10,10 @@ public class DateUtil {
     }
 
     public static String getDateAsString(LocalDate date) {
-        return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+        if (date == null) {
+            return null;
+        }
+        return date.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
     }
 
 }

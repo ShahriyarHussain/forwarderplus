@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,6 +23,10 @@ public class UserService implements UserDetailsService {
 
     public Optional<User> get(String id) {
         return userRepository.findById(id);
+    }
+
+    public List<User> getAll() {
+        return userRepository.findAll();
     }
 
     public boolean existsByEmail(String email) {

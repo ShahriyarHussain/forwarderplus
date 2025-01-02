@@ -1,9 +1,11 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 
+import com.lazoft.forwarderplus.dto.TSReportDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ContainerType;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
@@ -16,8 +18,12 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -27,10 +33,24 @@ import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.server.InputStreamFactory;
+import com.vaadin.flow.server.StreamResource;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperRunManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -45,6 +65,7 @@ public class ShipmentAdviceDialog extends Dialog {
     private final CarrierService carrierService;
     private final ClientService clientService;
     private final PortService portService;
+    private final UserService userService;
     private final Shipment shipment;
 
     private final TextField mblNo = new TextField("Master B/L No:");
@@ -74,29 +95,33 @@ public class ShipmentAdviceDialog extends Dialog {
     private final DatePicker adviceDate = new DatePicker("Advice Date");
     private final Checkbox showRespondentEmail = new Checkbox("Show email?");
     private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
-    private final ComboBox<User> respondent = new ComboBox<>("Report Correspondent");
+    private final Checkbox showDesignation = new Checkbox("Show designation?");
+    private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
     private final IntegerField totalQuantity = new IntegerField("Total Quantity");
     private final TextField unit = new TextField("Unit");
     private final BigDecimalField totalGrossWeight = new BigDecimalField("Total Weight (KGs)");
     private final Button editCargo = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
-    Button saveButton = new Button("Save");
-    Button downloadButton = new Button("Download as PDF");
+    private final Button saveButton = new Button("Save");
+    private final Button downloadButton = new Button("Download as PDF");
     private final Button closeButton = new Button("Close");
 
     private boolean isSaved = false;
+    private final AuthenticatedUser user;
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
                                 CarrierService carrierService, ClientService clientService, PortService portService,
-                                Shipment shipment) {
+                                UserService userService, Shipment shipment, AuthenticatedUser user) {
 
         this.shipmentService = shipmentService;
         this.scheduleService = scheduleService;
         this.carrierService = carrierService;
         this.clientService = clientService;
         this.portService = portService;
+        this.userService = userService;
         this.shipment = shipment;
+        this.user = user;
 
         this.setWidth("85%");
         this.setHeight("85%");
@@ -111,11 +136,9 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setListeners() {
-        editCargo.addClickListener(event -> new EditContainerDetailsLayout(
-                shipment, shipmentService, this).open());
+        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService, this).open());
 
-        editSchedule.addClickListener(event -> new EditScheduleDialog(
-                portService, shipmentService, scheduleService,shipment, this).open());
+        editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService,shipment, this).open());
 
         generateHbl.addClickListener(event -> {
         });
@@ -139,15 +162,22 @@ public class ShipmentAdviceDialog extends Dialog {
 
         downloadButton.addClickListener(event -> {
             List<String> errors = findErrorsForReportData();
+            Dialog dialog = new Dialog();
+            dialog.getFooter().add(new Button("Close", e -> dialog.close()));
             if (!errors.isEmpty()) {
-                Dialog dialog = new Dialog();
                 dialog.setHeaderTitle("Errors in Data");
                 ListBox<String> listBox = new ListBox<>();
                 listBox.setItems(errors);
                 dialog.add(new H4("Please fix the following before downloading Advice"), listBox);
-                dialog.getFooter().add(new Button("Close", e -> dialog.close()));
                 dialog.open();
+                return;
             }
+            dialog.setHeaderTitle("Advice is ready!");
+            dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
+
+            Anchor downloadAdviceAnchor = getShipmentAdviceDownloadAnchor();
+            dialog.getFooter().add(downloadAdviceAnchor);
+            dialog.open();
         });
 
         closeButton.addClickListener(event -> {
@@ -250,7 +280,6 @@ public class ShipmentAdviceDialog extends Dialog {
         carrierComboBox.setItemLabelGenerator(Carrier::getName);
 
         adviceDate.setValue(LocalDate.now());
-        //respondent.setItems(Collections.singleton())
 
         List<Client> clients = clientService.getAllClients();
         shipper.setItemLabelGenerator(Client::getName);
@@ -263,6 +292,10 @@ public class ShipmentAdviceDialog extends Dialog {
         notifyParty.setItemLabelGenerator(Client::getName);
         notifyParty.setItems(clients.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
                 || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+
+        respondent.setItems(userService.getAll());
+        respondent.setValue(user.get().orElse(null));
+        respondent.setItemLabelGenerator(User::getName);
 
         schedule.setReadOnly(true);
         approxTime.setReadOnly(true);
@@ -339,10 +372,10 @@ public class ShipmentAdviceDialog extends Dialog {
         Accordion containerDetailsPanel = new Accordion();
         containerDetailsPanel.add("Container Details", getContainerDetailsFormLayout());
 
-        Accordion reportOptionsPanel = new Accordion();
-        containerDetailsPanel.add("Report Options", getReportOptionsFormLayout());
+//        Accordion reportOptionsPanel = new Accordion();
+//        containerDetailsPanel.add("Report Options", getReportOptionsFormLayout());
 
-        add(shipmentPanel, schedulePanel, containerDetailsPanel, reportOptionsPanel);
+        add(shipmentPanel, schedulePanel, containerDetailsPanel);
     }
 
     private FormLayout getContainerDetailsFormLayout() {
@@ -387,34 +420,65 @@ public class ShipmentAdviceDialog extends Dialog {
 
     private FormLayout getReportOptionsFormLayout() {
         FormLayout reportConfigLayout = new FormLayout();
-        VerticalLayout verticalLayout = new VerticalLayout(useHbl, useConsignee, showRespondentEmail, hideRespondentPhone);
-        reportConfigLayout.add(verticalLayout, adviceDate, respondent);
+        useConsignee.setEnabled(consignee.getValue() != null);
+        useHbl.setEnabled(!StringUtils.isBlank(hblNo.getValue()));
+        User user = this.user.get().get();
+        showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
+        showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
+        reportConfigLayout.add(useHbl, useConsignee, showDesignation, showRespondentEmail, hideRespondentPhone, adviceDate, respondent);
         reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
         reportConfigLayout.setColspan(respondent, 2);
         return reportConfigLayout;
     }
 
+    private Anchor getShipmentAdviceDownloadAnchor() {
+        Anchor anchor = new Anchor(new StreamResource("Shipment_Advice_" + shipment.getBooking().getBookingNo() +
+                ".pdf", (InputStreamFactory) () -> {
+            String report = "shipment_advice.jasper";
+            Map<String, Object> parameters = prepareParamsForShipmentAdvice();
+
+            try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
+                return new ByteArrayInputStream(JasperRunManager
+                        .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
+            } catch (JRException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }), "");
+        anchor.getElement().setAttribute("download", true);
+        Button downloadButton = new Button("Download Advice");
+        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        anchor.add(downloadButton);
+        return anchor;
+    }
+
     private Map<String, Object> prepareParamsForShipmentAdvice() {
         Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("LOGO_URL", "image-path");
+        paramMap.put("LOGO_URL", "Images/logo_best.png");
 
-        paramMap.put("ADVICE_DATE", DateUtil.getCurrentDateAsString());
-        paramMap.put("MBL_NO", mblNo.getValue());
-        paramMap.put("HBL_NO", hblNo.getValue());
-        paramMap.put("BOOKING_NO", shipment.getBooking().getBookingNo());
-        paramMap.put("SHIPPER_INVOICE_NO", shipment.getClientInvoiceNo());
+        paramMap.put("ADVICE_DATE", StringUtils.defaultIfBlank(DateUtil.getDateAsString(adviceDate.getValue()),
+                DateUtil.getCurrentDateAsString()));
+
+        paramMap.put("MBL_NO", useHbl.getValue() ? hblNo.getValue() : mblNo.getValue());
+//        paramMap.put("HBL_NO", hblNo.getValue());
+        paramMap.put("BOOKING_NO", bookingNo.getValue());
+        paramMap.put("SHIPPER_INVOICE_NO", clientInvoiceNo.getValue());
 
         StuffingDetails stuffingDetails = shipment.getStuffingDetails();
-        paramMap.put("STUFFING_DATE", "need date");
-        paramMap.put("STUFFING_DEPOT", stuffingDetails.getStuffingDepot());
-        paramMap.put("SHIPPER_NAME", shipment.getShipper().getName());
-        paramMap.put("CONSIGNEE", shipment.getNotifyParty().getName());
+        if (stuffingDetails != null) {
+            paramMap.put("STUFFING_DATE", stuffingDetails.getStuffingDate());
+            paramMap.put("STUFFING_DEPOT", stuffingDetails.getStuffingDepot());
+        }
 
-        paramMap.put("NUM_OF_CONTAINER", shipment.getNumOfContainers() + "X" +
-                shipment.getBooking().getContainerSize().getContainerSize());
-        paramMap.put("COMMODITY", shipment.getBooking().getCommodity());
-        paramMap.put("QUANTITY", totalQuantity.getValue());
-        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue());
+        paramMap.put("SHIPPER_NAME", shipper.getValue().getName());
+        paramMap.put("CONSIGNEE", useConsignee.getValue() ? consignee.getValue().getName()
+                : notifyParty.getValue().getName());
+
+        paramMap.put("NUM_OF_CONTAINER", numOfContainers.getValue() + "X" +
+                containerSize.getValue().getContainerSize() + containerType.getValue().getContainerType());
+        paramMap.put("COMMODITY", commodities.getValue());
+        paramMap.put("QUANTITY", totalQuantity.getValue().toString());
+        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue().toString());
 
         Schedule shipmentSchedule = shipment.getSchedule();
         paramMap.put("PORT_OF_LOADING", shipmentSchedule.getPortOfLoading().getPortShortCode());
@@ -427,19 +491,47 @@ public class ShipmentAdviceDialog extends Dialog {
 
         List<ContainerDetails> containerDetails = shipment.getContainerDetails();
         paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getContainerNo)
-                .reduce((container1, container2) -> container1 + ", " + container2));
+                .reduce((container1, container2) -> container1 + ", " + container2).orElse(""));
         paramMap.put("CONTAINERS", containerDetails.stream().map(ContainerDetails::getSealNo)
-                .reduce((seal1, seal2) -> seal1 + ", " + seal2));
+                .reduce((seal1, seal2) -> seal1 + ", " + seal2).orElse(""));
 
-//        paramMap.put("SIGNED_BY", contactDetails.getName());
-//        paramMap.put("SIGNED_BY_EMAIL", contactDetails.getEmail());
-//        paramMap.put("SIGNED_BY_CONTACT", contactDetails.getContactNo());
+        List<TSReportDto> tsReportDtoList = new LinkedList<>();
+        List<Transshipment> tsList = shipmentSchedule.getTransshipments().stream().sorted(
+                Comparator.comparing(Transshipment::getPortEta)).toList();
+
+        for (int i = 0, count = 1; i < tsList.size(); i++) {
+            Transshipment transshipment = tsList.get(i);
+            if (transshipment.getVesselName() != null && !transshipment.getVesselName().isEmpty()) {
+                tsReportDtoList.add(new TSReportDto("Vessel TS" + count++, transshipment.getVesselName()));
+            }
+            tsReportDtoList.add(new TSReportDto("ETA " + transshipment.getVesselPort().getPortName(),
+                    DateUtil.getDateAsString(transshipment.getPortEta())));
+        }
+
+        tsReportDtoList.add(new TSReportDto("ETA Dest. " + System.lineSeparator() + "(" +
+                shipmentSchedule.getPortOfDestination().getPortName() + ")",
+                DateUtil.getDateAsString(shipmentSchedule.getPortOfDestinationETA())));
+
+        JRDataSource dataSource = new JRBeanCollectionDataSource(tsReportDtoList);
+        paramMap.put("COLLECTION_LIST", dataSource);
+
+        assert this.user.get().isPresent();
+        User user = this.user.get().get();
+        paramMap.put("SIGNED_BY", user.getName());
+        paramMap.put("SIGNED_BY_EMAIL", user.getEmail());
+        paramMap.put("SIGNED_BY_CONTACT", user.getContactNo());
 
         return paramMap;
     }
 
     private List<String> findErrorsForReportData() {
         List<String> errorReasons = new LinkedList<>();
+        if (user == null || user.get().isEmpty()) {
+            NotificationUtil.getNotification("Session Expired. Please reload page and login again", "", false,
+                    NotificationVariant.LUMO_ERROR, 4000);
+            this.close();
+            return errorReasons;
+        }
         if (containerType.getValue() == null) {
             errorReasons.add("Must provide container type");
         }
