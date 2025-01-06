@@ -22,23 +22,16 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
@@ -483,7 +476,7 @@ public class ShipmentAdviceDialog extends Dialog {
         Schedule shipmentSchedule = shipment.getSchedule();
         paramMap.put("PORT_OF_LOADING", shipmentSchedule.getPortOfLoading().getPortShortCode());
         paramMap.put("MV_CONNECT_PORT", shipmentSchedule.getMotherVesselPort().getPortShortCode());
-        paramMap.put("FEEDER", shipmentSchedule.getFeederVesselName());
+        paramMap.put("FEEDER", shipmentSchedule.getPortOfLoadingVesselName());
 
         paramMap.put("POL_ETA", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETA()));
         paramMap.put("POL_ETD", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETD()));
@@ -581,7 +574,7 @@ public class ShipmentAdviceDialog extends Dialog {
         if (schedule.getPortOfDestinationETA() == null) {
             errorReasons.add("Port of Destination ETA not provided");
         }
-        if (StringUtils.isBlank(schedule.getMotherVesselName()) && StringUtils.isBlank(schedule.getFeederVesselName())) {
+        if (StringUtils.isBlank(schedule.getMotherVesselName()) && StringUtils.isBlank(schedule.getPortOfLoadingVesselName())) {
             errorReasons.add("Must specify either Mother Vessel or Feeder Vessel");
         }
         return errorReasons;

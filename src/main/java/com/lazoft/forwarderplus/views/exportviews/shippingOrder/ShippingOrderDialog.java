@@ -223,7 +223,7 @@ public class ShippingOrderDialog extends Dialog {
                 + stuffingDetails.getPackageUnit().toString());
 
         paramMap.put("PORT_OF_LOADING", schedule.getPortOfLoading().getPortCityAndCountry());
-        paramMap.put("VESSEL", schedule.getFeederVesselName());
+        paramMap.put("VESSEL", schedule.getPortOfLoadingVesselName());
         paramMap.put("PORT_OF_DELIVERY", schedule.getPortOfDestination().getPortCityAndCountry());
 
         paramMap.put("SHIPPING_LINE", shipment.getCarrier().getName());

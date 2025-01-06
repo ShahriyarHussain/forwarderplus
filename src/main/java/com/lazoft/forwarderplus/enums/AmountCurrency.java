@@ -18,4 +18,8 @@ public enum AmountCurrency {
 
     private final String currencyName;
     private final String symbol;
+
+    public final String getCurrencyAndSymbol() {
+        return this.getSymbol() + " " + this.getCurrencyName();
+    }
 }

@@ -38,7 +38,7 @@ public class EditScheduleDialog extends Dialog {
 
     private final ComboBox<Schedule> existingSchedule = new ComboBox<>("Choose Existing Schedule");
 
-    private final TextField feederVessel = new TextField("Feeder Vessel");
+    private final TextField feederVessel = new TextField("Loading Port/Feeder Vessel");
     private final ComboBox<Port> portOfLoading = new ComboBox<>("Port of Loading");
     private final DatePicker etaPortOfLoading = new DatePicker("Port of Loading ETA");
     private final DatePicker etdPortOfLoading = new DatePicker("Port of Loading ETD");
@@ -99,7 +99,7 @@ public class EditScheduleDialog extends Dialog {
             return;
         }
 
-        feederVessel.setValue(schedule.getFeederVesselName());
+        feederVessel.setValue(schedule.getPortOfLoadingVesselName());
 
         portOfLoading.setValue(schedule.getPortOfLoading());
         etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());
@@ -198,7 +198,7 @@ public class EditScheduleDialog extends Dialog {
             schedule = new Schedule();
         }
 
-        schedule.setFeederVesselName(feederVessel.getValue());
+        schedule.setPortOfLoadingVesselName(feederVessel.getValue());
         schedule.setPortOfLoadingETA(etaPortOfLoading.getValue());
         schedule.setPortOfLoadingETD(etdPortOfLoading.getValue());
 

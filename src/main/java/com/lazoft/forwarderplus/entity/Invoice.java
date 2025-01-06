@@ -16,6 +16,7 @@ public class Invoice {
 
     @Id
     private String invoiceNo;
+    private long shipmentId;
     private String expNo;
     private LocalDate expDate;
     private BigDecimal conversionRate;

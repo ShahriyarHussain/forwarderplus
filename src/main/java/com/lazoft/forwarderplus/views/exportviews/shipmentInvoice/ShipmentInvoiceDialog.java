@@ -1,10 +1,13 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentInvoice;
 
-import com.lazoft.forwarderplus.entity.BankDetails;
-import com.lazoft.forwarderplus.entity.InvoiceItem;
-import com.lazoft.forwarderplus.entity.User;
+import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.vaadin.flow.component.Unit;
+import com.lazoft.forwarderplus.services.InvoiceService;
+import com.lazoft.forwarderplus.util.AmountFormatter;
+import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.ReportUtil;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -21,6 +24,7 @@ import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
@@ -34,16 +38,20 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Slf4j
 public class ShipmentInvoiceDialog extends Dialog {
 
+    private final InvoiceService invoiceService;
+
     private final Button saveButton = new Button("Save");
     private final Button downloadButton = new Button("Download as PDF");
     private final Button closeButton = new Button("Close");
+
+    private final ComboBox<AmountCurrency> foreignCurrComboBox = new ComboBox<>("Carrier Currency");
+    private final ComboBox<AmountCurrency> localCurrencyComboBox = new ComboBox<>("Local Currency");
 
     private final Checkbox showBankDetails = new Checkbox("Show Bank Details?");
     private final Checkbox showEarlyPaymentMessage = new Checkbox("Show Payment Message?");
@@ -54,12 +62,21 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
+    private final BigDecimalField total = new BigDecimalField("Total", BigDecimal.ZERO, "");
+    private final Text inWords = new Text("Zero");
+
+    private final Set<InvoiceItem> invoiceItems = new HashSet<>();
     private boolean isSaved = false;
 
     private final AuthenticatedUser user;
+    private final Invoice invoice;
+    private final Shipment shipment;
 
-    public ShipmentInvoiceDialog(AuthenticatedUser user) {
+    public ShipmentInvoiceDialog(InvoiceService invoiceService, AuthenticatedUser user, Shipment shipment) {
+        this.invoiceService = invoiceService;
         this.user = user;
+        this.invoice = invoiceService.getInvoiceFromShipment(shipment);
+        this.shipment = shipment;
 
         this.setWidth("85%");
         this.setHeight("85%");
@@ -68,12 +85,13 @@ public class ShipmentInvoiceDialog extends Dialog {
         getFooter().add(closeButton, downloadButton, saveButton);
     }
 
-    private void setFieldAttributes() {}
+    private void setFieldAttributes() {
+    }
 
-    public void fillUpExistingValues() {}
+    public void fillUpExistingValues() {
+    }
 
     public void setUpFormLayout() {
-
     }
 
     public void setUpInvoiceItemGrid() {
@@ -99,12 +117,11 @@ public class ShipmentInvoiceDialog extends Dialog {
                 total.setValue(invoiceItems.stream()
                         .map(InvoiceItem::getTotalInLocalCurr)
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
-                inWords.setText(addSuffixToWordAmountByCurrency(localCurrencyComboBox.getValue(),
-                        Util.getAmountInWords(total.getValue())));
+                inWords.setText(AmountFormatter.getAmountInWords(total.getValue(), localCurrencyComboBox.getValue()));
             });
             return deleteButton;
         });
-        invoiceItemGrid.setMaxHeight(17, Unit.EM);
+        //invoiceItemGrid.setMaxHeight(17, Unit.EM);
         invoiceItemGrid.setVisible(!invoiceItems.isEmpty());
         invoiceItemGrid.setItems(invoiceItems);
     }
@@ -138,7 +155,7 @@ public class ShipmentInvoiceDialog extends Dialog {
             dialog.setHeaderTitle("Invoice is ready!");
             dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
 
-            Anchor downloadAdviceAnchor = getShipmentAdviceDownloadAnchor();
+            Anchor downloadAdviceAnchor = getInvoiceDownloadAnchor();
             dialog.getFooter().add(downloadAdviceAnchor);
             dialog.open();
         });
@@ -160,29 +177,93 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
     }
 
-    private void setValuesToShipmentForSaving() {}
+    private void setValuesToShipmentForSaving() {
+    }
 
-    private boolean isInvalidEntriesForSave() {return true;}
+    private boolean isInvalidEntriesForSave() {
+        return true;
+    }
 
     private List<String> findErrorsForReportData() {
         return null;
     }
 
-    private Map<String, Object> prepareParamsForShipmentInvoice() {return new HashMap<>();}
+    private Map<String, Object> prepareParamsForShipmentInvoice() {
+        final Map<String, Object> parameters = new HashMap<>();
 
-    private Anchor getShipmentAdviceDownloadAnchor() {
+        parameters.put("LOGO_URL", ReportUtil.image_path);
+
+        parameters.put("INVOICE_NO", invoice.getInvoiceNo());
+        parameters.put("INVOICE_DATE", DateUtil.getDateAsString(invoiceDate.getValue()));
+
+        parameters.put("SHIPPER_NAME", shipment.getShipper().getName());
+        parameters.put("BL_NO", shipment.getMblNo());
+
+        parameters.put("ADDRESS", shipment.getShipper().getAddress());
+        parameters.put("VESSEL", shipment.getSchedule().getPortOfLoadingVesselName());
+
+        parameters.put("SHIPPER_EMAIL", shipment.getShipper().getEmail());
+        parameters.put("POL_ETD", DateUtil.getDateAsString(shipment.getSchedule().getPortOfLoadingETD()));
+
+        parameters.put("COMMODITY", shipment.getCommodity());
+        parameters.put("DEST_ETA", DateUtil.getDateAsString(shipment.getSchedule().getPortOfDestinationETA()));
+
+        parameters.put("PORT_OF_LOADING", shipment.getSchedule().getPortOfLoading().getPortName() + ", "
+                + shipment.getSchedule().getPortOfLoading().getPortCountry());
+        parameters.put("DEST_PORT", shipment.getSchedule().getPortOfDestination().getPortName() + ", "
+                + shipment.getSchedule().getPortOfDestination().getPortCountry());
+
+        int numOfContainers = shipment.getBooking().getNumOfContainers();
+        if (numOfContainers > 9) {
+            parameters.put("CONTAINERS", numOfContainers + "x" +
+                    shipment.getBooking().getContainerSize().getContainerSize());
+        } else {
+            parameters.put("CONTAINERS", shipment.getContainerDetails().stream().map(ContainerDetails::getContainerNo)
+                    .reduce((c1, c2) -> c1 + ", " + c2).orElse(""));
+        }
+        parameters.put("SHIPPER_INV_NO", invoice.getInvoiceNo());
+
+        parameters.put("EXP_NO", invoice.getExpNo());
+        parameters.put("EXP_DATE", DateUtil.getDateAsString(invoice.getExpDate()));
+
+        parameters.put("FOREIGN_CURRENCY", invoice.getForeignCurrency().toString());
+        parameters.put("LOCAL_CURRENCY", invoice.getLocalCurrency().toString());
+        parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(invoice.getConversionRate().setScale(2, RoundingMode.UNNECESSARY),
+                foreignCurrComboBox.getValue()));
+
+        BigDecimal grandTotal = invoice.getInvoiceItems().stream().map(InvoiceItem::getTotalInLocalCurr).reduce(BigDecimal.ZERO, BigDecimal::add);
+        parameters.put("TOTAL", AmountFormatter.getFormattedAmount(
+                grandTotal.setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
+        parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal, localCurrencyComboBox.getValue()));
+
+        BankDetails bankDetails = invoice.getBankDetails();
+        parameters.put("BANK_NAME", bankDetails.getBankName());
+        parameters.put("AC_NAME", bankDetails.getAccName());
+        parameters.put("AC_NO", bankDetails.getAccNo());
+        parameters.put("ROUTING_NO", bankDetails.getRoutingNo());
+        parameters.put("BRANCH", bankDetails.getBranchName());
+
+        User contactDetails = user.get().get();
+        parameters.put("SIGNED_BY", contactDetails.getName());
+        parameters.put("SIGNED_BY_EMAIL", contactDetails.getEmail());
+        parameters.put("SIGNED_BY_CONTACT", contactDetails.getContactNo());
+
+        return parameters;
+    }
+
+    private Anchor getInvoiceDownloadAnchor() {
         Anchor anchor = new Anchor(new StreamResource("Invoice-" + "shipment.getBlNo()" + ".pdf",
                 (InputStreamFactory) () -> {
-            String report = "invoice.jasper.jasper";
-            Map<String, Object> parameters = prepareParamsForShipmentInvoice();
+                    String report = "invoice.jasper";
+                    Map<String, Object> parameters = prepareParamsForShipmentInvoice();
 
-            try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-                return new ByteArrayInputStream(JasperRunManager
-                        .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
-            } catch (JRException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }), "");
+                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
+                        return new ByteArrayInputStream(JasperRunManager
+                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
+                    } catch (JRException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }), "");
         anchor.getElement().setAttribute("download", true);
         Button downloadButton = new Button("Download Invoice");
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
@@ -190,6 +271,4 @@ public class ShipmentInvoiceDialog extends Dialog {
         anchor.add(downloadButton);
         return anchor;
     }
-
-
 }

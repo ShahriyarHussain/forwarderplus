@@ -28,7 +28,6 @@ public class InvoiceItem {
 
     public static BigDecimal calculateItemTotal(BigDecimal rate, Integer quantity, Boolean isForeignCurr, BigDecimal convRate) {
         if (rate == null || quantity == null || convRate == null) {
-            System.out.println("NULL FOUND IN CALCULATION");
             return BigDecimal.ZERO;
         }
         BigDecimal conversionRate = isForeignCurr ? convRate : BigDecimal.ONE;

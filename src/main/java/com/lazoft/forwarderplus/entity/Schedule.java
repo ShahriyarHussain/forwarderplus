@@ -33,7 +33,7 @@ public class Schedule {
     private Port motherVesselPort;
     private LocalDate motherVesselETA;
 
-    private String feederVesselName;
+    private String portOfLoadingVesselName;
     private String motherVesselName;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
