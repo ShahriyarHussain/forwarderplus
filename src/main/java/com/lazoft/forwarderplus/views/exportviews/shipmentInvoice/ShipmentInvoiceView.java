@@ -45,11 +45,12 @@ import java.util.List;
 public class ShipmentInvoiceView extends Div {
 
     private final ShipmentService shipmentService;
-    private final ScheduleService scheduleService;
-    private final CarrierService carrierService;
-    private final ClientService clientService;
-    private final PortService portService;
-    private final UserService userService;
+//    private final ScheduleService scheduleService;
+//    private final CarrierService carrierService;
+//    private final ClientService clientService;
+//    private final PortService portService;
+//    private final UserService userService;
+    private final InvoiceService invoiceService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -57,15 +58,15 @@ public class ShipmentInvoiceView extends Div {
 
     private final Filters filters;
 
-    public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, ClientService clientService,
-                               ScheduleService scheduleService, CarrierService carrierService, UserService userService,
+    public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
                                AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
-        this.clientService = clientService;
-        this.scheduleService = scheduleService;
-        this.carrierService = carrierService;
-        this.portService = portService;
-        this.userService = userService;
+        this.invoiceService = invoiceService;
+//        this.clientService = clientService;
+//        this.scheduleService = scheduleService;
+//        this.carrierService = carrierService;
+//        this.portService = portService;
+//        this.userService = userService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
@@ -216,7 +217,7 @@ public class ShipmentInvoiceView extends Div {
 //        User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentInvoiceDialog(authenticatedUser).open());
+        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, authenticatedUser, shipment).open());
         return create;
     }
 

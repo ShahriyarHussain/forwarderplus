@@ -11,7 +11,6 @@ import lombok.Setter;
 @MappedSuperclass
 public abstract class AbstractEntity {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
     @SequenceGenerator(name = "idgenerator", initialValue = 1000)
@@ -19,23 +18,4 @@ public abstract class AbstractEntity {
 
     @Version
     private int version;
-
-//    @Override
-//    public int hashCode() {
-//        if (getId() != null) {
-//            return getId().hashCode();
-//        }
-//        return super.hashCode();
-//    }
-//
-//    @Override
-//    public boolean equals(Object obj) {
-//        if (!(obj instanceof AbstractEntity that)) {
-//            return false;
-//        }
-//        if (getId() != null) {
-//            return getId().equals(that.getId());
-//        }
-//        return super.equals(that);
-//    }
 }

@@ -129,13 +129,10 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setListeners() {
-        editCargo.addClickListener(event -> new EditContainerDetailsLayout(shipment, shipmentService, this).open());
-
+        editCargo.addClickListener(event -> new EditContainerDetailsDialog(shipment, shipmentService, this).open());
         editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService,shipment, this).open());
-
         generateHbl.addClickListener(event -> {
         });
-
         saveButton.addClickListener(event -> {
             if (isInvalidEntriesForSave()) {
                 return;
@@ -152,7 +149,6 @@ public class ShipmentAdviceDialog extends Dialog {
                         NotificationVariant.LUMO_ERROR, 5000).open();
             }
         });
-
         downloadButton.addClickListener(event -> {
             List<String> errors = findErrorsForReportData();
             Dialog dialog = new Dialog();
@@ -172,7 +168,6 @@ public class ShipmentAdviceDialog extends Dialog {
             dialog.getFooter().add(downloadAdviceAnchor);
             dialog.open();
         });
-
         closeButton.addClickListener(event -> {
             if (isSaved) {
                 this.close();
@@ -364,9 +359,6 @@ public class ShipmentAdviceDialog extends Dialog {
 
         Accordion containerDetailsPanel = new Accordion();
         containerDetailsPanel.add("Container Details", getContainerDetailsFormLayout());
-
-//        Accordion reportOptionsPanel = new Accordion();
-//        containerDetailsPanel.add("Report Options", getReportOptionsFormLayout());
 
         add(shipmentPanel, schedulePanel, containerDetailsPanel);
     }

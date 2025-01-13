@@ -9,6 +9,7 @@ import com.lazoft.forwarderplus.views.configviews.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;
 import com.lazoft.forwarderplus.views.exportviews.NewBookingView;
 import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceView;
+import com.lazoft.forwarderplus.views.exportviews.shipmentInvoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -80,7 +81,7 @@ public class MainLayout extends AppLayout {
         exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.WAREHOUSE_SOLID.create()));
         exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
         exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Shipment Invoice", ShippingOrderView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+        exportOverview.addItem(new SideNavItem("Shipment Invoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
         exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
 
         if (accessChecker.hasAccess(NewBookingView.class)) {

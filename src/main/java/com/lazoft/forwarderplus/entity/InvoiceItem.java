@@ -6,45 +6,27 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Entity
 @Getter
 @Setter
 public class InvoiceItem {
+
     @Id
-    private long id;
-    @OneToOne
-    private Invoice invoice;
+    private String id;
+
     private String description;
     private long quantity;
+    private BigDecimal price;
     private String itemUnit;
-    private String currency;
-    private boolean isForeignCurr;
-    private BigDecimal rate;
-    private BigDecimal totalInForeignCurr;
-    private BigDecimal totalInLocalCurr;
+
+    @Transient
+    private BigDecimal subTotalInLocalCurr;
+    @Transient
+    private BigDecimal subTotalInForeignCurr;
     @Transient
     private int sl;
 
-    public static BigDecimal calculateItemTotal(BigDecimal rate, Integer quantity, Boolean isForeignCurr, BigDecimal convRate) {
-        if (rate == null || quantity == null || convRate == null) {
-            return BigDecimal.ZERO;
-        }
-        BigDecimal conversionRate = isForeignCurr ? convRate : BigDecimal.ONE;
-        return rate.multiply(new BigDecimal(quantity)).multiply(conversionRate);
-    }
 
-    public static String addSuffixToWordAmountByCurrency(AmountCurrency currency, String amount) {
-        if (currency == null) {
-            currency = AmountCurrency.BDT;
-        }
-        return amount + " " + currency.getCurrencyName() + " Only";
-    }
-
-    public static String getTotalColumnName(AmountCurrency currency) {
-        if (currency == null) {
-            return "Total";
-        }
-        return "Total in " + currency;
-    }
 }

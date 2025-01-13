@@ -18,7 +18,6 @@ public class StuffingDetails {
     @Id
     private Long stuffingId;
 
-
     private String cnfAgentName;
     private String cnfAgentContactNo;
 

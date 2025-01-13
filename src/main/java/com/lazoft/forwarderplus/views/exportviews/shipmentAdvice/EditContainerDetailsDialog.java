@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class EditContainerDetailsLayout extends Dialog {
+public class EditContainerDetailsDialog extends Dialog {
     private final ShipmentService shipmentService;
 
     private final List<ContainerDetails> containerList = new LinkedList<>();
@@ -59,7 +59,7 @@ public class EditContainerDetailsLayout extends Dialog {
 
     private boolean disallowSave = true;
 
-    public EditContainerDetailsLayout(Shipment shipment, ShipmentService shipmentService,
+    public EditContainerDetailsDialog(Shipment shipment, ShipmentService shipmentService,
                                       ShipmentAdviceDialog shipmentAdviceDialog) {
 
         this.shipmentAdviceDialog = shipmentAdviceDialog;

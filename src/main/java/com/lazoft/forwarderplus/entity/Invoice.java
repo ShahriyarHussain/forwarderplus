@@ -12,6 +12,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@Table(indexes = @Index(name = "shipmentIdIdx", columnList = "shipmentId"))
 public class Invoice {
 
     @Id

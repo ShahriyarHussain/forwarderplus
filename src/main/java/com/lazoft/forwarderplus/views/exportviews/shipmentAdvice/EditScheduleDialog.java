@@ -99,7 +99,7 @@ public class EditScheduleDialog extends Dialog {
             return;
         }
 
-        feederVessel.setValue(schedule.getPortOfLoadingVesselName());
+        feederVessel.setValue(StringUtils.defaultIfBlank(schedule.getPortOfLoadingVesselName(), ""));
 
         portOfLoading.setValue(schedule.getPortOfLoading());
         etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());

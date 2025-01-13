@@ -6,8 +6,9 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.InvoiceService;
 import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.util.ReportUtil;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -21,10 +22,13 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +54,21 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final Button downloadButton = new Button("Download as PDF");
     private final Button closeButton = new Button("Close");
 
+    private final TextField invoiceNo = new TextField("Invoice No");
+    private final Button generateInvoiceNo = new Button(LineAwesomeIcon.ATOM_SOLID.create());
+
+    private final TextField expNo = new TextField("Exp No");
+    private final DatePicker expDate = new DatePicker("Exp Date");
+
+    private final BigDecimalField grandTotal = new BigDecimalField("Grand Total", BigDecimal.ZERO, "");
+    private final BigDecimalField conversionRate = new BigDecimalField("Conversion Rate", BigDecimal.ONE, "");
+
+    private final TextField description = new TextField("Description");
+    private final BigDecimalField price = new BigDecimalField("Price (Per Unit)");
+    private final IntegerField quantity = new IntegerField("Quantity");
+    private final TextField itemUnit = new TextField("Unit");
+    private final Checkbox foreignCurrency = new Checkbox("Foreign Currency ?");
+
     private final ComboBox<AmountCurrency> foreignCurrComboBox = new ComboBox<>("Carrier Currency");
     private final ComboBox<AmountCurrency> localCurrencyComboBox = new ComboBox<>("Local Currency");
 
@@ -62,10 +81,13 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
-    private final BigDecimalField total = new BigDecimalField("Total", BigDecimal.ZERO, "");
-    private final Text inWords = new Text("Zero");
+    private final Button addItem = new Button(LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
+    private final TextField inWords = new TextField("In Words");
+    private final Grid<InvoiceItem> invoiceItemGrid = new Grid<>(InvoiceItem.class, false);
+    private Grid.Column<InvoiceItem> foreignCurrTotalColumn;
+    private Grid.Column<InvoiceItem> localCurrTotalColumn;
 
-    private final Set<InvoiceItem> invoiceItems = new HashSet<>();
+    private final List<InvoiceItem> invoiceItems = new LinkedList<>();
     private boolean isSaved = false;
 
     private final AuthenticatedUser user;
@@ -78,51 +100,108 @@ public class ShipmentInvoiceDialog extends Dialog {
         this.invoice = invoiceService.getInvoiceFromShipment(shipment);
         this.shipment = shipment;
 
-        this.setWidth("85%");
+        this.setWidth("70%");
         this.setHeight("85%");
         this.setHeaderTitle("Create Invoice");
+        this.setCloseOnOutsideClick(false);
+
+        setUpFormLayout();
+        setFieldAttributes();
+        setUpInvoiceItemGrid();
+        fillUpExistingValues();
+        setListeners();
 
         getFooter().add(closeButton, downloadButton, saveButton);
     }
 
     private void setFieldAttributes() {
+        addItem.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        description.setWidth("90%");
+        inWords.setReadOnly(true);
+        grandTotal.setReadOnly(true);
+        invoiceItemGrid.getStyle().set("margin-top", "10px");
+
+        localCurrencyComboBox.setItems(AmountCurrency.values());
+        localCurrencyComboBox.setValue(AmountCurrency.BDT);
+        localCurrencyComboBox.addValueChangeListener(event -> localCurrTotalColumn
+                .setHeader(getTotalColumnLabel(localCurrencyComboBox, false)));
+
+        foreignCurrComboBox.setItems(AmountCurrency.values());
+        foreignCurrComboBox.addValueChangeListener(event -> foreignCurrTotalColumn
+                .setHeader(getTotalColumnLabel(foreignCurrComboBox, true)));
+
+        invoiceItemGrid.setAllRowsVisible(true);
     }
 
     public void fillUpExistingValues() {
+        if (invoice == null) {
+            return;
+        }
     }
 
     public void setUpFormLayout() {
+        FormLayout invoiceLayout = new FormLayout();
+        HorizontalLayout invoiceComponent = new HorizontalLayout(invoiceNo, generateInvoiceNo);
+        invoiceComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        invoiceComponent.setAlignItems(FlexComponent.Alignment.END);
+        Hr line = new Hr();
+        invoiceLayout.add(invoiceComponent, line, invoiceDate,
+                expNo, expDate, localCurrencyComboBox, foreignCurrComboBox, conversionRate);
+        invoiceLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
+        invoiceLayout.setColspan(line, 3);
+
+        Accordion editInvoicePanel = new Accordion();
+        editInvoicePanel.add("Item Details", getAddInvoiceItemForm());
+        add(invoiceLayout, editInvoicePanel);
+    }
+
+    private FormLayout getAddInvoiceItemForm() {
+        FormLayout invoiceItemDetailLayout = new FormLayout();
+        HorizontalLayout unitAndAddBtn = new HorizontalLayout(addItem, description);
+        unitAndAddBtn.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        unitAndAddBtn.setAlignItems(FlexComponent.Alignment.END);
+        Hr split2 = new Hr(), split1 = new Hr();
+
+        invoiceItemDetailLayout.add(unitAndAddBtn, price, quantity, itemUnit, foreignCurrency,
+                split1,
+                invoiceItemGrid,
+                inWords, split2, grandTotal);
+        invoiceItemDetailLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
+        invoiceItemDetailLayout.setColspan(unitAndAddBtn, 2);
+        invoiceItemDetailLayout.setColspan(invoiceItemGrid, 6);
+        invoiceItemDetailLayout.setColspan(split1, 6);
+
+        invoiceItemDetailLayout.setColspan(inWords, 2);
+        invoiceItemDetailLayout.setColspan(split2, 2);
+        invoiceItemDetailLayout.setColspan(grandTotal, 2);
+        return invoiceItemDetailLayout;
     }
 
     public void setUpInvoiceItemGrid() {
-        Grid<InvoiceItem> invoiceItemGrid = new Grid<>();
-
-//        invoiceItemGrid.setItems(invoiceItems);
-        invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Sl");
+        invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setAutoWidth(true);
         invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Description");
-        invoiceItemGrid.addColumn(InvoiceItem::getRate).setHeader("Rate");
-        invoiceItemGrid.addColumn(InvoiceItem::getQuantity).setHeader("Quantity");
-        invoiceItemGrid.addColumn(InvoiceItem::getItemUnit).setHeader("Unit");
-        Grid.Column<InvoiceItem> foreignCurrTotal = invoiceItemGrid.addColumn(InvoiceItem::getTotalInForeignCurr)
-                .setHeader("Total In " + foreignCurrComboBox.getValue());
-        Grid.Column<InvoiceItem> localCurrTotal = invoiceItemGrid.addColumn(InvoiceItem::getTotalInLocalCurr)
-                .setHeader("Total In " + localCurrencyComboBox.getValue());
+        invoiceItemGrid.addColumn(item -> item.getPrice() + (foreignCurrency.getValue() ?
+                foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().toString()))
+                .setHeader("Price/Unit").setAutoWidth(true);
+        invoiceItemGrid.addColumn(item -> StringUtils.defaultIfBlank(String.valueOf(item.getQuantity()), "") +
+                        (StringUtils.isBlank(item.getItemUnit()) ? "" : ( "X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
+        foreignCurrTotalColumn = invoiceItemGrid.addColumn(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .setHeader(getTotalColumnLabel(foreignCurrComboBox, true));
+        localCurrTotalColumn = invoiceItemGrid.addColumn(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity()))
+                        .multiply(conversionRate.getValue())).setHeader(getTotalColumnLabel(localCurrencyComboBox, false));
         invoiceItemGrid.addComponentColumn(invoiceItem -> {
-            Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+            Button deleteButton = new Button(LineAwesomeIcon.MINUS_CIRCLE_SOLID.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
                 invoiceItems.remove(invoiceItem);
-                invoiceItemGrid.setVisible(!invoiceItems.isEmpty());
                 invoiceItemGrid.setItems(invoiceItems);
-                total.setValue(invoiceItems.stream()
-                        .map(InvoiceItem::getTotalInLocalCurr)
+                grandTotal.setValue(invoiceItems.stream()
+                        .map(InvoiceItem::getSubTotalInLocalCurr)
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
-                inWords.setText(AmountFormatter.getAmountInWords(total.getValue(), localCurrencyComboBox.getValue()));
+                inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue(), localCurrencyComboBox.getValue()));
             });
             return deleteButton;
         });
-        //invoiceItemGrid.setMaxHeight(17, Unit.EM);
-        invoiceItemGrid.setVisible(!invoiceItems.isEmpty());
         invoiceItemGrid.setItems(invoiceItems);
     }
 
@@ -139,6 +218,34 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private void setListeners() {
+        saveButton.addClickListener(event -> {
+            if (isInvalidEntriesForSave()) {
+                NotificationUtil.getNotification("Please properly provide marked fields", "", false,
+                        NotificationVariant.LUMO_WARNING, 4000);
+                return;
+            }
+            try {
+                invoiceService.saveInvoice(invoice);
+                isSaved = true;
+            } catch (Exception e) {
+                NotificationUtil.getNotification("Unexpected error while saving Invoice", e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 6000);
+            }
+        });
+
+        addItem.addClickListener(event -> {
+            if (isInvalidDataToAddItem()) {
+                return;
+            }
+
+            InvoiceItem item = getInvoiceItemFromEntries();
+            invoiceItems.add(item);
+            invoiceItemGrid.setItems(invoiceItems);
+            grandTotal.setValue(invoiceItems.stream()
+                    .map(InvoiceItem::getSubTotalInLocalCurr)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add));// TODO: WHAT IF USER CHANGES CONV RATE AFTER ADDING A FEW ITEMS
+            inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue(), localCurrencyComboBox.getValue()));
+        });
 
         downloadButton.addClickListener(event -> {
             List<String> errors = findErrorsForReportData();
@@ -148,7 +255,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 dialog.setHeaderTitle("Errors in Data");
                 ListBox<String> listBox = new ListBox<>();
                 listBox.setItems(errors);
-                dialog.add(new H4("Please fix the following before downloading Advice"), listBox);
+                dialog.add(new H4("Please fix the following before downloading Invoice"), listBox);
                 dialog.open();
                 return;
             }
@@ -166,7 +273,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 return;
             }
             ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setHeader("Close Shipment Edit Window ?");
+            confirmDialog.setHeader("Close Shipment Invoice Window ?");
             confirmDialog.setText("Are you sure you want to close ? All unsaved changes will be lost.");
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmButton(new Button("Yes, I am Sure", confirmEvent -> this.close()));
@@ -177,7 +284,44 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
     }
 
-    private void setValuesToShipmentForSaving() {
+    private boolean isInvalidDataToAddItem() {
+        if (foreignCurrency.getValue() && foreignCurrComboBox.getValue() == null) {
+            foreignCurrComboBox.isInvalid();
+            foreignCurrComboBox.setErrorMessage("Must provide currency for FC Items");
+        }
+        if (price.getValue() == null || price.getValue().equals(BigDecimal.ZERO)) {
+            price.setInvalid(true);
+            price.setErrorMessage("Price cannot be empty or Zero");
+            return true;
+        }
+        if (!StringUtils.isBlank(itemUnit.getValue()) && quantity.getValue() == null) {
+            quantity.setInvalid(true);
+            quantity.setErrorMessage("Cannot have Unit without Quantity");
+            return true;
+        }
+        if (StringUtils.isBlank(description.getValue())) {
+            description.setInvalid(true);
+            description.setErrorMessage("Description cannot be empty");
+            return true;
+        }
+        return false;
+    }
+
+    private InvoiceItem getInvoiceItemFromEntries() {
+        InvoiceItem item = new InvoiceItem();
+        item.setSl(invoiceItems.size() + 1);
+        item.setItemUnit(itemUnit.getValue());
+        item.setDescription(description.getValue());
+        item.setPrice(price.getValue());
+        item.setQuantity(quantity.getValue());
+        BigDecimal convRate = BigDecimal.ONE;
+        if (foreignCurrency.getValue() != null && foreignCurrency.getValue()) {
+            item.setSubTotalInForeignCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())));
+            convRate = conversionRate.getValue();
+        }
+        item.setSubTotalInLocalCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())).multiply(convRate));
+        item.setId(shipment.getShipmentId() + String.valueOf(item.getSl()));
+        return item;
     }
 
     private boolean isInvalidEntriesForSave() {
@@ -231,7 +375,7 @@ public class ShipmentInvoiceDialog extends Dialog {
         parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(invoice.getConversionRate().setScale(2, RoundingMode.UNNECESSARY),
                 foreignCurrComboBox.getValue()));
 
-        BigDecimal grandTotal = invoice.getInvoiceItems().stream().map(InvoiceItem::getTotalInLocalCurr).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal grandTotal = invoice.getInvoiceItems().stream().map(InvoiceItem::getSubTotalInLocalCurr).reduce(BigDecimal.ZERO, BigDecimal::add);
         parameters.put("TOTAL", AmountFormatter.getFormattedAmount(
                 grandTotal.setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
         parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal, localCurrencyComboBox.getValue()));
@@ -270,5 +414,13 @@ public class ShipmentInvoiceDialog extends Dialog {
         downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         anchor.add(downloadButton);
         return anchor;
+    }
+
+    private String getTotalColumnLabel(ComboBox<AmountCurrency> comboBox, boolean isFC) {
+        String defaultValue = isFC ? "Foreign Currency" : "Local Currency";
+        if (comboBox.getValue() == null || StringUtils.isBlank(comboBox.getValue().toString())) {
+            return "Total in " + defaultValue;
+        }
+        return "Total in " + comboBox.getValue().toString();
     }
 }

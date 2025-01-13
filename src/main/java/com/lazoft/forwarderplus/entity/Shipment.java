@@ -54,7 +54,6 @@ public class Shipment {
     @OneToOne(fetch = FetchType.EAGER)
     private StuffingDetails stuffingDetails;
 
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "scheduleId")
     private Schedule schedule;
