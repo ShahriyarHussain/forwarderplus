@@ -29,6 +29,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 
 @Slf4j
@@ -131,6 +133,11 @@ public class ShipmentInvoiceDialog extends Dialog {
                 .setHeader(getTotalColumnLabel(foreignCurrComboBox, true)));
 
         invoiceItemGrid.setAllRowsVisible(true);
+
+        conversionRate.setValueChangeMode(ValueChangeMode.LAZY);
+        conversionRate.setValueChangeTimeout(500);
+
+        invoiceDate.setValue(LocalDate.now());
     }
 
     public void fillUpExistingValues() {
@@ -180,25 +187,24 @@ public class ShipmentInvoiceDialog extends Dialog {
     public void setUpInvoiceItemGrid() {
         invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setAutoWidth(true);
         invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Description");
-        invoiceItemGrid.addColumn(item -> item.getPrice() + (foreignCurrency.getValue() ?
-                foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().toString()))
+        invoiceItemGrid.addColumn(item -> item.getPrice() + (item.isForeignCurrency() ?
+                foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().getSymbol()))
                 .setHeader("Price/Unit").setAutoWidth(true);
         invoiceItemGrid.addColumn(item -> StringUtils.defaultIfBlank(String.valueOf(item.getQuantity()), "") +
                         (StringUtils.isBlank(item.getItemUnit()) ? "" : ( "X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
-        foreignCurrTotalColumn = invoiceItemGrid.addColumn(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+
+        foreignCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInForeignCurr)
                 .setHeader(getTotalColumnLabel(foreignCurrComboBox, true));
-        localCurrTotalColumn = invoiceItemGrid.addColumn(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity()))
-                        .multiply(conversionRate.getValue())).setHeader(getTotalColumnLabel(localCurrencyComboBox, false));
+        localCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInLocalCurr)
+                .setHeader(getTotalColumnLabel(localCurrencyComboBox, false));
+
         invoiceItemGrid.addComponentColumn(invoiceItem -> {
             Button deleteButton = new Button(LineAwesomeIcon.MINUS_CIRCLE_SOLID.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
                 invoiceItems.remove(invoiceItem);
                 invoiceItemGrid.setItems(invoiceItems);
-                grandTotal.setValue(invoiceItems.stream()
-                        .map(InvoiceItem::getSubTotalInLocalCurr)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add));
-                inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue(), localCurrencyComboBox.getValue()));
+                refreshGrandTotals();
             });
             return deleteButton;
         });
@@ -241,10 +247,7 @@ public class ShipmentInvoiceDialog extends Dialog {
             InvoiceItem item = getInvoiceItemFromEntries();
             invoiceItems.add(item);
             invoiceItemGrid.setItems(invoiceItems);
-            grandTotal.setValue(invoiceItems.stream()
-                    .map(InvoiceItem::getSubTotalInLocalCurr)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add));// TODO: WHAT IF USER CHANGES CONV RATE AFTER ADDING A FEW ITEMS
-            inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue(), localCurrencyComboBox.getValue()));
+            refreshGrandTotals();
         });
 
         downloadButton.addClickListener(event -> {
@@ -282,12 +285,40 @@ public class ShipmentInvoiceDialog extends Dialog {
             confirmDialog.setCancelButton(cancel);
             confirmDialog.open();
         });
+
+        conversionRate.addValueChangeListener(event -> {
+            if (conversionRate.getValue() == null || conversionRate.getValue().equals(BigDecimal.ZERO)) {
+                conversionRate.setInvalid(true);
+                conversionRate.setErrorMessage("Invalid Conversion Rate");
+                return;
+            }
+            if (invoiceItems.isEmpty()) {
+                return;
+            }
+            invoiceItems.forEach(item -> {
+                if (item.isForeignCurrency()) {
+                    item.setSubTotalInLocalCurr(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                            .multiply(conversionRate.getValue()));
+                    invoiceItemGrid.setItems(invoiceItems);
+                }
+            });
+            refreshGrandTotals();
+        });
+    }
+
+    private void refreshGrandTotals() {
+        grandTotal.setValue(invoiceItems.stream()
+                .map(InvoiceItem::getSubTotalInLocalCurr)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue()) + " " +
+                localCurrencyComboBox.getValue().getCurrencyName());
     }
 
     private boolean isInvalidDataToAddItem() {
         if (foreignCurrency.getValue() && foreignCurrComboBox.getValue() == null) {
-            foreignCurrComboBox.isInvalid();
+            foreignCurrComboBox.setInvalid(true);
             foreignCurrComboBox.setErrorMessage("Must provide currency for FC Items");
+            return true;
         }
         if (price.getValue() == null || price.getValue().equals(BigDecimal.ZERO)) {
             price.setInvalid(true);
@@ -315,8 +346,9 @@ public class ShipmentInvoiceDialog extends Dialog {
         item.setPrice(price.getValue());
         item.setQuantity(quantity.getValue());
         BigDecimal convRate = BigDecimal.ONE;
-        if (foreignCurrency.getValue() != null && foreignCurrency.getValue()) {
+        if (foreignCurrComboBox.getValue() != null && foreignCurrency.getValue()) {
             item.setSubTotalInForeignCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())));
+            item.setForeignCurrency(true);
             convRate = conversionRate.getValue();
         }
         item.setSubTotalInLocalCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())).multiply(convRate));
@@ -325,11 +357,42 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private boolean isInvalidEntriesForSave() {
-        return true;
+        boolean isInvalid = false;
+        if (StringUtils.isBlank(invoiceNo.getValue())) {
+            invoiceNo.setInvalid(true);
+            invoiceNo.setErrorMessage("Invoice No cannot be empty");
+            return true;
+        }
+        if (invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
+            invoiceNo.setInvalid(true);
+            invoiceNo.setErrorMessage("Invoice already exists");
+            isInvalid = true;
+        }
+        if (invoiceDate.getValue() == null) {
+            invoiceDate.setInvalid(true);
+            invoiceDate.setErrorMessage("Invoice Date cannot be empty");
+            isInvalid = true;
+        }
+        if (StringUtils.isBlank(expNo.getValue()))  {
+            expNo.setInvalid(true);
+            expNo.setErrorMessage("Exp No cannot be empty");
+            isInvalid = true;
+        }
+        if (expDate.getValue() == null) {
+            expDate.setInvalid(true);
+            expDate.setErrorMessage("Exp Date cannot be empty");
+            isInvalid = true;
+        }
+        if (localCurrencyComboBox.getValue() == null) {
+            localCurrencyComboBox.setInvalid(true);
+            localCurrencyComboBox.setErrorMessage("Currency cannot be empty");
+            isInvalid = true;
+        }
+        return isInvalid;
     }
 
     private List<String> findErrorsForReportData() {
-        return null;
+        return new ArrayList<>();
     }
 
     private Map<String, Object> prepareParamsForShipmentInvoice() {
@@ -378,7 +441,8 @@ public class ShipmentInvoiceDialog extends Dialog {
         BigDecimal grandTotal = invoice.getInvoiceItems().stream().map(InvoiceItem::getSubTotalInLocalCurr).reduce(BigDecimal.ZERO, BigDecimal::add);
         parameters.put("TOTAL", AmountFormatter.getFormattedAmount(
                 grandTotal.setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
-        parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal, localCurrencyComboBox.getValue()));
+        parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal) + " " +
+                localCurrencyComboBox.getValue().getCurrencyName());
 
         BankDetails bankDetails = invoice.getBankDetails();
         parameters.put("BANK_NAME", bankDetails.getBankName());

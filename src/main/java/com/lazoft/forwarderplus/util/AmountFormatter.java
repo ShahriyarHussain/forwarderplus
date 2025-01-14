@@ -23,7 +23,7 @@ public class AmountFormatter {
     private static final BigDecimal CRORE = BigDecimal.valueOf(10000000);
 
     private static final Map<String, String> map = Map.ofEntries(
-            Map.entry("0", "Zero"),
+            Map.entry("0", ""),
             Map.entry("1", "One"),
             Map.entry("2", "Two"),
             Map.entry("3", "Three"),
@@ -121,9 +121,9 @@ public class AmountFormatter {
         return new DecimalFormat("#,###0.00");
     }
 
-    public static String getAmountInWords(BigDecimal amount, AmountCurrency currency) {
+    public static String getAmountInWords(BigDecimal amount) {
         if (amount == null) {
-            return "Zero " + currency.getCurrencyAndSymbol();
+            return "Zero ";
         }
         if (amount.toPlainString().contains(".")) {
             String [] splitAmount = amount.toPlainString().split("\\.");

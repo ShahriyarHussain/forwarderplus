@@ -19,4 +19,8 @@ public class InvoiceService {
     public void saveInvoice(Invoice invoice) {
         invoiceRepository.save(invoice);
     }
+
+    public boolean isInvoiceNoExists(String invoiceNo) {
+        return invoiceRepository.existsById(invoiceNo);
+    }
 }

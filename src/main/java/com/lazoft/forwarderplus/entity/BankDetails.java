@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 

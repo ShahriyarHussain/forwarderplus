@@ -1,12 +1,12 @@
 package com.lazoft.forwarderplus.entity;
 
-import com.lazoft.forwarderplus.enums.AmountCurrency;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -21,6 +21,8 @@ public class InvoiceItem {
     private BigDecimal price;
     private String itemUnit;
 
+    @Transient
+    private boolean isForeignCurrency;
     @Transient
     private BigDecimal subTotalInLocalCurr;
     @Transient
