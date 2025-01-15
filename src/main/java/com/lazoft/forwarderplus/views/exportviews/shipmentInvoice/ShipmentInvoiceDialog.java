@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentInvoice;
 
+import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
@@ -33,9 +34,11 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperRunManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -93,7 +96,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private boolean isSaved = false;
 
     private final AuthenticatedUser user;
-    private final Invoice invoice;
+    private Invoice invoice;
     private final Shipment shipment;
 
     public ShipmentInvoiceDialog(InvoiceService invoiceService, AuthenticatedUser user, Shipment shipment) {
@@ -138,11 +141,38 @@ public class ShipmentInvoiceDialog extends Dialog {
         conversionRate.setValueChangeTimeout(500);
 
         invoiceDate.setValue(LocalDate.now());
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        generateInvoiceNo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
     }
 
     public void fillUpExistingValues() {
         if (invoice == null) {
             return;
+        }
+        invoiceNo.setValue(invoice.getInvoiceNo());
+        invoiceDate.setValue(invoiceDate.getValue());
+        expNo.setValue(StringUtils.defaultIfBlank(invoice.getExpNo(), ""));
+        expDate.setValue(invoice.getExpDate());
+        localCurrencyComboBox.setValue(invoice.getLocalCurrency());
+        foreignCurrComboBox.setValue(invoice.getForeignCurrency());
+        conversionRate.setValue(invoice.getConversionRate());
+        grandTotal.setValue(invoice.getGrandTotal());
+        inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue()));
+        invoiceItems.clear();
+
+        if (invoice.getInvoiceItems() == null) {
+            return;
+        }
+
+        invoiceItems.addAll(invoice.getInvoiceItems());
+        int sl = 1;
+        for (InvoiceItem item : invoiceItems) {
+            item.setSl(sl++);
+            item.setSubTotalInLocalCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())).multiply(invoice.getConversionRate()));
+            item.setSubTotalInForeignCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())));
+            item.setForeignCurrency(item.getSubTotalInForeignCurr() != null &&
+                    !item.getSubTotalInForeignCurr().equals(item.getSubTotalInLocalCurr()));
         }
     }
 
@@ -191,7 +221,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().getSymbol()))
                 .setHeader("Price/Unit").setAutoWidth(true);
         invoiceItemGrid.addColumn(item -> StringUtils.defaultIfBlank(String.valueOf(item.getQuantity()), "") +
-                        (StringUtils.isBlank(item.getItemUnit()) ? "" : ( "X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
+                        (StringUtils.isBlank(item.getItemUnit()) ? "" : ( " X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
 
         foreignCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInForeignCurr)
                 .setHeader(getTotalColumnLabel(foreignCurrComboBox, true));
@@ -227,15 +257,19 @@ public class ShipmentInvoiceDialog extends Dialog {
         saveButton.addClickListener(event -> {
             if (isInvalidEntriesForSave()) {
                 NotificationUtil.getNotification("Please properly provide marked fields", "", false,
-                        NotificationVariant.LUMO_WARNING, 4000);
+                        NotificationVariant.LUMO_WARNING, 4000).open();
                 return;
             }
+            prepareInvoiceDataForSave();
             try {
                 invoiceService.saveInvoice(invoice);
                 isSaved = true;
+                NotificationUtil.getNotification("Successfully saved", "", false,
+                        NotificationVariant.LUMO_SUCCESS, 4000).open();
             } catch (Exception e) {
                 NotificationUtil.getNotification("Unexpected error while saving Invoice", e.getMessage(), true,
-                        NotificationVariant.LUMO_ERROR, 6000);
+                        NotificationVariant.LUMO_ERROR, 6000).open();
+                log.error("Error while saving Invoice", e);
             }
         });
 
@@ -306,6 +340,21 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
     }
 
+    private void prepareInvoiceDataForSave() {
+        if (invoice == null) {
+            invoice = new Invoice();
+        }
+        invoice.setInvoiceNo(invoiceNo.getValue());
+        invoice.setShipmentId(shipment.getShipmentId());
+        invoice.setExpNo(expNo.getValue());
+        invoice.setExpDate(expDate.getValue());
+        invoice.setConversionRate(conversionRate.getValue());
+        invoice.setForeignCurrency(foreignCurrComboBox.getValue());
+        invoice.setLocalCurrency(localCurrencyComboBox.getValue());
+        invoice.setGrandTotal(grandTotal.getValue());
+        invoice.setInvoiceItems(invoiceItems);
+    }
+
     private void refreshGrandTotals() {
         grandTotal.setValue(invoiceItems.stream()
                 .map(InvoiceItem::getSubTotalInLocalCurr)
@@ -363,7 +412,7 @@ public class ShipmentInvoiceDialog extends Dialog {
             invoiceNo.setErrorMessage("Invoice No cannot be empty");
             return true;
         }
-        if (invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
+        if (invoice == null && invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
             invoiceNo.setInvalid(true);
             invoiceNo.setErrorMessage("Invoice already exists");
             isInvalid = true;
@@ -371,11 +420,6 @@ public class ShipmentInvoiceDialog extends Dialog {
         if (invoiceDate.getValue() == null) {
             invoiceDate.setInvalid(true);
             invoiceDate.setErrorMessage("Invoice Date cannot be empty");
-            isInvalid = true;
-        }
-        if (StringUtils.isBlank(expNo.getValue()))  {
-            expNo.setInvalid(true);
-            expNo.setErrorMessage("Exp No cannot be empty");
             isInvalid = true;
         }
         if (expDate.getValue() == null) {
@@ -428,23 +472,46 @@ public class ShipmentInvoiceDialog extends Dialog {
             parameters.put("CONTAINERS", shipment.getContainerDetails().stream().map(ContainerDetails::getContainerNo)
                     .reduce((c1, c2) -> c1 + ", " + c2).orElse(""));
         }
-        parameters.put("SHIPPER_INV_NO", invoice.getInvoiceNo());
+        parameters.put("SHIPPER_INV_NO", invoiceNo.getValue());
 
-        parameters.put("EXP_NO", invoice.getExpNo());
-        parameters.put("EXP_DATE", DateUtil.getDateAsString(invoice.getExpDate()));
+        parameters.put("EXP_NO", expNo.getValue());
+        parameters.put("EXP_DATE", DateUtil.getDateAsString(expDate.getValue()));
 
-        parameters.put("FOREIGN_CURRENCY", invoice.getForeignCurrency().toString());
-        parameters.put("LOCAL_CURRENCY", invoice.getLocalCurrency().toString());
-        parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(invoice.getConversionRate().setScale(2, RoundingMode.UNNECESSARY),
-                foreignCurrComboBox.getValue()));
+        parameters.put("FOREIGN_CURRENCY", foreignCurrComboBox.getValue().toString());
+        parameters.put("LOCAL_CURRENCY", localCurrencyComboBox.getValue().toString());
+        parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(invoice.getConversionRate()
+                        .setScale(2, RoundingMode.UNNECESSARY), foreignCurrComboBox.getValue()));
 
-        BigDecimal grandTotal = invoice.getInvoiceItems().stream().map(InvoiceItem::getSubTotalInLocalCurr).reduce(BigDecimal.ZERO, BigDecimal::add);
-        parameters.put("TOTAL", AmountFormatter.getFormattedAmount(
-                grandTotal.setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
-        parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal) + " " +
-                localCurrencyComboBox.getValue().getCurrencyName());
+        parameters.put("TOTAL", AmountFormatter.getFormattedAmount(grandTotal.getValue()
+                .setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
+        parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal.getValue()) +
+                localCurrencyComboBox.getValue().getCurrencyName() + "Only");
 
-        BankDetails bankDetails = invoice.getBankDetails();
+        List<InvoiceItemReportDto> dtoList = new LinkedList<>();
+
+        for (InvoiceItem item : invoiceItems) {
+            InvoiceItemReportDto reportDto = new InvoiceItemReportDto();
+            reportDto.setSlNo(item.getSl());
+            reportDto.setDescription(item.getDescription());
+            reportDto.setQuantityWithUnit(item.getQuantity() + " " + item.getItemUnit());
+            String currSymbol = item.isForeignCurrency() ? foreignCurrComboBox.getValue().getSymbol() :
+                    localCurrencyComboBox.getValue().getSymbol();
+
+            if (item.isForeignCurrency()) {
+                reportDto.setTotalInForeignCurr(currSymbol + " " + AmountFormatter
+                        .getFormattedAmount(item.getSubTotalInForeignCurr(), foreignCurrComboBox.getValue()));
+            }
+            reportDto.setSubtotal(localCurrencyComboBox.getValue().getSymbol() + " " + AmountFormatter
+                    .getFormattedAmount(item.getSubTotalInLocalCurr(), foreignCurrComboBox.getValue()));
+            reportDto.setRate(currSymbol + item.getPrice());
+            dtoList.add(reportDto);
+        }
+
+        JRDataSource dataSource = new JRBeanCollectionDataSource(dtoList);
+        parameters.put("COLLECTION_LIST", dataSource);
+
+
+        BankDetails bankDetails = new BankDetails("test", "test", "test", "test", "test");
         parameters.put("BANK_NAME", bankDetails.getBankName());
         parameters.put("AC_NAME", bankDetails.getAccName());
         parameters.put("AC_NO", bankDetails.getAccNo());

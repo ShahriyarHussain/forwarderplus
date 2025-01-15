@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -25,7 +26,5 @@ public class Invoice {
     private AmountCurrency foreignCurrency;
     private AmountCurrency localCurrency;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private Set<InvoiceItem> invoiceItems;
-    @OneToOne
-    private BankDetails bankDetails;
+    private List<InvoiceItem> invoiceItems;
 }

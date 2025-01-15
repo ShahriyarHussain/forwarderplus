@@ -131,7 +131,7 @@ public class AmountFormatter {
             BigDecimal decimalAmount = new BigDecimal(splitAmount[1]);
             String nonDecimalPart = getRoundedAmountInWords(nonDecimalAmount);
             String decimalPart = getRoundedAmountInWords(decimalAmount);
-            decimalPart = decimalPart.equals("Zero") ? "" : decimalPart + " Paisa";
+            decimalPart = decimalPart.equals("Zero") ? "" : decimalPart + " Paisa ";
             return nonDecimalPart + decimalPart;
         } else {
             return getRoundedAmountInWords(amount);
@@ -140,7 +140,7 @@ public class AmountFormatter {
 
     private static String getRoundedAmountInWords(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-            return "Zero";
+            return "Zero ";
         }
 
         StringBuilder amountInWords = new StringBuilder();
