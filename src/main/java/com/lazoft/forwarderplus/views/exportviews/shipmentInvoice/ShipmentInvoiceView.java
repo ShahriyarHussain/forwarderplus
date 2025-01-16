@@ -5,9 +5,7 @@ import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.InvoiceService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -46,12 +44,9 @@ import java.util.List;
 public class ShipmentInvoiceView extends Div {
 
     private final ShipmentService shipmentService;
-//    private final ScheduleService scheduleService;
-//    private final CarrierService carrierService;
-//    private final ClientService clientService;
-//    private final PortService portService;
-//    private final UserService userService;
+    private final UserService userService;
     private final InvoiceService invoiceService;
+    private final BankDetailsService bankDetailsService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -60,14 +55,11 @@ public class ShipmentInvoiceView extends Div {
     private final Filters filters;
 
     public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
-                               AuthenticatedUser authenticatedUser) {
+                               UserService userService, BankDetailsService bankDetailsService, AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
         this.invoiceService = invoiceService;
-//        this.clientService = clientService;
-//        this.scheduleService = scheduleService;
-//        this.carrierService = carrierService;
-//        this.portService = portService;
-//        this.userService = userService;
+        this.userService = userService;
+        this.bankDetailsService = bankDetailsService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
@@ -215,10 +207,10 @@ public class ShipmentInvoiceView extends Div {
     }
 
     private Button getCreateButtonForShipment(Shipment shipment) {
-//        User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, authenticatedUser, shipment).open());
+        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService, bankDetailsService,
+                authenticatedUser, shipment).open());
         return create;
     }
 

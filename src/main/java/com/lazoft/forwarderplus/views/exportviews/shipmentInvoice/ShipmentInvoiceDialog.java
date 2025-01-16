@@ -4,7 +4,9 @@ import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
+import com.lazoft.forwarderplus.services.BankDetailsService;
 import com.lazoft.forwarderplus.services.InvoiceService;
+import com.lazoft.forwarderplus.services.UserService;
 import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
@@ -54,6 +56,8 @@ import java.util.*;
 public class ShipmentInvoiceDialog extends Dialog {
 
     private final InvoiceService invoiceService;
+    private final UserService userService;
+    private final BankDetailsService bankDetailsService;
 
     private final Button saveButton = new Button("Save");
     private final Button downloadButton = new Button("Download as PDF");
@@ -99,8 +103,11 @@ public class ShipmentInvoiceDialog extends Dialog {
     private Invoice invoice;
     private final Shipment shipment;
 
-    public ShipmentInvoiceDialog(InvoiceService invoiceService, AuthenticatedUser user, Shipment shipment) {
+    public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService, BankDetailsService bankDetailsService,
+                                 AuthenticatedUser user, Shipment shipment) {
         this.invoiceService = invoiceService;
+        this.userService = userService;
+        this.bankDetailsService = bankDetailsService;
         this.user = user;
         this.invoice = invoiceService.getInvoiceFromShipment(shipment);
         this.shipment = shipment;
@@ -142,8 +149,13 @@ public class ShipmentInvoiceDialog extends Dialog {
 
         invoiceDate.setValue(LocalDate.now());
 
+        closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         generateInvoiceNo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        respondent.setItemLabelGenerator(item -> item.getName() + " - " + item.getDesignation());
+        bankDetails.setItemLabelGenerator(bank -> bank.getBankName() + "," + bank.getAccName() + " - " + bank.getAccNo());
     }
 
     public void fillUpExistingValues() {
@@ -176,83 +188,6 @@ public class ShipmentInvoiceDialog extends Dialog {
         }
     }
 
-    public void setUpFormLayout() {
-        FormLayout invoiceLayout = new FormLayout();
-        HorizontalLayout invoiceComponent = new HorizontalLayout(invoiceNo, generateInvoiceNo);
-        invoiceComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        invoiceComponent.setAlignItems(FlexComponent.Alignment.END);
-        Hr line = new Hr();
-        invoiceLayout.add(invoiceComponent, line, invoiceDate,
-                expNo, expDate, localCurrencyComboBox, foreignCurrComboBox, conversionRate);
-        invoiceLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
-        invoiceLayout.setColspan(line, 3);
-
-        Accordion editInvoicePanel = new Accordion();
-        editInvoicePanel.add("Item Details", getAddInvoiceItemForm());
-        add(invoiceLayout, editInvoicePanel);
-    }
-
-    private FormLayout getAddInvoiceItemForm() {
-        FormLayout invoiceItemDetailLayout = new FormLayout();
-        HorizontalLayout unitAndAddBtn = new HorizontalLayout(addItem, description);
-        unitAndAddBtn.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        unitAndAddBtn.setAlignItems(FlexComponent.Alignment.END);
-        Hr split2 = new Hr(), split1 = new Hr();
-
-        invoiceItemDetailLayout.add(unitAndAddBtn, price, quantity, itemUnit, foreignCurrency,
-                split1,
-                invoiceItemGrid,
-                inWords, split2, grandTotal);
-        invoiceItemDetailLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
-        invoiceItemDetailLayout.setColspan(unitAndAddBtn, 2);
-        invoiceItemDetailLayout.setColspan(invoiceItemGrid, 6);
-        invoiceItemDetailLayout.setColspan(split1, 6);
-
-        invoiceItemDetailLayout.setColspan(inWords, 2);
-        invoiceItemDetailLayout.setColspan(split2, 2);
-        invoiceItemDetailLayout.setColspan(grandTotal, 2);
-        return invoiceItemDetailLayout;
-    }
-
-    public void setUpInvoiceItemGrid() {
-        invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setAutoWidth(true);
-        invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Description");
-        invoiceItemGrid.addColumn(item -> item.getPrice() + (item.isForeignCurrency() ?
-                foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().getSymbol()))
-                .setHeader("Price/Unit").setAutoWidth(true);
-        invoiceItemGrid.addColumn(item -> StringUtils.defaultIfBlank(String.valueOf(item.getQuantity()), "") +
-                        (StringUtils.isBlank(item.getItemUnit()) ? "" : ( " X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
-
-        foreignCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInForeignCurr)
-                .setHeader(getTotalColumnLabel(foreignCurrComboBox, true));
-        localCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInLocalCurr)
-                .setHeader(getTotalColumnLabel(localCurrencyComboBox, false));
-
-        invoiceItemGrid.addComponentColumn(invoiceItem -> {
-            Button deleteButton = new Button(LineAwesomeIcon.MINUS_CIRCLE_SOLID.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-            deleteButton.addClickListener(event -> {
-                invoiceItems.remove(invoiceItem);
-                invoiceItemGrid.setItems(invoiceItems);
-                refreshGrandTotals();
-            });
-            return deleteButton;
-        });
-        invoiceItemGrid.setItems(invoiceItems);
-    }
-
-    private FormLayout getReportOptionsFormLayout() {
-        FormLayout reportConfigLayout = new FormLayout();
-        User user = this.user.get().get();
-        showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
-        showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
-        reportConfigLayout.add(showBankDetails, showEarlyPaymentMessage, showDesignation, showRespondentEmail, hideRespondentPhone,
-                invoiceDate, bankDetails, respondent);
-        reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
-        reportConfigLayout.setColspan(respondent, 2);
-        return reportConfigLayout;
-    }
-
     private void setListeners() {
         saveButton.addClickListener(event -> {
             if (isInvalidEntriesForSave()) {
@@ -265,7 +200,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 invoiceService.saveInvoice(invoice);
                 isSaved = true;
                 NotificationUtil.getNotification("Successfully saved", "", false,
-                        NotificationVariant.LUMO_SUCCESS, 4000).open();
+                        NotificationVariant.LUMO_PRIMARY, 4000).open();
             } catch (Exception e) {
                 NotificationUtil.getNotification("Unexpected error while saving Invoice", e.getMessage(), true,
                         NotificationVariant.LUMO_ERROR, 6000).open();
@@ -338,6 +273,88 @@ public class ShipmentInvoiceDialog extends Dialog {
             });
             refreshGrandTotals();
         });
+    }
+
+    public void setUpFormLayout() {
+        FormLayout invoiceLayout = new FormLayout();
+        HorizontalLayout invoiceComponent = new HorizontalLayout(invoiceNo, generateInvoiceNo);
+        invoiceComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        invoiceComponent.setAlignItems(FlexComponent.Alignment.END);
+        Hr line = new Hr();
+        invoiceLayout.add(invoiceComponent, line, invoiceDate,
+                expNo, expDate, localCurrencyComboBox, foreignCurrComboBox, conversionRate);
+        invoiceLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
+        invoiceLayout.setColspan(line, 3);
+
+        Accordion editInvoicePanel = new Accordion();
+        editInvoicePanel.add("Item Details", getAddInvoiceItemForm());
+        add(invoiceLayout, editInvoicePanel);
+    }
+
+    private FormLayout getAddInvoiceItemForm() {
+        FormLayout invoiceItemDetailLayout = new FormLayout();
+        HorizontalLayout unitAndAddBtn = new HorizontalLayout(addItem, description);
+        unitAndAddBtn.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        unitAndAddBtn.setAlignItems(FlexComponent.Alignment.END);
+        Hr split2 = new Hr(), split1 = new Hr();
+
+        invoiceItemDetailLayout.add(unitAndAddBtn, price, quantity, itemUnit, foreignCurrency,
+                split1,
+                invoiceItemGrid,
+                inWords, split2, grandTotal);
+        invoiceItemDetailLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
+        invoiceItemDetailLayout.setColspan(unitAndAddBtn, 2);
+        invoiceItemDetailLayout.setColspan(invoiceItemGrid, 6);
+        invoiceItemDetailLayout.setColspan(split1, 6);
+
+        invoiceItemDetailLayout.setColspan(inWords, 2);
+        invoiceItemDetailLayout.setColspan(split2, 2);
+        invoiceItemDetailLayout.setColspan(grandTotal, 2);
+        return invoiceItemDetailLayout;
+    }
+
+    public void setUpInvoiceItemGrid() {
+        invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setAutoWidth(true);
+        invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Description");
+        invoiceItemGrid.addColumn(item -> item.getPrice() + (item.isForeignCurrency() ?
+                        foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().getSymbol()))
+                .setHeader("Price/Unit").setAutoWidth(true);
+        invoiceItemGrid.addColumn(item -> StringUtils.defaultIfBlank(String.valueOf(item.getQuantity()), "") +
+                (StringUtils.isBlank(item.getItemUnit()) ? "" : ( " X " + item.getItemUnit()))).setHeader("Quantity").setAutoWidth(true);
+
+        foreignCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInForeignCurr)
+                .setHeader(getTotalColumnLabel(foreignCurrComboBox, true));
+        localCurrTotalColumn = invoiceItemGrid.addColumn(InvoiceItem::getSubTotalInLocalCurr)
+                .setHeader(getTotalColumnLabel(localCurrencyComboBox, false));
+
+        invoiceItemGrid.addComponentColumn(invoiceItem -> {
+            Button deleteButton = new Button(LineAwesomeIcon.MINUS_CIRCLE_SOLID.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            deleteButton.addClickListener(event -> {
+                invoiceItems.remove(invoiceItem);
+                invoiceItemGrid.setItems(invoiceItems);
+                refreshGrandTotals();
+            });
+            return deleteButton;
+        });
+        invoiceItemGrid.setItems(invoiceItems);
+    }
+
+    private FormLayout getReportOptionsFormLayout() {
+        FormLayout reportConfigLayout = new FormLayout();
+        User user = this.user.get().get();
+        showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
+        showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
+        respondent.setItems(userService.getAll());
+        respondent.setValue(user);
+        bankDetails.setItems(bankDetailsService.getBankDetails());
+
+        reportConfigLayout.add(showBankDetails, showEarlyPaymentMessage, showDesignation, showRespondentEmail, hideRespondentPhone,
+                invoiceDate, bankDetails, respondent);
+        reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
+        reportConfigLayout.setColspan(respondent, 2);
+        reportConfigLayout.setColspan(bankDetails, 2);
+        return reportConfigLayout;
     }
 
     private void prepareInvoiceDataForSave() {
