@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Shipment Invoice")
+@PageTitle("Shipment ShipmentInvoice")
 @Route(value = "shipment-invoice", layout = MainLayout.class)
 @RolesAllowed({"USER", "ADMIN"})
 @Uses(Icon.class)
@@ -47,6 +47,7 @@ public class ShipmentInvoiceView extends Div {
     private final UserService userService;
     private final InvoiceService invoiceService;
     private final BankDetailsService bankDetailsService;
+    private final CurrencyDataService currencyDataService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -55,11 +56,13 @@ public class ShipmentInvoiceView extends Div {
     private final Filters filters;
 
     public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
-                               UserService userService, BankDetailsService bankDetailsService, AuthenticatedUser authenticatedUser) {
+                               UserService userService, BankDetailsService bankDetailsService,
+                               CurrencyDataService currencyDataService, AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
         this.invoiceService = invoiceService;
         this.userService = userService;
         this.bankDetailsService = bankDetailsService;
+        this.currencyDataService = currencyDataService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
@@ -210,7 +213,7 @@ public class ShipmentInvoiceView extends Div {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService, bankDetailsService,
-                authenticatedUser, shipment).open());
+                currencyDataService, authenticatedUser, shipment).open());
         return create;
     }
 

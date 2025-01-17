@@ -234,6 +234,7 @@ public class EditScheduleDialog extends Dialog {
 
         addTransshipmentButton.addClickListener(event -> {
             Transshipment transshipment = new Transshipment();
+            transshipment.setVesselPort(transshipmentPort.getValue());
             transshipment.setSl(transshipmentSet.size() + 1);
             transshipment.setPortEta(transshipmentETA.getValue());
             transshipment.setVesselName(transshipmentVessel.getValue());

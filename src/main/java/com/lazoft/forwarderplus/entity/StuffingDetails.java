@@ -20,13 +20,14 @@ public class StuffingDetails {
 
     private String cnfAgentName;
     private String cnfAgentContactNo;
-
-    @ManyToOne
-    private StuffingDepot stuffingDepot;
+    private String vessel;
     private LocalDate stuffingDate;
     private BigDecimal stuffingCharge;
     private Integer quantity;
     private PackageUnit packageUnit;
+
+    @ManyToOne
+    private StuffingDepot stuffingDepot;
 }
 
 

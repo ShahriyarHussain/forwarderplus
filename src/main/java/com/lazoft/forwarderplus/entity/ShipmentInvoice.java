@@ -8,13 +8,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @Table(indexes = @Index(name = "shipmentIdIdx", columnList = "shipmentId"))
-public class Invoice {
+public class ShipmentInvoice {
 
     @Id
     private String invoiceNo;

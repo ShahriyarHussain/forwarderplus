@@ -14,7 +14,7 @@ public enum ShipmentStatus {
     BL_DRAFT_SENT_TO_SHIPPER("B/L Draft Sent"),
     BL_CONFIRMED("Final B/L Confirmed"),
     BL_RELEASED("B/L Release"),
-    INVOICE_SENT_TO_SHIPPER("Invoice Sent To Shipper"),
+    INVOICE_SENT_TO_SHIPPER("ShipmentInvoice Sent To Shipper"),
     SHIPMENT_COMPLETE("Shipment Complete");
 
     private final String status;

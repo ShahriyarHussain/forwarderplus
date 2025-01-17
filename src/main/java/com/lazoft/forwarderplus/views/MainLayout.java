@@ -11,6 +11,7 @@ import com.lazoft.forwarderplus.views.exportviews.NewBookingView;
 import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceView;
 import com.lazoft.forwarderplus.views.exportviews.shipmentInvoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
+import com.lazoft.forwarderplus.views.finances.FinancesView;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -72,34 +74,39 @@ public class MainLayout extends AppLayout {
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
 
-        if (accessChecker.hasAccess(DashboardView.class)) {
-            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_BAR.create()));
-        }
-
-        SideNavItem exportOverview = new SideNavItem("Export Overview");
-        exportOverview.setPrefixComponent(LineAwesomeIcon.SHIP_SOLID.create());
-        exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.WAREHOUSE_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Shipment Invoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
-        exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
+        nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_BAR.create()));
 
         if (accessChecker.hasAccess(NewBookingView.class)) {
+            SideNavItem exportOverview = new SideNavItem("Export Overview");
+            exportOverview.setPrefixComponent(LineAwesomeIcon.SHIP_SOLID.create());
+            exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.WAREHOUSE_SOLID.create()));
+            exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
+            exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
+            exportOverview.addItem(new SideNavItem("Shipment ShipmentInvoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
             nav.addItem(exportOverview);
         }
+
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {
             nav.addItem(new SideNavItem("View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
         }
-//        if (accessChecker.hasAccess(FinancesView.class)) {
-//            nav.addItem(new SideNavItem("Finances", FinancesView.class, LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create()));
-//        }
 
-        SideNavItem adminActions = new SideNavItem("Configurations");
-        adminActions.setPrefixComponent(LineAwesomeIcon.WRENCH_SOLID.create());
-        adminActions.addItem(new SideNavItem("Data Config", DataConfigurationView.class, LineAwesomeIcon.DATABASE_SOLID.create()));
-        adminActions.addItem(new SideNavItem("User Management", UserConfigurationView.class,LineAwesomeIcon.USER_EDIT_SOLID.create()));
+        if (accessChecker.hasAccess(FinancesView.class)) {
+            SideNavItem finances = new SideNavItem("Finances");
+            finances.setPrefixComponent(LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create());
+            finances.addItem(new SideNavItem("Add Transaction", FinancesView.class, VaadinIcon.MONEY_EXCHANGE.create()));
+            finances.addItem(new SideNavItem("Manage Accounts", FinancesView.class, LineAwesomeIcon.WALLET_SOLID.create()));
+            finances.addItem(new SideNavItem("Manage Assets", FinancesView.class, LineAwesomeIcon.LANDMARK_SOLID.create()));
+            finances.addItem(new SideNavItem("View Ledgers", FinancesView.class, LineAwesomeIcon.BOOK_SOLID.create()));
+            finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            nav.addItem(finances);
+        }
 
         if (accessChecker.hasAccess(DataConfigurationView.class)) {
+            SideNavItem adminActions = new SideNavItem("Configurations");
+            adminActions.setPrefixComponent(LineAwesomeIcon.WRENCH_SOLID.create());
+            adminActions.addItem(new SideNavItem("Data Config", DataConfigurationView.class, LineAwesomeIcon.DATABASE_SOLID.create()));
+            adminActions.addItem(new SideNavItem("User Management", UserConfigurationView.class,LineAwesomeIcon.USER_EDIT_SOLID.create()));
             nav.addItem(adminActions);
         }
 //        if (accessChecker.hasAccess(ChatView.class)) {

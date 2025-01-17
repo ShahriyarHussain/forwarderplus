@@ -5,6 +5,7 @@ import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.BankDetailsService;
+import com.lazoft.forwarderplus.services.CurrencyDataService;
 import com.lazoft.forwarderplus.services.InvoiceService;
 import com.lazoft.forwarderplus.services.UserService;
 import com.lazoft.forwarderplus.util.AmountFormatter;
@@ -58,12 +59,13 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final InvoiceService invoiceService;
     private final UserService userService;
     private final BankDetailsService bankDetailsService;
+    private final CurrencyDataService currencyDataService;
 
     private final Button saveButton = new Button("Save");
     private final Button downloadButton = new Button("Download as PDF");
     private final Button closeButton = new Button("Close");
 
-    private final TextField invoiceNo = new TextField("Invoice No");
+    private final TextField invoiceNo = new TextField("Shipment Invoice No");
     private final Button generateInvoiceNo = new Button(LineAwesomeIcon.ATOM_SOLID.create());
 
     private final TextField expNo = new TextField("Exp No");
@@ -86,7 +88,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final Checkbox showRespondentEmail = new Checkbox("Show email?");
     private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
     private final Checkbox showDesignation = new Checkbox("Show designation?");
-    private final DatePicker invoiceDate = new DatePicker("Invoice Date");
+    private final DatePicker invoiceDate = new DatePicker("ShipmentInvoice Date");
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
@@ -100,21 +102,23 @@ public class ShipmentInvoiceDialog extends Dialog {
     private boolean isSaved = false;
 
     private final AuthenticatedUser user;
-    private Invoice invoice;
+    private ShipmentInvoice shipmentInvoice;
     private final Shipment shipment;
 
-    public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService, BankDetailsService bankDetailsService,
+    public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService,
+                                 BankDetailsService bankDetailsService, CurrencyDataService currencyDataService,
                                  AuthenticatedUser user, Shipment shipment) {
         this.invoiceService = invoiceService;
         this.userService = userService;
         this.bankDetailsService = bankDetailsService;
+        this.currencyDataService = currencyDataService;
         this.user = user;
-        this.invoice = invoiceService.getInvoiceFromShipment(shipment);
+        this.shipmentInvoice = invoiceService.getInvoiceFromShipment(shipment);
         this.shipment = shipment;
 
         this.setWidth("70%");
         this.setHeight("85%");
-        this.setHeaderTitle("Create Invoice");
+        this.setHeaderTitle("Create ShipmentInvoice");
         this.setCloseOnOutsideClick(false);
 
         setUpFormLayout();
@@ -159,29 +163,29 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     public void fillUpExistingValues() {
-        if (invoice == null) {
+        if (shipmentInvoice == null) {
             return;
         }
-        invoiceNo.setValue(invoice.getInvoiceNo());
+        invoiceNo.setValue(shipmentInvoice.getInvoiceNo());
         invoiceDate.setValue(invoiceDate.getValue());
-        expNo.setValue(StringUtils.defaultIfBlank(invoice.getExpNo(), ""));
-        expDate.setValue(invoice.getExpDate());
-        localCurrencyComboBox.setValue(invoice.getLocalCurrency());
-        foreignCurrComboBox.setValue(invoice.getForeignCurrency());
-        conversionRate.setValue(invoice.getConversionRate());
-        grandTotal.setValue(invoice.getGrandTotal());
+        expNo.setValue(StringUtils.defaultIfBlank(shipmentInvoice.getExpNo(), ""));
+        expDate.setValue(shipmentInvoice.getExpDate());
+        localCurrencyComboBox.setValue(shipmentInvoice.getLocalCurrency());
+        foreignCurrComboBox.setValue(shipmentInvoice.getForeignCurrency());
+        conversionRate.setValue(shipmentInvoice.getConversionRate());
+        grandTotal.setValue(shipmentInvoice.getGrandTotal());
         inWords.setValue(AmountFormatter.getAmountInWords(grandTotal.getValue()));
         invoiceItems.clear();
 
-        if (invoice.getInvoiceItems() == null) {
+        if (shipmentInvoice.getInvoiceItems() == null) {
             return;
         }
 
-        invoiceItems.addAll(invoice.getInvoiceItems());
+        invoiceItems.addAll(shipmentInvoice.getInvoiceItems());
         int sl = 1;
         for (InvoiceItem item : invoiceItems) {
             item.setSl(sl++);
-            item.setSubTotalInLocalCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())).multiply(invoice.getConversionRate()));
+            item.setSubTotalInLocalCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())).multiply(shipmentInvoice.getConversionRate()));
             item.setSubTotalInForeignCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())));
             item.setForeignCurrency(item.getSubTotalInForeignCurr() != null &&
                     !item.getSubTotalInForeignCurr().equals(item.getSubTotalInLocalCurr()));
@@ -197,14 +201,14 @@ public class ShipmentInvoiceDialog extends Dialog {
             }
             prepareInvoiceDataForSave();
             try {
-                invoiceService.saveInvoice(invoice);
+                invoiceService.saveInvoice(shipmentInvoice);
                 isSaved = true;
                 NotificationUtil.getNotification("Successfully saved", "", false,
                         NotificationVariant.LUMO_PRIMARY, 4000).open();
             } catch (Exception e) {
-                NotificationUtil.getNotification("Unexpected error while saving Invoice", e.getMessage(), true,
+                NotificationUtil.getNotification("Unexpected error while saving ShipmentInvoice", e.getMessage(), true,
                         NotificationVariant.LUMO_ERROR, 6000).open();
-                log.error("Error while saving Invoice", e);
+                log.error("Error while saving ShipmentInvoice", e);
             }
         });
 
@@ -227,11 +231,11 @@ public class ShipmentInvoiceDialog extends Dialog {
                 dialog.setHeaderTitle("Errors in Data");
                 ListBox<String> listBox = new ListBox<>();
                 listBox.setItems(errors);
-                dialog.add(new H4("Please fix the following before downloading Invoice"), listBox);
+                dialog.add(new H4("Please fix the following before downloading ShipmentInvoice"), listBox);
                 dialog.open();
                 return;
             }
-            dialog.setHeaderTitle("Invoice is ready!");
+            dialog.setHeaderTitle("ShipmentInvoice is ready!");
             dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
 
             Anchor downloadAdviceAnchor = getInvoiceDownloadAnchor();
@@ -245,7 +249,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 return;
             }
             ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setHeader("Close Shipment Invoice Window ?");
+            confirmDialog.setHeader("Close Shipment ShipmentInvoice Window ?");
             confirmDialog.setText("Are you sure you want to close ? All unsaved changes will be lost.");
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmButton(new Button("Yes, I am Sure", confirmEvent -> this.close()));
@@ -272,6 +276,12 @@ public class ShipmentInvoiceDialog extends Dialog {
                 }
             });
             refreshGrandTotals();
+        });
+
+        foreignCurrComboBox.addValueChangeListener(event -> {
+            BigDecimal rate = currencyDataService.getConversionRateByCurrency(event.getValue(),
+                    localCurrencyComboBox.getValue());
+            conversionRate.setValue(rate);
         });
     }
 
@@ -358,18 +368,18 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private void prepareInvoiceDataForSave() {
-        if (invoice == null) {
-            invoice = new Invoice();
+        if (shipmentInvoice == null) {
+            shipmentInvoice = new ShipmentInvoice();
         }
-        invoice.setInvoiceNo(invoiceNo.getValue());
-        invoice.setShipmentId(shipment.getShipmentId());
-        invoice.setExpNo(expNo.getValue());
-        invoice.setExpDate(expDate.getValue());
-        invoice.setConversionRate(conversionRate.getValue());
-        invoice.setForeignCurrency(foreignCurrComboBox.getValue());
-        invoice.setLocalCurrency(localCurrencyComboBox.getValue());
-        invoice.setGrandTotal(grandTotal.getValue());
-        invoice.setInvoiceItems(invoiceItems);
+        shipmentInvoice.setInvoiceNo(invoiceNo.getValue());
+        shipmentInvoice.setShipmentId(shipment.getShipmentId());
+        shipmentInvoice.setExpNo(expNo.getValue());
+        shipmentInvoice.setExpDate(expDate.getValue());
+        shipmentInvoice.setConversionRate(conversionRate.getValue());
+        shipmentInvoice.setForeignCurrency(foreignCurrComboBox.getValue());
+        shipmentInvoice.setLocalCurrency(localCurrencyComboBox.getValue());
+        shipmentInvoice.setGrandTotal(grandTotal.getValue());
+        shipmentInvoice.setInvoiceItems(invoiceItems);
     }
 
     private void refreshGrandTotals() {
@@ -426,17 +436,17 @@ public class ShipmentInvoiceDialog extends Dialog {
         boolean isInvalid = false;
         if (StringUtils.isBlank(invoiceNo.getValue())) {
             invoiceNo.setInvalid(true);
-            invoiceNo.setErrorMessage("Invoice No cannot be empty");
+            invoiceNo.setErrorMessage("ShipmentInvoice No cannot be empty");
             return true;
         }
-        if (invoice == null && invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
+        if (shipmentInvoice == null && invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
             invoiceNo.setInvalid(true);
-            invoiceNo.setErrorMessage("Invoice already exists");
+            invoiceNo.setErrorMessage("ShipmentInvoice already exists");
             isInvalid = true;
         }
         if (invoiceDate.getValue() == null) {
             invoiceDate.setInvalid(true);
-            invoiceDate.setErrorMessage("Invoice Date cannot be empty");
+            invoiceDate.setErrorMessage("ShipmentInvoice Date cannot be empty");
             isInvalid = true;
         }
         if (expDate.getValue() == null) {
@@ -461,7 +471,7 @@ public class ShipmentInvoiceDialog extends Dialog {
 
         parameters.put("LOGO_URL", ReportUtil.image_path);
 
-        parameters.put("INVOICE_NO", invoice.getInvoiceNo());
+        parameters.put("INVOICE_NO", shipmentInvoice.getInvoiceNo());
         parameters.put("INVOICE_DATE", DateUtil.getDateAsString(invoiceDate.getValue()));
 
         parameters.put("SHIPPER_NAME", shipment.getShipper().getName());
@@ -496,7 +506,7 @@ public class ShipmentInvoiceDialog extends Dialog {
 
         parameters.put("FOREIGN_CURRENCY", foreignCurrComboBox.getValue().toString());
         parameters.put("LOCAL_CURRENCY", localCurrencyComboBox.getValue().toString());
-        parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(invoice.getConversionRate()
+        parameters.put("CONVERSION_RATE", AmountFormatter.getFormattedAmount(shipmentInvoice.getConversionRate()
                         .setScale(2, RoundingMode.UNNECESSARY), foreignCurrComboBox.getValue()));
 
         parameters.put("TOTAL", AmountFormatter.getFormattedAmount(grandTotal.getValue()
@@ -544,9 +554,9 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private Anchor getInvoiceDownloadAnchor() {
-        Anchor anchor = new Anchor(new StreamResource("Invoice-" + "shipment.getBlNo()" + ".pdf",
+        Anchor anchor = new Anchor(new StreamResource("ShipmentInvoice-" + "shipment.getBlNo()" + ".pdf",
                 (InputStreamFactory) () -> {
-                    String report = "invoice.jasper";
+                    String report = "shipmentInvoice.jasper";
                     Map<String, Object> parameters = prepareParamsForShipmentInvoice();
 
                     try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
@@ -557,7 +567,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                     }
                 }), "");
         anchor.getElement().setAttribute("download", true);
-        Button downloadButton = new Button("Download Invoice");
+        Button downloadButton = new Button("Download ShipmentInvoice");
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         anchor.add(downloadButton);

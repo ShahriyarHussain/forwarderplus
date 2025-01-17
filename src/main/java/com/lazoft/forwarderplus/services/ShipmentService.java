@@ -24,6 +24,7 @@ public class ShipmentService {
     private final ContainerDetailsService containerDetailsService;
     private final ScheduleService scheduleService;
     private final TransshipmentRepository transshipmentRepository;
+    private final StuffingDetailsService stuffingDetailsService;
 
     public List<Shipment> getAll() {return shipmentRepository.findAll();}
 
@@ -62,6 +63,13 @@ public class ShipmentService {
     }
 
     @Transactional
+    public void addStuffingDetailsToShipment(Shipment shipment, StuffingDetails stuffingDetails) {
+        StuffingDetails savedStuffingDetails = stuffingDetailsService.saveStuffingDetails(stuffingDetails);
+        shipment.setStuffingDetails(savedStuffingDetails);
+        saveShipment(shipment);
+    }
+
+    @Transactional
     public void addContainerDetailsToShipment(Shipment shipment, List<ContainerDetails> containerList) {
         shipment.setContainerDetails(new LinkedList<>());
         saveShipment(shipment);
@@ -71,6 +79,7 @@ public class ShipmentService {
         saveShipment(shipment);
     }
 
+    @Transactional
     public void addScheduleToShipment(Shipment shipment, Schedule schedule, Set<Transshipment> transshipmentSet) {
         if (!transshipmentSet.isEmpty()) {
             List<Transshipment> savedTransshipments = transshipmentRepository.saveAll(transshipmentSet);

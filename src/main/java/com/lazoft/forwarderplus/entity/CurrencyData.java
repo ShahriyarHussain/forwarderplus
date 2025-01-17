@@ -3,7 +3,9 @@ package com.lazoft.forwarderplus.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,14 +14,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-public class CurrencyData {
+@AllArgsConstructor
+@NoArgsConstructor
+public class CurrencyData extends AbstractEntity {
 
-    @Id
-    private String code;
-
-    private String name;
-    private String country;
-    private String symbol;
+    private String baseCurrencyCode;
+    private String targetCurrencyCode;
     private BigDecimal conversionRate;
     private LocalDateTime lastUpdated;
 }

@@ -47,7 +47,6 @@ public class ShippingOrderView extends Div {
     private final ShipmentService shipmentService;
     private final AuthenticatedUser authenticatedUser;
     private final ClientService clientService;
-    private final ScheduleService scheduleService;
     private final StuffingDetailsService stuffingDetailsService;
     private Grid<Shipment> grid;
 
@@ -59,7 +58,6 @@ public class ShippingOrderView extends Div {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
         this.clientService = clientService;
-        this.scheduleService = scheduleService;
         this.stuffingDetailsService = stuffingDetailsService;
 
         setSizeFull();
@@ -213,8 +211,7 @@ public class ShippingOrderView extends Div {
         User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShippingOrderDialog(shipment, user, clientService, stuffingDetailsService,
-                scheduleService, shipmentService, this).open());
+        create.addClickListener(event -> new ShippingOrderDialog(shipment, user, clientService, shipmentService, this).open());
         return create;
     }
 }
