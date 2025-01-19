@@ -279,8 +279,13 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
 
         foreignCurrComboBox.addValueChangeListener(event -> {
-            BigDecimal rate = currencyDataService.getConversionRateByCurrency(event.getValue(),
-                    localCurrencyComboBox.getValue());
+            BigDecimal rate = BigDecimal.ONE;
+            try {
+                rate = currencyDataService.getConversionRateByCurrency(event.getValue(),
+                        localCurrencyComboBox.getValue());
+            } catch (Exception e) {
+                log.error("Error occurred while fetching data from web.", e);
+            }
             conversionRate.setValue(rate);
         });
     }

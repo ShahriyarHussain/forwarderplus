@@ -5,23 +5,25 @@ import com.lazoft.forwarderplus.entity.CurrencyData;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.repository.CurrencyDataRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrencyDataService {
 
     private final CurrencyDataRepository currencyDataRepository;
-
-    private final String SEPARATOR = "/";
+    private final String SEPARATOR = File.separator;
 
     @Value("${exchange.api.link}")
     private String apiUrl;
@@ -31,8 +33,10 @@ public class CurrencyDataService {
         ExchangeRateResponseDTO responseDTO = restClient.get()
                 .uri(apiUrl + SEPARATOR + base + SEPARATOR + target)
                 .retrieve().body(ExchangeRateResponseDTO.class);
-        if (responseDTO == null || !responseDTO.getResult().equalsIgnoreCase("success")) { // remove magic string
-            throw new InvalidDataAccessApiUsageException("Could fetch data from API");
+
+        String API_SUCCESS_STRING = "success";
+        if (responseDTO == null || !responseDTO.getResult().equalsIgnoreCase(API_SUCCESS_STRING)) {
+            throw new InvalidDataAccessApiUsageException("Could Not fetch data from API");
         }
         return new CurrencyData(base, target, BigDecimal.valueOf(responseDTO.getConversionRate()), LocalDateTime.now());
     }
