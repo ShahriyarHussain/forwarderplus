@@ -249,7 +249,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 return;
             }
             ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setHeader("Close Shipment ShipmentInvoice Window ?");
+            confirmDialog.setHeader("Close Shipment Invoice Window ?");
             confirmDialog.setText("Are you sure you want to close ? All unsaved changes will be lost.");
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmButton(new Button("Yes, I am Sure", confirmEvent -> this.close()));

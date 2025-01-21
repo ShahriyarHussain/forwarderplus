@@ -23,39 +23,62 @@ import java.util.*;
 public class CurrencyDataService {
 
     private final CurrencyDataRepository currencyDataRepository;
-    private final String SEPARATOR = File.separator;
 
-    @Value("${exchange.api.link}")
+    @Value("${exchange.api.url}")
     private String apiUrl;
+
+    @Value("${exchange.api.version}")
+    private String apiVersion;
+
+    @Value("${exchange.api.pair.conversion.endpoint}")
+    private String pairConversionEndpoint;
+
+    @Value("${exchange.api.key}")
+    private String apiKey;
 
     private CurrencyData getCurrencyDataFromAPI(String base, String target) {
         RestClient restClient = RestClient.create();
-        ExchangeRateResponseDTO responseDTO = restClient.get()
-                .uri(apiUrl + SEPARATOR + base + SEPARATOR + target)
-                .retrieve().body(ExchangeRateResponseDTO.class);
+        ExchangeRateResponseDTO responseDTO;
+        try {
+            responseDTO = restClient.get().uri(apiUrl + apiVersion + File.separator + apiKey +
+                            pairConversionEndpoint + File.separator + base + File.separator + target)
+                    .retrieve().body(ExchangeRateResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Currency data API error", e);
+            throw e;
+        }
 
         String API_SUCCESS_STRING = "success";
         if (responseDTO == null || !responseDTO.getResult().equalsIgnoreCase(API_SUCCESS_STRING)) {
             throw new InvalidDataAccessApiUsageException("Could Not fetch data from API");
         }
-        return new CurrencyData(base, target, BigDecimal.valueOf(responseDTO.getConversionRate()), LocalDateTime.now());
+        return new CurrencyData(base, target, BigDecimal.valueOf(responseDTO.getConversionRate()), LocalDateTime.now(), false);
     }
 
     public BigDecimal getConversionRateByCurrency(AmountCurrency base, AmountCurrency target) {
-        Optional<CurrencyData> currencyData = currencyDataRepository
-                .getConversionRateByCurrency(base.toString(), target.toString());
-
-        if (currencyData.isEmpty()) { //fix adding same data multiple times
+        Optional<CurrencyData> currencyData = currencyDataRepository.getConversionRateByCurrency(base.toString(), target.toString());
+        if (currencyData.isEmpty()) {
             CurrencyData newCurrencyData = getCurrencyDataFromAPI(base.toString(), target.toString());
             currencyDataRepository.save(newCurrencyData);
             return newCurrencyData.getConversionRate();
-        } else if (ChronoUnit.DAYS.between(currencyData.get().getLastUpdated(), LocalDateTime.now()) < 2) {
-            CurrencyData newCurrencyData = getCurrencyDataFromAPI(base.toString(), target.toString());
-            CurrencyData oldDataForUpdate = currencyData.get();
-            oldDataForUpdate.setConversionRate(newCurrencyData.getConversionRate());
-            currencyDataRepository.save(oldDataForUpdate);
-            return oldDataForUpdate.getConversionRate();
         }
-        return currencyData.get().getConversionRate();
+
+        CurrencyData oldDataForUpdate = currencyData.get();
+        BigDecimal conversionRate = oldDataForUpdate.getConversionRate();
+        if (oldDataForUpdate.isAutoUpdateDisabled()) {
+            return conversionRate;
+        }
+        if (ChronoUnit.DAYS.between(oldDataForUpdate.getLastUpdated(), LocalDateTime.now()) > 2) {
+            try {
+                CurrencyData newCurrencyData = getCurrencyDataFromAPI(base.toString(), target.toString());
+                oldDataForUpdate.setConversionRate(newCurrencyData.getConversionRate());
+                oldDataForUpdate.setLastUpdated(LocalDateTime.now());
+                currencyDataRepository.save(oldDataForUpdate);
+                conversionRate = oldDataForUpdate.getConversionRate();
+            } catch (Exception e) {
+                log.error("Currency data API error: {}", e.getMessage());
+            }
+        }
+        return conversionRate;
     }
 }

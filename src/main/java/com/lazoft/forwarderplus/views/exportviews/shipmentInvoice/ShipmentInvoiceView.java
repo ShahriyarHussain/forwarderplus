@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Shipment ShipmentInvoice")
+@PageTitle("Shipment Invoice")
 @Route(value = "shipment-invoice", layout = MainLayout.class)
 @RolesAllowed({"USER", "ADMIN"})
 @Uses(Icon.class)

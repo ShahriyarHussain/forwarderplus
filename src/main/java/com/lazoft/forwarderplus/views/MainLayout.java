@@ -82,7 +82,7 @@ public class MainLayout extends AppLayout {
             exportOverview.addItem(new SideNavItem("New Booking", NewBookingView.class, LineAwesomeIcon.WAREHOUSE_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
-            exportOverview.addItem(new SideNavItem("Shipment ShipmentInvoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            exportOverview.addItem(new SideNavItem("Shipment Invoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
             nav.addItem(exportOverview);
         }

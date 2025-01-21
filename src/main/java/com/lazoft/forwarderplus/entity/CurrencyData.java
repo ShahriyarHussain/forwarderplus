@@ -22,4 +22,5 @@ public class CurrencyData extends AbstractEntity {
     private String targetCurrencyCode;
     private BigDecimal conversionRate;
     private LocalDateTime lastUpdated;
+    private boolean autoUpdateDisabled;
 }
