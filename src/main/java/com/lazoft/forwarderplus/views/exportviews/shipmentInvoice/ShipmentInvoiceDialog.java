@@ -88,7 +88,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final Checkbox showRespondentEmail = new Checkbox("Show email?");
     private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
     private final Checkbox showDesignation = new Checkbox("Show designation?");
-    private final DatePicker invoiceDate = new DatePicker("ShipmentInvoice Date");
+    private final DatePicker invoiceDate = new DatePicker("Invoice Date");
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
@@ -235,7 +235,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 dialog.open();
                 return;
             }
-            dialog.setHeaderTitle("ShipmentInvoice is ready!");
+            dialog.setHeaderTitle("Invoice is ready!");
             dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
 
             Anchor downloadAdviceAnchor = getInvoiceDownloadAnchor();
@@ -441,17 +441,17 @@ public class ShipmentInvoiceDialog extends Dialog {
         boolean isInvalid = false;
         if (StringUtils.isBlank(invoiceNo.getValue())) {
             invoiceNo.setInvalid(true);
-            invoiceNo.setErrorMessage("ShipmentInvoice No cannot be empty");
+            invoiceNo.setErrorMessage("Invoice No cannot be empty");
             return true;
         }
         if (shipmentInvoice == null && invoiceService.isInvoiceNoExists(invoiceNo.getValue())) {
             invoiceNo.setInvalid(true);
-            invoiceNo.setErrorMessage("ShipmentInvoice already exists");
+            invoiceNo.setErrorMessage("Invoice already exists");
             isInvalid = true;
         }
         if (invoiceDate.getValue() == null) {
             invoiceDate.setInvalid(true);
-            invoiceDate.setErrorMessage("ShipmentInvoice Date cannot be empty");
+            invoiceDate.setErrorMessage("Invoice Date cannot be empty");
             isInvalid = true;
         }
         if (expDate.getValue() == null) {
@@ -559,7 +559,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private Anchor getInvoiceDownloadAnchor() {
-        Anchor anchor = new Anchor(new StreamResource("ShipmentInvoice-" + "shipment.getBlNo()" + ".pdf",
+        Anchor anchor = new Anchor(new StreamResource("Invoice-" + "shipment.getBlNo()" + ".pdf",
                 (InputStreamFactory) () -> {
                     String report = "shipmentInvoice.jasper";
                     Map<String, Object> parameters = prepareParamsForShipmentInvoice();

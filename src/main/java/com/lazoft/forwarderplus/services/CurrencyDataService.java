@@ -73,7 +73,7 @@ public class CurrencyDataService {
                 CurrencyData newCurrencyData = getCurrencyDataFromAPI(base.toString(), target.toString());
                 oldDataForUpdate.setConversionRate(newCurrencyData.getConversionRate());
                 oldDataForUpdate.setLastUpdated(LocalDateTime.now());
-                currencyDataRepository.save(oldDataForUpdate);
+                oldDataForUpdate = currencyDataRepository.save(oldDataForUpdate);
                 conversionRate = oldDataForUpdate.getConversionRate();
             } catch (Exception e) {
                 log.error("Currency data API error: {}", e.getMessage());

@@ -2,8 +2,8 @@ package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(indexes = @Index(name = "ledgerCodeIdx", columnList = "code", unique = true))
 public class Ledger extends AbstractEntity {
 
     private String name;

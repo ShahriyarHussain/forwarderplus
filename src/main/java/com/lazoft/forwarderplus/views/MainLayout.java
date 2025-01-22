@@ -12,6 +12,7 @@ import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceV
 import com.lazoft.forwarderplus.views.exportviews.shipmentInvoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
 import com.lazoft.forwarderplus.views.finances.FinancesView;
+import com.lazoft.forwarderplus.views.finances.ledger.CreateLedgerView;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -97,7 +98,7 @@ public class MainLayout extends AppLayout {
             finances.addItem(new SideNavItem("Add Transaction", FinancesView.class, VaadinIcon.MONEY_EXCHANGE.create()));
             finances.addItem(new SideNavItem("Manage Accounts", FinancesView.class, LineAwesomeIcon.WALLET_SOLID.create()));
             finances.addItem(new SideNavItem("Manage Assets", FinancesView.class, LineAwesomeIcon.LANDMARK_SOLID.create()));
-            finances.addItem(new SideNavItem("View Ledgers", FinancesView.class, LineAwesomeIcon.BOOK_SOLID.create()));
+            finances.addItem(new SideNavItem("Create Ledgers", CreateLedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
             finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             nav.addItem(finances);
         }
