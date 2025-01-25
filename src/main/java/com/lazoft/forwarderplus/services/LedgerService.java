@@ -5,6 +5,8 @@ import com.lazoft.forwarderplus.repository.LedgerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class LedgerService {
@@ -16,6 +18,10 @@ public class LedgerService {
     }
 
     public boolean ledgerAlreadyExistsByCode(String code) {
-        return ledgerRepository.countLedgerByCode(code) > 0;
+        return ledgerRepository.findLedgerByCode(code).isPresent();
+    }
+
+    public Optional<Ledger> getLedgerByCode(String code) {
+        return ledgerRepository.findLedgerByCode(code);
     }
 }

@@ -1,31 +1,36 @@
 package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @Table(indexes = @Index(name = "ledgerCodeIdx", columnList = "code", unique = true))
-public class Ledger extends AbstractEntity {
+public class Ledger {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
+    @SequenceGenerator(name = "idgenerator", initialValue = 1000)
+    private Long ledgerId;
     private String name;
     private String code;
     private BigDecimal startingBalance;
     private BigDecimal currentBalance;
     private AmountCurrency currency;
     private String description;
+    private boolean isSystemLedger;
     private LocalDateTime createdOn;
-//    @OneToOne
-//    private User createdBy;
-//    private LocalDateTime updatedOn;
-//    @OneToOne
-//    private User updatedBy;
+    @Version
+    private LocalDateTime updatedOn;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<LedgerTagInfo> taggedAccounts = new ArrayList<>();
 }
