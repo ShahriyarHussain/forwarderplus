@@ -30,7 +30,4 @@ public class Ledger {
     private LocalDateTime createdOn;
     @Version
     private LocalDateTime updatedOn;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<LedgerTagInfo> taggedAccounts = new ArrayList<>();
 }

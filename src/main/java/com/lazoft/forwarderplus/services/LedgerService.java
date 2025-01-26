@@ -5,6 +5,7 @@ import com.lazoft.forwarderplus.repository.LedgerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,5 +24,9 @@ public class LedgerService {
 
     public Optional<Ledger> getLedgerByCode(String code) {
         return ledgerRepository.findLedgerByCode(code);
+    }
+
+    public List<Ledger> getAllLedgers() {
+        return ledgerRepository.findAll();
     }
 }

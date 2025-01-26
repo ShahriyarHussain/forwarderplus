@@ -36,7 +36,7 @@ public class AccountLedgerTagDialog extends Dialog {
     private final LedgerService ledgerService;
 
 
-    private final TextField findLedger = new TextField("Find Ledger");
+    private final ComboBox<Ledger> findLedger = new ComboBox<>("Find Ledger");
     private final Button findLedgerButton = new Button(LineAwesomeIcon.SEARCH_SOLID.create());
     private final TextField ledgerName = new TextField("Ledger Name");
     private final TextField ledgerCode = new TextField("Ledger Code");
@@ -89,6 +89,9 @@ public class AccountLedgerTagDialog extends Dialog {
         currentBalance.setReadOnly(true);
         tagLedgerButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        findLedger.setItemLabelGenerator(ledger -> ledger.getName() + " (" + ledger.getCode() + ")");
+        findLedger.setItems(ledgerService.getAllLedgers());
+
         findLedgerButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         findLedgerButton.setTooltipText("Find Ledger");
 
@@ -113,8 +116,7 @@ public class AccountLedgerTagDialog extends Dialog {
         });
 
         findLedgerButton.addClickListener(event -> setLedgerValuesAfterFinding());
-
-        findLedger.addKeyDownListener(Key.ENTER, event -> setLedgerValuesAfterFinding());
+        findLedger.addBlurListener(event -> setLedgerValuesAfterFinding());
 
         tagLedgerButton.addClickListener(event -> {
             if (isInvalidEntries()) {
@@ -131,20 +133,21 @@ public class AccountLedgerTagDialog extends Dialog {
     }
 
     private void setLedgerValuesAfterFinding() {
-        if (StringUtils.isBlank(findLedger.getValue())) {
+        if (findLedger.getValue() == null) {
             clearLedgerDetailsFields();
             NotificationUtil.getNotification("Please provide a valid ledger code", "", false,
                     NotificationVariant.LUMO_WARNING, 4000).open();
             return;
         }
-        Optional<Ledger> ledger = ledgerService.getLedgerByCode(findLedger.getValue());
-        if (ledger.isPresent()) {
-            selectedLedger = ledger.get();
+//        Optional<Ledger> ledger = ledgerService.getLedgerByCode(findLedger.getValue());
+//        if (ledger.isPresent()) {
+
+            selectedLedger = findLedger.getValue();
             setLedgerValuesOnSelection();
-            return;
-        }
-        NotificationUtil.getNotification("No ledger found with code: " + findLedger.getValue(), "", false,
-                NotificationVariant.LUMO_WARNING, 4000).open();
+//            return;
+//        }
+//        NotificationUtil.getNotification("No ledger found with code: " + findLedger.getValue(), "", false,
+//                NotificationVariant.LUMO_WARNING, 4000).open();
     }
 
     private void setLedgerValuesOnSelection() {

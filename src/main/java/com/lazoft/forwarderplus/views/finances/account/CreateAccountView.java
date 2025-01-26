@@ -25,7 +25,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
@@ -34,10 +37,11 @@ import java.util.List;
 @PageTitle("Create Account")
 @Route(value = "create-account", layout = MainLayout.class)
 @RolesAllowed({"USER", "ADMIN", "ACCOUNTS"})
+@Slf4j
 public class CreateAccountView extends Composite<VerticalLayout> {
 
     private final TextField accountName = new TextField("Account Name");
-    private final TextField accountNo = new TextField("Ledger Code");
+    private final TextField accountNo = new TextField("Account No");
 
     private final BigDecimalField startingBalance = new BigDecimalField("Starting Balance");
     private final BigDecimalField currentBalance = new BigDecimalField("Current Balance");
@@ -45,13 +49,12 @@ public class CreateAccountView extends Composite<VerticalLayout> {
     private final ComboBox<AmountCurrency> currency = new ComboBox<>("Currency");
     private final TextArea description = new TextArea("Description");
     private final Button tagLedger = new Button("Tag Ledger");
-    private final Button createLedger = new Button("Create Ledger");
+    private final Button createAccount = new Button("Create Account");
 
 
     private final AccountService accountService;
     private final LedgerService ledgerService;
     private User user;
-    private Account account;
     private final List<LedgerTagInfo> taggedLedgers = new LinkedList<>();
 
 
@@ -90,7 +93,7 @@ public class CreateAccountView extends Composite<VerticalLayout> {
         getContent().add(layoutRow);
         layoutRow.add(layoutColumn2);
         Button reset = new Button("Reset");
-        layoutColumn2.add(h3, formLayout, new HorizontalLayout(createLedger, reset));
+        layoutColumn2.add(h3, formLayout, new HorizontalLayout(createAccount, reset));
         layoutRow.add(layoutColumn3);
     }
 
@@ -123,23 +126,24 @@ public class CreateAccountView extends Composite<VerticalLayout> {
         currency.setValue(AmountCurrency.BDT);
         currency.setWidth("80%");
 
-        createLedger.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        createAccount.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         tagLedger.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
     }
 
     private void setListeners() {
-        createLedger.addClickListener((event) -> {
+        createAccount.addClickListener((event) -> {
             if (isInvalidData()) {
                 return;
             }
             try {
                 Account account = createAccountFromData();
-                accountService.save(account);
+                accountService.saveAccount(account);
                 NotificationUtil.getNotification("Account Created Successfully", "", false,
                         NotificationVariant.LUMO_PRIMARY, 4000).open();
             } catch (Exception e) {
+                log.error("Error while saving account", e);
                 NotificationUtil.getNotification("Failed To Create Account.", e.getMessage(), true,
-                        NotificationVariant.LUMO_PRIMARY, 6000).open();
+                        NotificationVariant.LUMO_ERROR, 6000).open();
             }
         });
 
@@ -153,10 +157,7 @@ public class CreateAccountView extends Composite<VerticalLayout> {
             }
         });
 
-        tagLedger.addClickListener(event -> {
-            account = createAccountFromData();
-            new AccountLedgerTagDialog(taggedLedgers, ledgerService).open();
-        });
+        tagLedger.addClickListener(event -> new AccountLedgerTagDialog(taggedLedgers, ledgerService).open());
     }
 
     private Account createAccountFromData() {
