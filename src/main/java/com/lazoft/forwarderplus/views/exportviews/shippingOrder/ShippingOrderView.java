@@ -47,15 +47,18 @@ public class ShippingOrderView extends Div {
     private final ShipmentService shipmentService;
     private final AuthenticatedUser authenticatedUser;
     private final ClientService clientService;
+    private final StuffingDetailsService stuffingDetailsService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
     public ShippingOrderView(PortService portService, ShipmentService shipmentService,
-                             AuthenticatedUser authenticatedUser, ClientService clientService) {
+                             AuthenticatedUser authenticatedUser, ClientService clientService,
+                             StuffingDetailsService stuffingDetailsService, ScheduleService scheduleService) {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
         this.clientService = clientService;
+        this.stuffingDetailsService = stuffingDetailsService;
 
         setSizeFull();
         addClassNames("view-shipments-view");

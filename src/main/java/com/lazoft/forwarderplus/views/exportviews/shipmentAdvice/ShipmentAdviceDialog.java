@@ -216,7 +216,7 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void fillUpCargoValues() {
-        if (shipment.getContainerDetails().isEmpty()) {
+        if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
             return;
         }
         List<ContainerDetails> containerDetailsList = shipment.getContainerDetails();
