@@ -19,7 +19,7 @@ public class Ledger {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
     @SequenceGenerator(name = "idgenerator", initialValue = 1000)
-    private Long ledgerId;
+    private long ledgerId;
     private String name;
     private String code;
     private BigDecimal startingBalance;
@@ -30,4 +30,9 @@ public class Ledger {
     private LocalDateTime createdOn;
     @Version
     private LocalDateTime updatedOn;
+
+    @Override
+    public String toString() {
+        return name + "-" + code + "-" + startingBalance + "-" + currentBalance;
+    }
 }
