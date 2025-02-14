@@ -1,6 +1,7 @@
 package com.lazoft.forwarderplus.views.finances.ledger;
 
-import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.entity.Ledger;
+import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.LedgerService;
@@ -28,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 @PageTitle("Create Ledger")
 @Route(value = "create-ledger", layout = MainLayout.class)

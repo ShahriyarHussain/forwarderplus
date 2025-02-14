@@ -5,7 +5,6 @@ import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ShipmentService;
-import com.lazoft.forwarderplus.services.StuffingDetailsService;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;

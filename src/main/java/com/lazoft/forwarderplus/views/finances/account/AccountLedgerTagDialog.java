@@ -5,7 +5,6 @@ import com.lazoft.forwarderplus.entity.LedgerTagInfo;
 import com.lazoft.forwarderplus.enums.LedgerTransactionType;
 import com.lazoft.forwarderplus.services.LedgerService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -23,11 +22,9 @@ import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 public class AccountLedgerTagDialog extends Dialog {

@@ -1,8 +1,8 @@
 package com.lazoft.forwarderplus.services;
 
-import com.lazoft.forwarderplus.entity.ShipmentInvoice;
 import com.lazoft.forwarderplus.entity.InvoiceItem;
 import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.entity.ShipmentInvoice;
 import com.lazoft.forwarderplus.repository.InvoiceItemRepository;
 import com.lazoft.forwarderplus.repository.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
