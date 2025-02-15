@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -95,7 +97,7 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         layoutRow.addClassName(LumoUtility.Gap.MEDIUM);
-        layoutRow.setWidth("100%");
+        layoutRow.setWidth("80%");
         layoutRow.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
@@ -182,6 +184,7 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         account.setStartingBalance(startingBalance.getValue());
         account.setFinancialDetails(description.getValue());
         account.setTaggedLedgers(taggedLedgers);
+        account.setUpdatedAt(LocalDateTime.now());
         return account;
     }
 

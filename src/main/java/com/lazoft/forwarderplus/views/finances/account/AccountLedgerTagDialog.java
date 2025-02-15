@@ -32,7 +32,6 @@ public class AccountLedgerTagDialog extends Dialog {
     private final List<LedgerTagInfo> taggedLedgers;
     private final LedgerService ledgerService;
 
-
     private final ComboBox<Ledger> findLedger = new ComboBox<>("Find Ledger");
     private final Button findLedgerButton = new Button(LineAwesomeIcon.SEARCH_SOLID.create());
     private final TextField ledgerName = new TextField("Ledger Name");
@@ -57,14 +56,13 @@ public class AccountLedgerTagDialog extends Dialog {
         this.taggedLedgers = taggedLedgers;
         this.ledgerService = ledgerService;
         this.setHeaderTitle("Tag Ledger for Account: ");
-        this.setWidth(800, Unit.PIXELS);
+        this.setWidth(900, Unit.PIXELS);
         this.getFooter().add(close, saveButton);
         this.setCloseOnOutsideClick(false);
 
         setTaggedLedgerGridProperties();
         setAttributes();
         setListeners();
-        fillUpExistingValues();
 
         HorizontalLayout findLedgerLayout = new HorizontalLayout(findLedger, findLedgerButton);
         findLedgerLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
@@ -72,10 +70,6 @@ public class AccountLedgerTagDialog extends Dialog {
 
         FormLayout formLayout = getLedgerDetailsLayout();
         add(findLedgerLayout, formLayout, ledgerGrid);
-    }
-
-    private void fillUpExistingValues() {
-        ledgerGrid.setItems(taggedLedgers);
     }
 
     private void setAttributes() {
@@ -88,6 +82,7 @@ public class AccountLedgerTagDialog extends Dialog {
 
         findLedger.setItemLabelGenerator(ledger -> ledger.getName() + " (" + ledger.getCode() + ")");
         findLedger.setItems(ledgerService.getAllLedgers());
+        findLedger.setWidth("90%");
 
         findLedgerButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         findLedgerButton.setTooltipText("Find Ledger");
@@ -111,10 +106,8 @@ public class AccountLedgerTagDialog extends Dialog {
                         NotificationVariant.LUMO_ERROR, 5000).open();
             }
         });
-
         findLedgerButton.addClickListener(event -> setLedgerValuesAfterFinding());
-        findLedger.addBlurListener(event -> setLedgerValuesAfterFinding());
-
+        findLedger.addValueChangeListener(event -> setLedgerValuesAfterFinding());
         tagLedgerButton.addClickListener(event -> {
             if (isInvalidEntries()) {
                 return;
@@ -125,7 +118,6 @@ public class AccountLedgerTagDialog extends Dialog {
             taggedLedgers.add(info);
             ledgerGrid.setItems(taggedLedgers);
         });
-
         close.addClickListener(event -> close());
     }
 
@@ -136,15 +128,8 @@ public class AccountLedgerTagDialog extends Dialog {
                     NotificationVariant.LUMO_WARNING, 4000).open();
             return;
         }
-//        Optional<Ledger> ledger = ledgerService.getLedgerByCode(findLedger.getValue());
-//        if (ledger.isPresent()) {
-
-            selectedLedger = findLedger.getValue();
-            setLedgerValuesOnSelection();
-//            return;
-//        }
-//        NotificationUtil.getNotification("No ledger found with code: " + findLedger.getValue(), "", false,
-//                NotificationVariant.LUMO_WARNING, 4000).open();
+        selectedLedger = findLedger.getValue();
+        setLedgerValuesOnSelection();
     }
 
     private void setLedgerValuesOnSelection() {
@@ -164,14 +149,15 @@ public class AccountLedgerTagDialog extends Dialog {
     }
 
     private void setTaggedLedgerGridProperties() {
-        ledgerGrid.addColumn(info -> info.getLedger().getName() + "(" + info.getLedger().getCode() + ")")
+        ledgerGrid.addColumn(tagInfo -> tagInfo.getLedger().getName() + "(" + tagInfo.getLedger().getCode() + ")")
                 .setHeader("Ledger").setAutoWidth(true).setSortable(false);
-        ledgerGrid.addColumn(info -> info.getTransactionType().getTitle()).setHeader("Transaction Behavior").setAutoWidth(true).setSortable(false);
-        ledgerGrid.addComponentColumn(info -> {
+        ledgerGrid.addColumn(tagInfo -> tagInfo.getTransactionType().getTitle()).setHeader("Transaction Behavior")
+                .setAutoWidth(true).setSortable(false);
+        ledgerGrid.addComponentColumn(tagInfo -> {
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
-                taggedLedgers.remove(info);
+                taggedLedgers.remove(tagInfo);
                 ledgerGrid.setItems(taggedLedgers);
             });
             return deleteButton;

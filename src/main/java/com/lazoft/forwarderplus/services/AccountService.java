@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.services;
 
 import com.lazoft.forwarderplus.entity.Account;
-import com.lazoft.forwarderplus.entity.Ledger;
 import com.lazoft.forwarderplus.entity.LedgerTagInfo;
 import com.lazoft.forwarderplus.repository.AccountRepository;
 import com.lazoft.forwarderplus.repository.LedgerTagInfoRepository;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +38,17 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    @Transactional
+    public void saveOnlyAccount(Account account) {
+        accountRepository.save(account);
+    }
+
     public Page<Account> getAccountByFilter(Specification<Account> specification, Pageable pageable) {
         return accountRepository.findAll(specification, pageable);
+    }
+
+    public Account getAccountById(long id) {
+        return Objects.requireNonNull(accountRepository.findById(id).orElse(null));
     }
 
     public List<Account> getAccounts() {

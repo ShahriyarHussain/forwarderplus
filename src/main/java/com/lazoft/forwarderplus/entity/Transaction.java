@@ -1,6 +1,7 @@
 package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
+import com.lazoft.forwarderplus.enums.LedgerTransactionType;
 import com.lazoft.forwarderplus.enums.TransactionMethod;
 import com.lazoft.forwarderplus.enums.TransactionType;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -23,19 +25,30 @@ public class Transaction extends AbstractEntity {
     private BigDecimal conversionRate;
     private AmountCurrency currency;
     private LocalDate businessDate;
+    private LocalDate transactionDate;
     private BigDecimal totalAmount;
+    private BigDecimal totalAmountBaseCurrency;
     private TransactionType type;
-    private String description;
     private long attachmentId;
     private String remarks;
     private int batchNo;
 
-    @OneToOne
+    @ManyToOne
     private User user;
-    @OneToOne
-    private Account account;
+    @ManyToOne
+    private Account fromAccount;
+    @ManyToOne
+    private Account toAccount;
+    @ManyToOne
+    private Ledger fromLedger;
+    @ManyToOne
+    private Ledger toLedger;
+
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<TransactionLeg> transactionLegs;
+
+    @Transient
+    private Map<String, TransactionType> ledgerTransactionType;
 
 
 }

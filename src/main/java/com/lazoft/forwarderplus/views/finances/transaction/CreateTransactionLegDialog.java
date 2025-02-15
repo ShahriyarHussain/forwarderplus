@@ -1,8 +1,6 @@
 package com.lazoft.forwarderplus.views.finances.transaction;
 
-import com.lazoft.forwarderplus.entity.Transaction;
 import com.lazoft.forwarderplus.entity.TransactionLeg;
-import com.lazoft.forwarderplus.services.TransactionService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -22,7 +20,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.math.BigDecimal;
-import java.util.LinkedList;
 import java.util.List;
 
 public class CreateTransactionLegDialog extends Dialog {
@@ -45,7 +42,7 @@ public class CreateTransactionLegDialog extends Dialog {
         this.transactionLegs = transactionLegs;
         this.createTransactionView = createTransactionView;
         this.setHeaderTitle("Add Transaction Legs");
-        this.setWidth(500, Unit.PIXELS);
+        this.setWidth(800, Unit.PIXELS);
         this.setCloseOnOutsideClick(false);
         this.serialNo = transactionLegs.size() + 1;
 
@@ -112,11 +109,11 @@ public class CreateTransactionLegDialog extends Dialog {
         grid.addColumn("slNo").setHeader("Serial No").setAutoWidth(true).setSortable(false);
         grid.addColumn("amount").setHeader("Amount").setAutoWidth(true).setSortable(false);
         grid.addColumn("remarks").setHeader("Remarks").setAutoWidth(true).setSortable(false);
-        grid.addComponentColumn(containerDetails -> {
+        grid.addComponentColumn(leg -> {
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
-                transactionLegs.remove(containerDetails);
+                transactionLegs.remove(leg);
                 grid.setItems(transactionLegs);
                 serialNo--;
             });

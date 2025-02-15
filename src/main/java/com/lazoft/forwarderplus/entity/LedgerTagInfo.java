@@ -2,12 +2,14 @@ package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.LedgerTransactionType;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
+@EqualsAndHashCode(callSuper = false)
 @Table(indexes = @Index(name = "ledgerAccountIdx", columnList = "ledger_id, account_id"))
 public class LedgerTagInfo extends AbstractEntity {
     

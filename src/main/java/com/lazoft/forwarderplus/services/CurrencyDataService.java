@@ -56,6 +56,9 @@ public class CurrencyDataService {
     }
 
     public BigDecimal getConversionRateByCurrency(AmountCurrency base, AmountCurrency target) {
+        if (base == null) {
+            return BigDecimal.ONE;
+        }
         Optional<CurrencyData> currencyData = currencyDataRepository.getConversionRateByCurrency(base.toString(), target.toString());
         if (currencyData.isEmpty()) {
             CurrencyData newCurrencyData = getCurrencyDataFromAPI(base.toString(), target.toString());

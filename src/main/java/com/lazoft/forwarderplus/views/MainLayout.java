@@ -99,8 +99,8 @@ public class MainLayout extends AppLayout {
             finances.setPrefixComponent(LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create());
             finances.addItem(new SideNavItem("Manage Accounts", ManageAccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
             finances.addItem(new SideNavItem("Manage Ledger", ManageLedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
-            finances.addItem(new SideNavItem("Add Transaction", FinancesView.class, VaadinIcon.MONEY_EXCHANGE.create()));
-            finances.addItem(new SideNavItem("Create Invoice", CreateTransactionView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            finances.addItem(new SideNavItem("Add Transaction", CreateTransactionView.class, VaadinIcon.MONEY_EXCHANGE.create()));
+            finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             nav.addItem(finances);
         }
 

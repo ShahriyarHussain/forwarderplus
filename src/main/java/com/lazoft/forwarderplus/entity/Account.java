@@ -28,8 +28,9 @@ public class Account {
     private AmountCurrency amountCurrency;
     private String financialDetails;
     private LocalDateTime createdAt;
-    @Version
     private LocalDateTime updatedAt;
+    @Version
+    private long updateSl;
 
     @OneToMany(fetch = FetchType.EAGER)
     private List<LedgerTagInfo> taggedLedgers;

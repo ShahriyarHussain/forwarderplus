@@ -68,4 +68,12 @@
         <name>Office Allowance</name>
         <hash>-988430412</hash>
     </category>
+    <category>
+        <name>B/L Fee</name>
+        <hash>-1772587547</hash>
+    </category>
+    <category>
+        <name>Client Payment</name>
+        <hash>-772421967</hash>
+    </category>
 </categories>

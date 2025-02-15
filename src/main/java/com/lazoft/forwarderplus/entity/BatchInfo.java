@@ -10,8 +10,8 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-public class BatchTable {
+public class BatchInfo {
     @Id
-    private long batchNo;
     private LocalDate businessDate;
+    private int batchNo;
 }
