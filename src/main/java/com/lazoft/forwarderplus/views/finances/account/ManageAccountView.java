@@ -1,23 +1,28 @@
-package com.lazoft.forwarderplus.views.finances.ledger;
+package com.lazoft.forwarderplus.views.finances.account;
 
-import com.lazoft.forwarderplus.entity.Ledger;
+import com.lazoft.forwarderplus.entity.Account;
+import com.lazoft.forwarderplus.entity.LedgerTagInfo;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
+import com.lazoft.forwarderplus.services.AccountService;
 import com.lazoft.forwarderplus.services.LedgerService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
+import com.lazoft.forwarderplus.views.finances.ledger.ManageLedgerLayout;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -25,33 +30,47 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
-@PageTitle("Create Ledger")
-@Route(value = "create-ledger", layout = MainLayout.class)
+@PageTitle("Create Account")
+@Route(value = "create-account", layout = MainLayout.class)
 @RolesAllowed({"USER", "ADMIN", "ACCOUNTS"})
-public class CreateLedgerView extends Composite<VerticalLayout> {
+@Slf4j
+public class ManageAccountView extends Composite<VerticalLayout> {
 
-    private final TextField ledgerName = new TextField("Ledger Name");
-    private final TextField ledgerCode = new TextField("Ledger Code");
+    private final TextField accountName = new TextField("Account Name");
+    private final TextField accountNo = new TextField("Account No");
 
     private final BigDecimalField startingBalance = new BigDecimalField("Starting Balance");
     private final BigDecimalField currentBalance = new BigDecimalField("Current Balance");
 
     private final ComboBox<AmountCurrency> currency = new ComboBox<>("Currency");
     private final TextArea description = new TextArea("Description");
+    private final Button tagLedger = new Button("Tag Ledger");
+    private final Button createAccount = new Button("Create Account");
 
-    private final Button createLedger = new Button("Create Ledger");
+    private final Tabs accountManageTabs = new Tabs();
 
+    private final Tab createAccountTab = new Tab("Create Account");
+    private final VerticalLayout createAccountVerticalLayout = new VerticalLayout();
+
+    private final Tab editAccountTab = new Tab("Edit Account");
+    private final VerticalLayout editAccountVerticalLayout = new VerticalLayout();
+
+
+    private final AccountService accountService;
     private final LedgerService ledgerService;
-
     private User user;
+    private final List<LedgerTagInfo> taggedLedgers = new LinkedList<>();
 
 
-    public CreateLedgerView(LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
+    public ManageAccountView(AccountService accountService, LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
+        this.accountService = accountService;
         this.ledgerService = ledgerService;
 
         if (authenticatedUser.get().isPresent()) {
@@ -64,14 +83,15 @@ public class CreateLedgerView extends Composite<VerticalLayout> {
         }
 
         FormLayout formLayout = setUpFormLayout();
+        Button reset = new Button("Reset");
+        createAccountVerticalLayout.add(new VerticalLayout(new H3("Create Ledger"), formLayout, new HorizontalLayout(createAccount, reset)));
+        editAccountVerticalLayout.add(new ManageLedgerLayout(ledgerService, user));
         setFieldAttributes();
         setListeners();
 
         HorizontalLayout layoutRow = new HorizontalLayout();
         VerticalLayout layoutColumn2 = new VerticalLayout();
-        VerticalLayout layoutColumn3 = new VerticalLayout();
         H3 h3 = new H3();
-        H2 h32 = new H2();
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         layoutRow.addClassName(LumoUtility.Gap.MEDIUM);
@@ -79,31 +99,30 @@ public class CreateLedgerView extends Composite<VerticalLayout> {
         layoutRow.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
-        h3.setText("Create New Ledger");
+        h3.setText("Create Account");
         h3.setWidth("max-content");
-        layoutColumn3.setWidth("450px");
-        layoutColumn3.getStyle().set("flex-grow", "1");
-        h32.setText("Booking Summary");
-        h32.setWidth("max-content");
         getContent().add(layoutRow);
         layoutRow.add(layoutColumn2);
-        Button reset = new Button("Reset");
-        layoutColumn2.add(h3, formLayout, new HorizontalLayout(createLedger, reset));
-        layoutRow.add(layoutColumn3);
+        layoutColumn2.add(h3, formLayout, new HorizontalLayout(createAccount, reset));
     }
 
     private FormLayout setUpFormLayout() {
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
-        formLayout.add(ledgerName, ledgerCode, startingBalance, currentBalance, currency, description);
+        HorizontalLayout currencyAndTagBtnLayout = new HorizontalLayout(currency, tagLedger);
+        currencyAndTagBtnLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        currencyAndTagBtnLayout.setAlignItems(FlexComponent.Alignment.END);
+
+        formLayout.add(accountName, accountNo, startingBalance, currentBalance, currencyAndTagBtnLayout, description);
+        formLayout.setColspan(accountName, 2);
         formLayout.setColspan(description, 2);
         formLayout.setMaxWidth("75%");
         return formLayout;
     }
 
     private void setFieldAttributes() {
-        ledgerName.setRequired(true);
-        ledgerCode.setRequired(true);
+        accountName.setRequired(true);
+        accountNo.setRequired(true);
 
         startingBalance.setRequired(true);
         startingBalance.setValue(BigDecimal.ZERO);
@@ -114,59 +133,68 @@ public class CreateLedgerView extends Composite<VerticalLayout> {
         currency.setRequired(true);
         currency.setItems(AmountCurrency.values());
         currency.setValue(AmountCurrency.BDT);
+        currency.setWidth("80%");
 
-        createLedger.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        createAccount.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        tagLedger.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+
+        accountManageTabs.add(createAccountTab, editAccountTab);
+        accountManageTabs.setSelectedTab(createAccountTab);
+        createAccountVerticalLayout.setVisible(true);
+        editAccountVerticalLayout.setVisible(false);
     }
 
     private void setListeners() {
-        createLedger.addClickListener((event) -> {
+        createAccount.addClickListener((event) -> {
             if (isInvalidData()) {
                 return;
             }
             try {
-                Ledger ledger = createLedgerFromData();
-                ledgerService.saveLedger(ledger);
-                NotificationUtil.getNotification("Ledger Created Successfully", "", false,
+                Account account = createAccountFromData();
+                accountService.saveAccount(account);
+                NotificationUtil.getNotification("Account Created Successfully", "", false,
                         NotificationVariant.LUMO_PRIMARY, 4000).open();
             } catch (Exception e) {
-                NotificationUtil.getNotification("Failed To Create Ledger.", e.getMessage(), true,
-                        NotificationVariant.LUMO_PRIMARY, 6000).open();
+                log.error("Error while saving account", e);
+                NotificationUtil.getNotification("Failed To Create Account.", e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 6000).open();
             }
         });
 
-        ledgerCode.addBlurListener(e -> {
+        accountNo.addBlurListener(e -> {
             if (StringUtils.isBlank(e.getSource().getValue())) {
                 return;
             }
-            if (ledgerService.ledgerAlreadyExistsByCode(ledgerCode.getValue())) {
-                ledgerCode.setInvalid(true);
-                ledgerCode.setErrorMessage("A Ledger with this ledger code already exists!");
+            if (accountService.accountAlreadyExists(accountNo.getValue())) {
+                accountNo.setInvalid(true);
+                accountNo.setErrorMessage("A Ledger with this ledger code already exists!");
             }
         });
+
+        tagLedger.addClickListener(event -> new AccountLedgerTagDialog(taggedLedgers, ledgerService).open());
     }
 
-    private Ledger createLedgerFromData() {
-        Ledger ledger = new Ledger();
-        ledger.setName(ledgerName.getValue());
-        ledger.setCode(ledgerCode.getValue());
-        ledger.setStartingBalance(startingBalance.getValue());
-        ledger.setCurrentBalance(currentBalance.getValue());
-        ledger.setCurrency(currency.getValue());
-        ledger.setDescription(description.getValue());
-        ledger.setCreatedOn(LocalDateTime.now());
-        return ledger;
+    private Account createAccountFromData() {
+        Account account = new Account();
+        account.setAccountNo(accountNo.getValue());
+        account.setName(accountName.getValue());
+        account.setCurrentBalance(currentBalance.getValue());
+        account.setStartingBalance(startingBalance.getValue());
+        account.setFinancialDetails(description.getValue());
+        account.setTaggedLedgers(taggedLedgers);
+        return account;
     }
 
     private boolean isInvalidData() {
         boolean isInvalid = false;
-        if (StringUtils.isBlank(ledgerName.getValue())) {
-            ledgerName.setInvalid(true);
-            ledgerName.setErrorMessage("Ledger Name is required");
+        if (StringUtils.isBlank(accountName.getValue())) {
+            accountName.setInvalid(true);
+            accountName.setErrorMessage("Ledger Name is required");
             isInvalid = true;
         }
-        if (StringUtils.isBlank(ledgerCode.getValue())) {
-            ledgerCode.setInvalid(true);
-            ledgerCode.setErrorMessage("Ledger Code is required");
+        if (StringUtils.isBlank(accountNo.getValue())) {
+            accountNo.setInvalid(true);
+            accountNo.setErrorMessage("Ledger Code is required");
             isInvalid = true;
         }
         if (startingBalance.getValue() == null) {

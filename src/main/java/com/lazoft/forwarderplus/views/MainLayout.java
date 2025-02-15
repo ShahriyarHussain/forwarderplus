@@ -12,8 +12,9 @@ import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceV
 import com.lazoft.forwarderplus.views.exportviews.shipmentInvoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
 import com.lazoft.forwarderplus.views.finances.FinancesView;
-import com.lazoft.forwarderplus.views.finances.account.CreateAccountView;
-import com.lazoft.forwarderplus.views.finances.ledger.CreateLedgerView;
+import com.lazoft.forwarderplus.views.finances.account.ManageAccountView;
+import com.lazoft.forwarderplus.views.finances.ledger.ManageLedgerView;
+import com.lazoft.forwarderplus.views.finances.transaction.CreateTransactionView;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -96,11 +97,10 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(FinancesView.class)) {
             SideNavItem finances = new SideNavItem("Finances");
             finances.setPrefixComponent(LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create());
+            finances.addItem(new SideNavItem("Manage Accounts", ManageAccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
+            finances.addItem(new SideNavItem("Manage Ledger", ManageLedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
             finances.addItem(new SideNavItem("Add Transaction", FinancesView.class, VaadinIcon.MONEY_EXCHANGE.create()));
-            finances.addItem(new SideNavItem("Manage Accounts", CreateAccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
-            finances.addItem(new SideNavItem("Manage Assets", FinancesView.class, LineAwesomeIcon.LANDMARK_SOLID.create()));
-            finances.addItem(new SideNavItem("Create Ledgers", CreateLedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
-            finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            finances.addItem(new SideNavItem("Create Invoice", CreateTransactionView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             nav.addItem(finances);
         }
 
