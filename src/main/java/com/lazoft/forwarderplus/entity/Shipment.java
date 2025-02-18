@@ -2,6 +2,7 @@ package com.lazoft.forwarderplus.entity;
 
 
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.enums.ShippingTerm;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,12 +26,13 @@ public class Shipment {
     private String mblNo;
     private String hblNo;
 
-    private String marks;
     private String goodsDescription;
     private String shipperMarks;
     private String clientInvoiceNo;
     private String commodity;
     private int numOfContainers;
+
+    private ShippingTerm shippingTerm;
 
     @Enumerated(EnumType.STRING)
     private ShipmentStatus status;

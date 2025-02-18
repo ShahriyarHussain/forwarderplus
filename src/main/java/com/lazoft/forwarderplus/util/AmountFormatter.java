@@ -55,13 +55,13 @@ public class AmountFormatter {
 
     public static String getFormattedAmount(BigDecimal bigDecimal, AmountCurrency currency) {
         if (currency == AmountCurrency.BDT || currency == AmountCurrency.INR) {
-            return getBDTakaFormattedAmount(bigDecimal);
+            return getBDRegionFormattedAmount(bigDecimal);
         } else {
             return getForeignCurrencyFormatter().format(bigDecimal);
         }
     }
 
-    public static String getBDTakaFormattedAmount(BigDecimal bigDecimal) {
+    public static String getBDRegionFormattedAmount(BigDecimal bigDecimal) {
         if (bigDecimal == null) {
             return ZERO_AMOUNT;
         }

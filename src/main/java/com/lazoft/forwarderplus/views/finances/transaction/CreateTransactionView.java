@@ -45,6 +45,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -135,7 +136,7 @@ public class CreateTransactionView extends VerticalLayout {
         ACCOUNT, LEDGER
     }
 
-    record AccountLegerChoice(String title, EntityType type, Account account, Ledger ledger) {};
+    record AccountLegerChoice(String title, EntityType type, Account account, Ledger ledger) {}
 
     private void setValues() {
         transactionType.setItems(TransactionType.values());
@@ -245,9 +246,7 @@ public class CreateTransactionView extends VerticalLayout {
             conversionRate.setValue(rate);
             updateLocalCurrencyAmount();
         });
-        foreignCurrencyAmount.addValueChangeListener(event -> {
-            updateLocalCurrencyAmount();
-        });
+        foreignCurrencyAmount.addValueChangeListener(event -> updateLocalCurrencyAmount());
         setLegs.addClickListener(event -> new CreateTransactionLegDialog(transactionLegs, this).open());
         createTransaction.addClickListener(event -> {
             Categories newCategory = new Categories(categoryList);
@@ -317,6 +316,45 @@ public class CreateTransactionView extends VerticalLayout {
     }
 
     private void createNewTransaction() {
+        List<Transaction> transactionList = new ArrayList<>(4);
+        Transaction transaction = createTransactionFromEnteredData();
+        transaction.setSlNo(1);
+        if (fromEntity.getValue().type.equals(EntityType.ACCOUNT)) {
+            transaction.setTransactionAccount(fromEntity.getValue().account);
+        } else {
+            transaction.setTransactionLedger(fromEntity.getValue().ledger);
+        }
+        transactionList.add(transaction);
+        if (transactionType.getValue().equals(TransactionType.TRANSFER)) {
+            Transaction transferTransaction = createTransactionFromEnteredData();
+            transferTransaction.setSlNo(2);
+            if (toEntity.getValue().type.equals(EntityType.ACCOUNT)) {
+                transferTransaction.setTransactionAccount(toEntity.getValue().account);
+            }
+            if (toEntity.getValue().type.equals(EntityType.LEDGER)) {
+                transferTransaction.setTransactionLedger(toEntity.getValue().ledger);
+            }
+            transactionList.add(transferTransaction);
+        }
+
+        try {
+            int batchNo = transactionService.postTransaction(transactionList);
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setText("Transaction Posted Successfully! Batch No: " + batchNo);
+            confirmDialog.setHeader("Transaction Posting");
+            confirmDialog.setConfirmButton("Ok", event -> confirmDialog.close());
+            confirmDialog.open();
+            clearAll();
+        } catch (OptimisticLockingFailureException e) {
+            NotificationUtil.getNotification("Transaction details were updated. Please try again", e.getMessage(), true,
+                    NotificationVariant.LUMO_ERROR, 5000).open();
+        } catch (Exception e) {
+            NotificationUtil.getNotification("Unexpected Error", e.getMessage(), true,
+                    NotificationVariant.LUMO_ERROR, 5000).open();
+        }
+    }
+
+    private Transaction createTransactionFromEnteredData() {
         Transaction transaction = new Transaction();
         if (transactionLegs.isEmpty()) {
             TransactionLeg leg = new TransactionLeg();
@@ -336,33 +374,9 @@ public class CreateTransactionView extends VerticalLayout {
         transaction.setRemarks(remarks.getValue());
         transaction.setCurrency(currencyComboBox.getValue());
         transaction.setConversionRate(conversionRate.getValue());
-        if (fromEntity.getValue().type.equals(EntityType.ACCOUNT)) {
-            transaction.setFromAccount(fromEntity.getValue().account);
-        } else {
-            transaction.setFromLedger(fromEntity.getValue().ledger);
-        }
-        if (transactionType.getValue().equals(TransactionType.TRANSFER) && toEntity.getValue().type.equals(EntityType.ACCOUNT)) {
-            transaction.setToAccount(toEntity.getValue().account);
-        }
-        if (transactionType.getValue().equals(TransactionType.TRANSFER) && toEntity.getValue().type.equals(EntityType.LEDGER)) {
-            transaction.setToLedger(toEntity.getValue().ledger);
-        }
-        try {
-            Transaction saved = transactionService.postTransaction(transaction);
-            ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setText("Transaction Posted Successfully! Batch No: " + saved.getBatchNo());
-            confirmDialog.setHeader("Transaction Posting");
-            confirmDialog.setConfirmButton("Ok", event -> confirmDialog.close());
-            confirmDialog.open();
-            clearAll();
-        } catch (OptimisticLockingFailureException e) {
-            NotificationUtil.getNotification("Transaction details were updated. Please try again", e.getMessage(), true,
-                    NotificationVariant.LUMO_ERROR, 5000).open();
-        } catch (Exception e) {
-            NotificationUtil.getNotification("Unexpected Error", e.getMessage(), true,
-                    NotificationVariant.LUMO_ERROR, 5000).open();
-        }
+        return transaction;
     }
+
 
     private BigDecimal getBalanceFromChoice(AccountLegerChoice choice) {
         if (choice.type == EntityType.ACCOUNT) {

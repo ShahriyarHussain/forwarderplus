@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.entity;
 
+import com.lazoft.forwarderplus.util.DateUtil;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +45,7 @@ public class Schedule {
 
     public String getScheduleSummary() {
         return portOfLoading.getPortName() + " To " + portOfDestination.getPortName() + ", Departure: " +
-                portOfLoadingETD.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")) + ", Transit: " +
+                DateUtil.getDateAsString(portOfLoadingETD) + ", Transit: " +
                 ChronoUnit.DAYS.between(portOfLoadingETD, portOfDestinationETA) + " day(s)";
     }
 

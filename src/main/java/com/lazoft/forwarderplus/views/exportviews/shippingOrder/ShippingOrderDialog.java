@@ -170,6 +170,8 @@ public class ShippingOrderDialog extends Dialog {
 
         addClientButton.addClickListener(event -> new ClientCreationDialogView(clientService, clientList).open());
 
+        notifyParty.addFocusListener(event -> notifyParty.setItems(clientList));
+
         closeButton.addClickListener(event -> {
             shippingOrderView.refreshGrid();
             this.close();

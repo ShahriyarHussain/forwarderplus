@@ -216,7 +216,8 @@ public class EditScheduleDialog extends Dialog {
 
     private void prepareTransshipmentGrid() {
         grid.addColumn("sl").setHeader("Sl No.").setAutoWidth(true).setSortable(false);
-        grid.addColumn(transshipment -> "Test").setHeader("TS Port").setAutoWidth(true).setSortable(false);
+        grid.addColumn(transshipment -> transshipment.getVesselPort().getPortLabel()).setHeader("TS Port")
+                .setAutoWidth(true).setSortable(false);
         grid.addColumn("vesselName").setHeader("Vessel").setAutoWidth(true).setSortable(false);
         grid.addColumn("portEta").setHeader("ETA To Port").setAutoWidth(true).setSortable(false);
         grid.addComponentColumn(transshipment -> {

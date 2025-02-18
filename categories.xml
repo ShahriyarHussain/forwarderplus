@@ -76,4 +76,8 @@
         <name>Client Payment</name>
         <hash>-772421967</hash>
     </category>
+    <category>
+        <name>Shipment Fee</name>
+        <hash>-576508928</hash>
+    </category>
 </categories>

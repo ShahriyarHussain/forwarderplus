@@ -45,6 +45,11 @@ public class ShipmentService {
         return shipmentRepository.findAll(filter, pageable);
     }
 
+    @EntityGraph("shipment")
+    public List<Shipment> getShipmentsByFilter(String filter) {
+        return shipmentRepository.getShipmentsByFilter(filter);
+    }
+
     public List<Shipment> createShipmentFromBooking(Booking booking) {
         List<Shipment> shipments = new LinkedList<>();
         for (int i = 0; i < booking.getNumOfShipments(); i++) {

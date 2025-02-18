@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,27 +31,24 @@ public class TransactionService {
     private String expenseGlCode;
     
     @Transactional
-    public Transaction postTransaction(Transaction transaction) {
-        List<TransactionLeg> savedTransactionLegs = transactionLegRepository.saveAll(transaction.getTransactionLegs());
-        transaction.setTransactionLegs(savedTransactionLegs);
-        transaction.setBatchNo(batchNoService.getBatchNoByDate(transaction.getBusinessDate()));
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        updateBalanceOfEntitiesInTransaction(transaction);
-        return savedTransaction;
+    public int postTransaction(List<Transaction> transactionList) {
+        int batchNo = batchNoService.getBatchNoByDate(transactionList.get(0).getBusinessDate());
+        for (Transaction transaction : transactionList) {
+            List<TransactionLeg> savedTransactionLegs = transactionLegRepository.saveAll(transaction.getTransactionLegs());
+            transaction.setTransactionLegs(savedTransactionLegs);
+            transaction.setBatchNo(batchNo);
+            transactionRepository.save(transaction);
+            updateBalanceOfEntitiesInTransaction(transaction);
+        }
+        return batchNo;
     }
 
     private void updateBalanceOfEntitiesInTransaction(Transaction transaction) {
-        if (transaction.getFromAccount() != null) {
-            updateAccountBalance(transaction.getFromAccount(), transaction);
+        if (transaction.getTransactionAccount() != null) {
+            updateAccountBalance(transaction.getTransactionAccount(), transaction);
         }
-        if (transaction.getFromLedger() != null) {
-            updateLedgerBalance(transaction.getFromLedger(), transaction);
-        }
-        if (transaction.getToAccount() != null) {
-            updateAccountBalance(transaction.getToAccount(), transaction);
-        }
-        if (transaction.getToLedger() != null) {
-            updateLedgerBalance(transaction.getToLedger(), transaction);
+        if (transaction.getTransactionLedger() != null) {
+            updateLedgerBalance(transaction.getTransactionLedger(), transaction);
         }
         if (transaction.getType() != TransactionType.TRANSFER ) {
             addToIncomeOrExpenseLedger(transaction.getTotalAmount(), transaction.getType());

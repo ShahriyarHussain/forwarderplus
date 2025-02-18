@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
-import com.lazoft.forwarderplus.enums.LedgerTransactionType;
 import com.lazoft.forwarderplus.enums.TransactionMethod;
 import com.lazoft.forwarderplus.enums.TransactionType;
 import jakarta.persistence.*;
@@ -17,7 +16,7 @@ import java.util.Map;
 @Entity
 @Getter
 @Setter
-@Table(indexes = @Index(name = "batchDateIdx", columnList = "businessDate, batchNo", unique = true))
+@Table(indexes = @Index(name = "batchDateSlIdx", columnList = "businessDate, batchNo, slNo", unique = true))
 public class Transaction extends AbstractEntity {
 
     private TransactionMethod transactionMethod;
@@ -32,17 +31,14 @@ public class Transaction extends AbstractEntity {
     private long attachmentId;
     private String remarks;
     private int batchNo;
+    private int slNo;
 
     @ManyToOne
     private User user;
     @ManyToOne
-    private Account fromAccount;
+    private Account transactionAccount;
     @ManyToOne
-    private Account toAccount;
-    @ManyToOne
-    private Ledger fromLedger;
-    @ManyToOne
-    private Ledger toLedger;
+    private Ledger transactionLedger;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<TransactionLeg> transactionLegs;

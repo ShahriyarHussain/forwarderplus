@@ -90,6 +90,10 @@ public class MainLayout extends AppLayout {
             nav.addItem(exportOverview);
         }
 
+        if (accessChecker.hasAccess(NewBookingView.class)) {
+            nav.addItem(new SideNavItem("Bill Of Lading", AboutView.class, LineAwesomeIcon.FILTER_SOLID.create()));
+        }
+
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {
             nav.addItem(new SideNavItem("View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
         }
