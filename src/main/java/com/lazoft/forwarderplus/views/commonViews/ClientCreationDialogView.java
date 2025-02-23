@@ -32,8 +32,6 @@ public class ClientCreationDialogView extends Dialog {
         partyName.addBlurListener(event -> validateTextFieldForEmpty(event.getSource()));
 
         TextField email = new TextField("Email");
-        //email.setRequired(true);
-        //partyName.addBlurListener(event -> validateTextFieldForEmpty(event.getSource());A
 
         TextArea address = new TextArea("Address (as printed on B/L");
         address.addBlurListener(event -> {

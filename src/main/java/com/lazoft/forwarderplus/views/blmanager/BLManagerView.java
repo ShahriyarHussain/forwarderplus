@@ -7,6 +7,7 @@ import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
@@ -48,9 +49,9 @@ public class BLManagerView extends VerticalLayout {
     private final TextArea shipper = new TextArea("Shipper");
     private final TextArea consignee = new TextArea("Consignee");
     private final TextArea notifyParty = new TextArea("Notify Party");
-    private final TextArea bookingReference = new TextArea("Booking Reference");
-    private final TextArea shippingReference = new TextArea("Shipping Reference");
-    private final TextArea placeOfDateAndIssue = new TextArea("Place Of Date And Issue");
+    private final TextArea deliveryAgent = new TextArea("Delivery Agent");
+    private final TextArea alsoNotifyParty = new TextArea("Also Notify Party");
+    private final TextArea exportReference = new TextArea("Export Reference");
     private final TextField vesselVoyage = new TextField("Vessel & Voyage");
     private final TextArea portOfLoading = new TextArea("Port of Loading");
     private final TextArea portOfDischarge = new TextArea("Port of Discharge");
@@ -60,13 +61,16 @@ public class BLManagerView extends VerticalLayout {
     private final TextArea goodsDescription = new TextArea("Goods Description");
     private final TextField grossWeight = new TextField("Gross Weight");
     private final TextField measurement = new TextField("Measurement");
-    private final TextField blNo = new TextField("BL No");
+    private final TextField blNo = new TextField("B/L No");
+    private final TextField mblNo = new TextField("MB/L No");
+    private final TextField bookingNo = new TextField("Booking No");
     private final TextField container = new TextField("Container");
     private final TextField quantity = new TextField("Quantity");
     private final TextArea containerNumbers = new TextArea("Container No");
     private final TextArea containerSeals = new TextArea("Container Seals");
     private final TextField freightTerm = new TextField("Freight Term");
     private final TextArea remarks = new TextArea("Remarks");
+    private final ComboBox<String> blType = new ComboBox<>("B/L Type");
 
     private final ShipmentService shipmentService;
 
@@ -118,7 +122,7 @@ public class BLManagerView extends VerticalLayout {
         shipper.setValue(getClientDetailsForBl(shipment.getShipper()));
         consignee.setValue(getClientDetailsForBl(shipment.getConsignee()));
         notifyParty.setValue(getClientDetailsForBl(shipment.getNotifyParty()));
-        placeOfDateAndIssue.setValue(DateUtil.getCurrentDateAsString());
+        exportReference.setValue(DateUtil.getCurrentDateAsString());
         vesselVoyage.setValue(shipment.getSchedule() == null ? "" :
                 StringUtils.defaultString(shipment.getSchedule().getPortOfLoadingVesselName()));
         portOfLoading.setValue(shipment.getBooking().getLoadingPort().getPortCityAndCountry());
@@ -128,6 +132,8 @@ public class BLManagerView extends VerticalLayout {
         shipperMarks.setValue(shipment.getShipperMarks());
         goodsDescription.setValue(shipment.getGoodsDescription());
         blNo.setValue(StringUtils.defaultIfBlank(shipment.getHblNo(), shipment.getMblNo()));
+        mblNo.setValue(StringUtils.defaultString(shipment.getMblNo()));
+        bookingNo.setValue(shipment.getBooking().getBookingNo());
 
         container.setValue(shipment.getBooking().getNumOfContainers() + " X "
                 + shipment.getBooking().getContainerSize().getContainerSize());
@@ -152,15 +158,14 @@ public class BLManagerView extends VerticalLayout {
             return "";
         }
         return StringUtils.defaultString(client.getName()) + System.lineSeparator() +
-                StringUtils.defaultString(client.getAddress()) + System.lineSeparator() +
-                StringUtils.defaultString(client.getCity()) + ", " + StringUtils.defaultString(client.getPostCode()) + ", " +
-                StringUtils.defaultString(client.getCountry()) + System.lineSeparator() +
-                StringUtils.defaultString(client.getEmail()) + ", Tax ID: " + StringUtils.defaultString(client.getTaxId());
+                StringUtils.defaultString(client.getAddress()) + System.lineSeparator();
     }
 
     public void setAttributes() {
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         shipmentSearchBox.setWidth("50%");
+        blType.setItems(List.of("Draft", "Original/Non-Negotiable"));
+        blType.setValue("Draft");
     }
 
     public void setListener() {
@@ -190,13 +195,13 @@ public class BLManagerView extends VerticalLayout {
         Hr blDivider = new Hr();
         blDivider.getStyle().set("background-color", "#f2f1e8");
 
-        blFormLayout.add(blNo, blDivider,
+        blFormLayout.add(blNo, mblNo, bookingNo, blDivider,
                 sectionDivider1,
-                shipper, topDivider1, placeOfDateAndIssue,
+                shipper, topDivider1, exportReference,
                 sectionDivider2,
-                consignee, topDivider2, shippingReference,
+                consignee, topDivider2, deliveryAgent,
                 sectionDivider3,
-                notifyParty, topDivider3, bookingReference,
+                notifyParty, topDivider3, alsoNotifyParty,
                 sectionDivider4,
                 vesselVoyage, topDivider4, placeOfReceipt,
                 sectionDivider5,
@@ -207,8 +212,8 @@ public class BLManagerView extends VerticalLayout {
                 containerNumbers, containerSeals,
                 sectionDivider8,
                 container, quantity, freightTerm, remarks,
-                getBlDownloadButton());
-        blFormLayout.setColspan(blDivider, 3);
+                blType, getBlDownloadButtonByType());
+        //blFormLayout.setColspan(blDivider, 2);
         blFormLayout.setColspan(topDivider1, 2);
         blFormLayout.setColspan(topDivider2, 2);
         blFormLayout.setColspan(topDivider3, 2);
@@ -226,15 +231,17 @@ public class BLManagerView extends VerticalLayout {
         blFormLayout.setColspan(containerSeals, 2);
     }
 
-    private void generateBlReport() {
-
-    }
-
-    private Anchor getBlDownloadButton() {
-        Anchor anchor = new Anchor(new StreamResource("BL_Draft_" + blNo +
+    private Anchor getBlDownloadButtonByType() {
+        Anchor anchor = new Anchor(new StreamResource("BL_Draft_" + blNo.getValue() +
                 ".pdf", (InputStreamFactory) () -> {
-            String report = "bl_draft.jasper";
             Map<String, Object> parameters = prepareReportParameters();
+
+            String report = "";
+            if (blType.getValue().equals("Draft")) {
+                report = "bl_draft.jasper";
+            } else {
+                report = "bl_orig.jasper";
+            }
 
             try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
                 return new ByteArrayInputStream(JasperRunManager
@@ -244,7 +251,7 @@ public class BLManagerView extends VerticalLayout {
             }
         }), "");
         anchor.getElement().setAttribute("download", true);
-        Button downloadButton = new Button("Download B/L Draft");
+        Button downloadButton = new Button("Download B/L");
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         anchor.add(downloadButton);
@@ -264,9 +271,11 @@ public class BLManagerView extends VerticalLayout {
         paramMap.put("DESCRIPTION", goodsDescription.getValue());
         paramMap.put("SHIPPER_MARKS", shipperMarks.getValue());
         paramMap.put("BL_NO", blNo.getValue());
-        paramMap.put("PLACE_OF_DATE_N_ISSUE", placeOfDateAndIssue.getValue());
-        paramMap.put("SHIPPING_REFERENCE", shippingReference.getValue());
-        paramMap.put("BOOKING_REFERENCE", bookingReference.getValue());
+        paramMap.put("MBL_NO", blNo.getValue());
+        paramMap.put("BOOKING_NO", blNo.getValue());
+        paramMap.put("EXPORT_REFERENCE", exportReference.getValue());
+        paramMap.put("ALSO_NOTIFY_PARTY", alsoNotifyParty.getValue());
+        paramMap.put("DELIVERY_AGENT", deliveryAgent.getValue());
         paramMap.put("PLACE_OF_RECEIPT", placeOfReceipt.getValue());
         paramMap.put("PLACE_OF_DELIVERY", placeOfDelivery.getValue());
         paramMap.put("PORT_OF_DISCHARGE", portOfDischarge.getValue());

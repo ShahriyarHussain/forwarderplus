@@ -12,9 +12,9 @@
 	<parameter name="DESCRIPTION" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SHIPPER_MARKS" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="BL_NO" class="java.lang.String" isForPrompting="false"/>
-	<parameter name="PLACE_OF_DATE_N_ISSUE" class="java.lang.String" isForPrompting="false"/>
-	<parameter name="SHIPPING_REFERENCE" class="java.lang.String" isForPrompting="false"/>
-	<parameter name="BOOKING_REFERENCE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="EXPORT_REFERENCE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DELIVERY_AGENT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ALSO_NOTIFY_PARTY" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="PLACE_OF_RECEIPT" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="PLACE_OF_DELIVERY" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="PORT_OF_DISCHARGE" class="java.lang.String" isForPrompting="false"/>
@@ -23,6 +23,7 @@
 	<parameter name="NOTIFY_PARTY" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="CONSIGNEE" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SHIPPER" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BOOKING_NO" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -91,7 +92,7 @@
 				<text><![CDATA[Port of Discharge]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="403" y="283" width="152" height="14" uuid="20335327-5553-4e14-aff2-160cfa204a3f">
+				<reportElement x="380" y="283" width="152" height="14" uuid="20335327-5553-4e14-aff2-160cfa204a3f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
@@ -101,27 +102,27 @@
 				<text><![CDATA[Place of Delivery]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="403" y="138" width="152" height="14" uuid="09e1e074-cedb-4661-a175-24ae981a965e">
+				<reportElement x="380" y="138" width="152" height="14" uuid="09e1e074-cedb-4661-a175-24ae981a965e">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<text><![CDATA[Booking Reference]]></text>
+				<text><![CDATA[Also Notify Party]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="403" y="85" width="152" height="14" uuid="9b5a58b1-8049-40fc-b029-754ccc126b96">
+				<reportElement x="380" y="85" width="152" height="14" uuid="9b5a58b1-8049-40fc-b029-754ccc126b96">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<text><![CDATA[Shipping Reference]]></text>
+				<text><![CDATA[Delivery Agent]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="403" y="0" width="152" height="16" uuid="67fe049e-287e-4644-9af8-eb41ae016098">
+				<reportElement x="377" y="0" width="90" height="16" uuid="67fe049e-287e-4644-9af8-eb41ae016098">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
@@ -211,14 +212,14 @@
 				<text><![CDATA[Freight]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="403" y="41" width="153" height="14" uuid="4c159c80-b986-4d7b-8a3c-746f0808a6b4">
+				<reportElement x="380" y="41" width="153" height="14" uuid="4c159c80-b986-4d7b-8a3c-746f0808a6b4">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<text><![CDATA[Place & Date of Issue]]></text>
+				<text><![CDATA[Export Reference]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="210" y="699" width="130" height="16" uuid="a17acf0e-d48d-4dae-bd86-84460240df2e">
@@ -248,7 +249,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SHIPPER}]]></textFieldExpression>
@@ -257,12 +258,12 @@
 				<reportElement x="0" y="16" width="555" height="1" uuid="9e24c7e1-ae82-4e17-a991-f71767a0076d"/>
 			</line>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="404" y="18" width="151" height="22" uuid="d28f4983-dcdf-4321-80d8-fc0b3521f98d">
+				<reportElement x="377" y="16" width="90" height="24" uuid="d28f4983-dcdf-4321-80d8-fc0b3521f98d">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="12" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BL_NO}]]></textFieldExpression>
@@ -289,7 +290,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONSIGNEE}]]></textFieldExpression>
@@ -310,7 +311,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{VESSEL_VOYAGE}]]></textFieldExpression>
@@ -326,7 +327,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PORT_OF_LOADING}]]></textFieldExpression>
@@ -347,7 +348,7 @@
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="403" y="0" width="1" height="330" uuid="c551fea5-ea22-4801-99d5-e06152cf8025">
+				<reportElement x="377" y="0" width="1" height="330" uuid="c551fea5-ea22-4801-99d5-e06152cf8025">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 			</line>
@@ -377,23 +378,23 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{NOTIFY_PARTY}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="403" y="234" width="151" height="1" uuid="b86221a2-61f2-412b-8f96-fd93f5b69fab">
+				<reportElement x="377" y="234" width="177" height="1" uuid="b86221a2-61f2-412b-8f96-fd93f5b69fab">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="403" y="248" width="151" height="1" uuid="8eb042f2-c08d-4356-b926-0e4ac5238405">
+				<reportElement x="377" y="248" width="177" height="1" uuid="8eb042f2-c08d-4356-b926-0e4ac5238405">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<staticText>
-				<reportElement x="403" y="235" width="150" height="14" uuid="dec0e23d-2588-4fab-b653-b27386be9d3d">
+				<reportElement x="380" y="235" width="150" height="14" uuid="dec0e23d-2588-4fab-b653-b27386be9d3d">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
@@ -403,32 +404,32 @@
 				<text><![CDATA[Place of Receipt]]></text>
 			</staticText>
 			<line>
-				<reportElement x="404" y="40" width="151" height="1" uuid="cd5a4b9e-af55-465d-b1bd-2219429b5d77">
+				<reportElement x="378" y="40" width="177" height="1" uuid="cd5a4b9e-af55-465d-b1bd-2219429b5d77">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="404" y="54" width="151" height="1" uuid="e1ebc5aa-dfe7-42ac-8f8c-69ae80ab4432">
+				<reportElement x="378" y="54" width="177" height="1" uuid="e1ebc5aa-dfe7-42ac-8f8c-69ae80ab4432">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="403" y="85" width="151" height="1" uuid="0663bc0d-e7ce-4549-a26c-7b99b3d91bc8">
+				<reportElement x="377" y="85" width="177" height="1" uuid="0663bc0d-e7ce-4549-a26c-7b99b3d91bc8">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="403" y="99" width="151" height="1" uuid="0ed2ee54-c1d6-4e20-b031-879846ba929c">
+				<reportElement x="377" y="99" width="177" height="1" uuid="0ed2ee54-c1d6-4e20-b031-879846ba929c">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="404" y="137" width="151" height="1" uuid="a3f6254d-94ca-4e12-8a83-bb385a61b3d5">
+				<reportElement x="378" y="137" width="177" height="1" uuid="a3f6254d-94ca-4e12-8a83-bb385a61b3d5">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
 			<line>
-				<reportElement x="404" y="151" width="151" height="1" uuid="097b3df8-9925-4f66-95ff-11ecc5b042b9">
+				<reportElement x="378" y="151" width="177" height="1" uuid="097b3df8-9925-4f66-95ff-11ecc5b042b9">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 			</line>
@@ -450,65 +451,65 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;"/>
+					<font fontName="Inter"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PORT_OF_DISCHARGE}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="404" y="297" width="150" height="34" uuid="356600c4-a11e-439c-b8e4-715c2c0bea1f">
+				<reportElement x="379" y="297" width="176" height="34" uuid="356600c4-a11e-439c-b8e4-715c2c0bea1f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PLACE_OF_DELIVERY}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="404" y="249" width="150" height="34" uuid="5b8cb17e-9309-4f09-a0c3-5ef31f91ce3b">
+				<reportElement x="379" y="249" width="176" height="34" uuid="5b8cb17e-9309-4f09-a0c3-5ef31f91ce3b">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PLACE_OF_RECEIPT}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="404" y="152" width="150" height="80" uuid="18ea2bb3-e420-4fd7-b5de-9efbc5f48c7f">
+				<reportElement x="379" y="152" width="176" height="80" uuid="18ea2bb3-e420-4fd7-b5de-9efbc5f48c7f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{BOOKING_REFERENCE}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{ALSO_NOTIFY_PARTY}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="404" y="54" width="150" height="30" uuid="f027274a-abeb-4b2d-9478-aacbfaef8924">
+				<reportElement x="379" y="54" width="176" height="30" uuid="f027274a-abeb-4b2d-9478-aacbfaef8924">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{PLACE_OF_DATE_N_ISSUE}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{EXPORT_REFERENCE}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="404" y="100" width="150" height="36" uuid="2c100944-7564-4ca0-95bf-587fe03784cc">
+				<reportElement x="379" y="100" width="176" height="36" uuid="2c100944-7564-4ca0-95bf-587fe03784cc">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{SHIPPING_REFERENCE}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{DELIVERY_AGENT}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="130" y="330" width="1" height="369" uuid="d8de2774-f78f-4273-836f-17a3f024893f">
@@ -577,8 +578,9 @@
 				<reportElement x="450" y="714" width="104" height="86" uuid="30fc22dd-5c60-4ce4-b878-a571071eaddc">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
+				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter&#xA;" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{REMARKS}]]></textFieldExpression>
@@ -588,7 +590,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="Inter&#xA;" size="18" isBold="false"/>
+					<font fontName="Inter" size="18" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{FREIGHT}]]></textFieldExpression>
@@ -597,8 +599,9 @@
 				<reportElement x="211" y="714" width="129" height="88" uuid="a6d1a16e-a332-437e-96c7-cab783985132">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
+				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER_SEAL}]]></textFieldExpression>
@@ -607,8 +610,9 @@
 				<reportElement x="80" y="714" width="131" height="88" uuid="5fc647f0-7b6e-4b28-8df8-c810ee39bfa4">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
+				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER_NO}]]></textFieldExpression>
@@ -617,8 +621,9 @@
 				<reportElement x="0" y="714" width="79" height="38" uuid="dff1c88d-5218-4cb7-a880-59ff39494fc6">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
+				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER}]]></textFieldExpression>
@@ -627,8 +632,9 @@
 				<reportElement x="2" y="766" width="76" height="34" uuid="574fef99-84f8-4406-8621-02aaff608051">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
+				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{QUANTITY}]]></textFieldExpression>
@@ -639,7 +645,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DESCRIPTION}]]></textFieldExpression>
@@ -650,7 +656,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="9" isBold="false"/>
+					<font fontName="Inter" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SHIPPER_MARKS}]]></textFieldExpression>
@@ -661,7 +667,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="10" isBold="false"/>
+					<font fontName="Inter" size="10" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{GROSS_WEIGHT}]]></textFieldExpression>
@@ -672,11 +678,37 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter&#xA;" size="10" isBold="false"/>
+					<font fontName="Inter" size="10" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{MEASUREMENT}]]></textFieldExpression>
 			</textField>
+			<staticText>
+				<reportElement x="467" y="0" width="89" height="16" uuid="59a4719d-d7c1-4972-8d7e-ed02dd4f0d80">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" isBold="true"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[Booking No]]></text>
+			</staticText>
+			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+				<reportElement x="467" y="16" width="88" height="24" uuid="c76dd050-609e-47f3-ae7b-ae81eccfefd1">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<box topPadding="3" leftPadding="0"/>
+				<textElement>
+					<font fontName="Inter" size="9" isBold="false"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{BOOKING_NO}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="467" y="0" width="1" height="41" uuid="cca18aea-3dd9-4935-b389-06ae1bef288e">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+			</line>
 		</band>
 	</detail>
 </jasperReport>
