@@ -1,14 +1,14 @@
 package com.lazoft.forwarderplus.views.exportviews.shippingOrder;
 
-import com.lazoft.forwarderplus.entity.Booking;
-import com.lazoft.forwarderplus.entity.Port;
-import com.lazoft.forwarderplus.entity.Shipment;
-import com.lazoft.forwarderplus.entity.User;
+import com.lazoft.forwarderplus.dto.xml.CustomItem;
+import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
+import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -53,7 +53,7 @@ public class ShippingOrderView extends Div {
 
     private final Filters filters;
 
-    public ShippingOrderView(PortService portService, ShipmentService shipmentService,
+    public ShippingOrderView(PortService portService, ShipmentService shipmentService, CarrierService carrierService,
                              AuthenticatedUser authenticatedUser, ClientService clientService) {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
@@ -61,7 +61,7 @@ public class ShippingOrderView extends Div {
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new Filters(this::refreshGrid, portService);
+        filters = new Filters(this::refreshGrid, portService, carrierService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -72,15 +72,17 @@ public class ShippingOrderView extends Div {
     public static class Filters extends Div implements Specification<Shipment> {
 
         private final TextField bookingNo = new TextField("Booking No");
-        private final TextField blNo = new TextField("Bill Of Lading No");
         private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
         private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
+        private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
+        private final ComboBox<String> commodity = new ComboBox<>("Commodity");
         private final ComboBox<ContainerSize> containerSize = new ComboBox<>("Container Size");
         private final DatePicker createFromDate = new DatePicker("Created Date");
         private final DatePicker createdToDate = new DatePicker();
 
-        public Filters(Runnable onSearch, PortService portService) {
+        public Filters(Runnable onSearch, PortService portService, CarrierService carrierService) {
             List<Port> ports = portService.getAllPorts();
+            List<Carrier> carriers = carrierService.getAllCarriers();
 
             setWidthFull();
             addClassName("filter-layout");
@@ -88,13 +90,15 @@ public class ShippingOrderView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             bookingNo.setPlaceholder("Booking No");
-            blNo.setPlaceholder("B/L No");
-
             containerSize.setItems(ContainerSize.values());
+            containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
+
+            commodity.setItems(CustomItemUtil.getItemsListFromFile("commodities").stream().map(CustomItem::getName).toList());
+            carrier.setItems(carriers);
+            carrier.setItemLabelGenerator(Carrier::getName);
 
             portOfLoading.setItems(ports);
             portOfLoading.setItemLabelGenerator(Port::getPortLabel);
-
             portOfDestination.setItems(ports);
             portOfDestination.setItemLabelGenerator(Port::getPortLabel);
 
@@ -103,12 +107,13 @@ public class ShippingOrderView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 bookingNo.clear();
-                blNo.clear();
                 createFromDate.clear();
                 createdToDate.clear();
                 portOfLoading.setValue(portOfLoading.getEmptyValue());
                 portOfDestination.setValue(portOfDestination.getEmptyValue());
                 containerSize.setValue(containerSize.getEmptyValue());
+                carrier.clear();
+                commodity.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -119,7 +124,7 @@ public class ShippingOrderView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, createDateFilter(), actions);
+            add(bookingNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, createDateFilter(), actions);
         }
 
         private Component createDateFilter() {
@@ -142,19 +147,37 @@ public class ShippingOrderView extends Div {
             root.fetch("schedule", JoinType.LEFT);
 
             if (!bookingNo.isEmpty()) {
-                String lowerCaseFilter = bookingNo.getValue().toLowerCase();
+                String bookingNoLowerCase = bookingNo.getValue().toLowerCase();
                 Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Predicate bookingNoMatch = criteriaBuilder.equal(
-                        criteriaBuilder.lower(bookingJoin.get("bookingNo")), lowerCaseFilter);
+                Predicate bookingNoMatch = criteriaBuilder.like(criteriaBuilder.lower(
+                        bookingJoin.get("bookingNo")), "%" + bookingNoLowerCase + "%");
                 predicates.add(bookingNoMatch);
             }
-            if (!blNo.isEmpty()) {
-                String lowerCaseFilter = blNo.getValue().toLowerCase();
-                Predicate mblMatch = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("mblNo")), "%" + lowerCaseFilter + "%");
-                Predicate hblMatch = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("hblNo")), "%" + lowerCaseFilter + "%");
-                predicates.add(criteriaBuilder.or(mblMatch, hblMatch));
+            if (!portOfLoading.isEmpty()) {
+                long portId = portOfLoading.getValue().getId();
+                Join<Shipment, Booking> bookingJoin = root.join("booking");
+                Join<Booking, Port> portJoin = bookingJoin.join("loadingPort");
+                Predicate portMatch = criteriaBuilder.equal(portJoin.get("id"), portId);
+                predicates.add(portMatch);
+            }
+            if (!portOfDestination.isEmpty()) {
+                long portId = portOfDestination.getValue().getId();
+                Join<Shipment, Booking> bookingJoin = root.join("booking");
+                Join<Booking, Port> portJoin = bookingJoin.join("destinationPort");
+                Predicate portMatch = criteriaBuilder.equal(portJoin.get("id"), portId);
+                predicates.add(portMatch);
+            }
+            if (!carrier.isEmpty()) {
+                long carrierId = carrier.getValue().getId();
+                Join<Shipment, Carrier> carrierJoin = root.join("carrier");
+                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"),  carrierId);
+                predicates.add(carrierMatch);
+            }
+            if (!commodity.isEmpty()) {
+                String lowerCaseFilter = commodity.getValue().toLowerCase();
+                Predicate commodityMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("commodity")), "%" + lowerCaseFilter + "%");
+                predicates.add(commodityMatch);
             }
             if (createFromDate.getValue() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdOn"),
@@ -166,8 +189,7 @@ public class ShippingOrderView extends Div {
             }
             if (!containerSize.isEmpty()) {
                 Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Predicate containerSizeMatch = criteriaBuilder.equal(bookingJoin.get("containerSize"),
-                        containerSize.getValue().getContainerSize());
+                Predicate containerSizeMatch = criteriaBuilder.equal(bookingJoin.get("containerSize"), containerSize.getValue());
                 predicates.add(containerSizeMatch);
             }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));

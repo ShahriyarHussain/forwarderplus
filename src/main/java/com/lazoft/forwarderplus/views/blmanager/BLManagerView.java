@@ -1,6 +1,9 @@
 package com.lazoft.forwarderplus.views.blmanager;
 
-import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Client;
+import com.lazoft.forwarderplus.entity.ContainerDetails;
+import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
@@ -53,6 +56,7 @@ public class BLManagerView extends VerticalLayout {
     private final TextArea alsoNotifyParty = new TextArea("Also Notify Party");
     private final TextArea exportReference = new TextArea("Export Reference");
     private final TextField vesselVoyage = new TextField("Vessel & Voyage");
+    private final TextField motherVessel = new TextField("Mother Vessel");
     private final TextArea portOfLoading = new TextArea("Port of Loading");
     private final TextArea portOfDischarge = new TextArea("Port of Discharge");
     private final TextArea placeOfDelivery = new TextArea("Place of Delivery");
@@ -125,6 +129,8 @@ public class BLManagerView extends VerticalLayout {
         exportReference.setValue(DateUtil.getCurrentDateAsString());
         vesselVoyage.setValue(shipment.getSchedule() == null ? "" :
                 StringUtils.defaultString(shipment.getSchedule().getPortOfLoadingVesselName()));
+        motherVessel.setValue(shipment.getSchedule() == null ? "" :
+                StringUtils.defaultString(shipment.getSchedule().getMotherVesselName()));
         portOfLoading.setValue(shipment.getBooking().getLoadingPort().getPortCityAndCountry());
         portOfDischarge.setValue(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
         placeOfDelivery.setValue(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
@@ -203,9 +209,9 @@ public class BLManagerView extends VerticalLayout {
                 sectionDivider3,
                 notifyParty, topDivider3, alsoNotifyParty,
                 sectionDivider4,
-                vesselVoyage, topDivider4, placeOfReceipt,
+                vesselVoyage, topDivider4, motherVessel,
                 sectionDivider5,
-                portOfLoading, portOfDischarge, placeOfDelivery,
+                portOfLoading, portOfDischarge, placeOfDelivery, placeOfReceipt,
                 sectionDivider6,
                 shipperMarks, goodsDescription, grossWeight, measurement,
                 sectionDivider7,
@@ -213,7 +219,6 @@ public class BLManagerView extends VerticalLayout {
                 sectionDivider8,
                 container, quantity, freightTerm, remarks,
                 blType, getBlDownloadButtonByType());
-        //blFormLayout.setColspan(blDivider, 2);
         blFormLayout.setColspan(topDivider1, 2);
         blFormLayout.setColspan(topDivider2, 2);
         blFormLayout.setColspan(topDivider3, 2);
@@ -226,7 +231,6 @@ public class BLManagerView extends VerticalLayout {
         blFormLayout.setColspan(sectionDivider6, 4);
         blFormLayout.setColspan(sectionDivider7, 4);
         blFormLayout.setColspan(sectionDivider8, 4);
-        blFormLayout.setColspan(portOfDischarge, 2);
         blFormLayout.setColspan(containerNumbers, 2);
         blFormLayout.setColspan(containerSeals, 2);
     }
@@ -281,6 +285,7 @@ public class BLManagerView extends VerticalLayout {
         paramMap.put("PORT_OF_DISCHARGE", portOfDischarge.getValue());
         paramMap.put("PORT_OF_LOADING", portOfLoading.getValue());
         paramMap.put("VESSEL_VOYAGE", vesselVoyage.getValue());
+        paramMap.put("MOTHER_VESSEL", motherVessel.getValue());
         paramMap.put("NOTIFY_PARTY", notifyParty.getValue());
         paramMap.put("CONSIGNEE", consignee.getValue());
         paramMap.put("SHIPPER", shipper.getValue());

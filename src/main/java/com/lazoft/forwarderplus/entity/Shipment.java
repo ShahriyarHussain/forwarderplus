@@ -39,6 +39,7 @@ public class Shipment {
     private LocalDateTime createdOn;
 
     @ManyToOne
+    @JoinColumn(name = "id")
     private Carrier carrier;
 //    @ManyToOne
 //    private Commodity commodity;

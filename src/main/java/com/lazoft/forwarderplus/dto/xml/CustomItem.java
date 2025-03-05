@@ -13,7 +13,7 @@ import lombok.Setter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category {
+public class CustomItem {
 
     @XmlElement(name = "name")
     private String name;

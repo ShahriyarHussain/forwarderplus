@@ -13,12 +13,12 @@ import java.util.List;
 
 @Getter
 @Setter
-@XmlRootElement(name = "categories")
+@XmlRootElement(name = "Items")
 @XmlAccessorType(XmlAccessType.FIELD)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Categories {
+public class CustomItems {
 
-    @XmlElement(name = "category")
-    private List<Category> categories;
+    @XmlElement(name = "Item")
+    private List<CustomItem> categories;
 }

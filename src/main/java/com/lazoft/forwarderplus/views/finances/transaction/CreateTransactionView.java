@@ -1,7 +1,7 @@
 package com.lazoft.forwarderplus.views.finances.transaction;
 
-import com.lazoft.forwarderplus.dto.xml.Categories;
-import com.lazoft.forwarderplus.dto.xml.Category;
+import com.lazoft.forwarderplus.dto.xml.CustomItem;
+import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.Account;
 import com.lazoft.forwarderplus.entity.Ledger;
 import com.lazoft.forwarderplus.entity.Transaction;
@@ -14,6 +14,7 @@ import com.lazoft.forwarderplus.services.AccountService;
 import com.lazoft.forwarderplus.services.CurrencyDataService;
 import com.lazoft.forwarderplus.services.LedgerService;
 import com.lazoft.forwarderplus.services.TransactionService;
+import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Unit;
@@ -35,19 +36,17 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.lazoft.forwarderplus.util.Constants.CATEGORIES;
 
 @PageTitle("Create Transaction")
 @Route(value = "create-transaction", layout = MainLayout.class)
@@ -62,7 +61,7 @@ public class CreateTransactionView extends VerticalLayout {
 
     private final DatePicker transactionDate = new DatePicker("Transaction Date");
     private final ComboBox<TransactionMethod> transactionMethod = new ComboBox<>("Transaction Method");
-    private final ComboBox<String> category = new ComboBox<>("Category");
+    private final ComboBox<String> category = new ComboBox<>("CustomItem");
     private final RadioButtonGroup<TransactionStatus> status = new RadioButtonGroup<>("Status");
     private final TextArea remarks = new TextArea("Remarks");
 
@@ -83,11 +82,10 @@ public class CreateTransactionView extends VerticalLayout {
     private final Button createTransaction = new Button("Create Transaction");
     private final Button clear = new Button("Clear All");
 
-    private final File categoriesFile = new File("./categories.xml");
+    private final String categoriesFileName = CATEGORIES;
 
-    private final List<Category> categoryList;
+    private final List<CustomItem> categoryList;
     private final List<AccountLegerChoice> accountLedgerList = new LinkedList<>();
-    private final JAXBContext context;
 
     private final List<Account> accountsList;
     private final List<Ledger> ledgerList;
@@ -100,36 +98,13 @@ public class CreateTransactionView extends VerticalLayout {
         this.ledgerService = ledgerService;
         this.transactionService = transactionService;
         this.currencyDataService = currencyDataService;
-        this.context = getContext();
-        this.categoryList = getCategoryListFromFile();
+        this.categoryList = CustomItemUtil.getItemsListFromFile(categoriesFileName);
         accountsList = accountService.getAccounts();
         ledgerList = ledgerService.getLedgers();
         setValues();
         setAttributes();
         setListeners();
         setFormLayout();
-    }
-
-    private JAXBContext getContext() {
-        try {
-            return JAXBContext.newInstance(Categories.class);
-        } catch (JAXBException e) {
-            log.error("Error while getting context", e);
-        }
-        return null;
-    }
-
-    private List<Category> getCategoryListFromFile() {
-        if (context == null || !categoriesFile.exists()) {
-            return new LinkedList<>();
-        }
-        try {
-            Categories categories = (Categories) context.createUnmarshaller().unmarshal(categoriesFile);
-            return categories.getCategories();
-        } catch (JAXBException e) {
-            log.error(e.getMessage(), e);
-        }
-        return new LinkedList<>();
     }
 
     enum EntityType {
@@ -155,7 +130,7 @@ public class CreateTransactionView extends VerticalLayout {
         toEntity.setItems(accountLedgerList);
         toEntity.setItemLabelGenerator(AccountLegerChoice::title);
 
-        category.setItems(categoryList.stream().map(Category::getName).toList());
+        category.setItems(categoryList.stream().map(CustomItem::getName).toList());
         currencyComboBox.setItems(AmountCurrency.values());
     }
 
@@ -215,27 +190,31 @@ public class CreateTransactionView extends VerticalLayout {
                 toEntityBalance.setVisible(false);
             }
         });
+
         category.addCustomValueSetListener(event -> {
             String customValue = event.getDetail();
             if (customValue == null) {
                 return;
             }
-            categoryList.add(new Category(customValue, event.getDetail().trim().toLowerCase().hashCode()));
-            category.setItems(categoryList.stream().map(Category::getName).toList());
+            categoryList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode()));
+            category.setItems(categoryList.stream().map(CustomItem::getName).toList());
             category.setValue(customValue);
         });
+
         fromEntity.addValueChangeListener(event -> {
             if (event.getValue() == null) {
                 return;
             }
             fromEntityBalance.setValue(getBalanceFromChoice(event.getValue()));
         });
+
         toEntity.addValueChangeListener(event -> {
             if (event.getValue() == null) {
                 return;
             }
             toEntityBalance.setValue(getBalanceFromChoice(event.getValue()));
         });
+
         currencyComboBox.addValueChangeListener(event -> {
             BigDecimal rate = BigDecimal.ONE;
             try {
@@ -246,11 +225,14 @@ public class CreateTransactionView extends VerticalLayout {
             conversionRate.setValue(rate);
             updateLocalCurrencyAmount();
         });
+
         foreignCurrencyAmount.addValueChangeListener(event -> updateLocalCurrencyAmount());
+
         setLegs.addClickListener(event -> new CreateTransactionLegDialog(transactionLegs, this).open());
+
         createTransaction.addClickListener(event -> {
-            Categories newCategory = new Categories(categoryList);
-            saveCategories(newCategory);
+            CustomItems newCategory = new CustomItems(categoryList);
+            CustomItemUtil.saveCustomItems(newCategory, categoriesFileName);
             if (isInvalidEntries()) {
                 NotificationUtil.getNotification("Please provide valid data in the marked fields", "", false,
                         NotificationVariant.LUMO_WARNING, 3000).open();
@@ -388,16 +370,6 @@ public class CreateTransactionView extends VerticalLayout {
                     .findFirst().map(Ledger::getCurrentBalance).orElse(BigDecimal.ZERO);
         }
         return BigDecimal.ZERO;
-    }
-
-    private void saveCategories(Categories categories) {
-        try {
-            Marshaller marshaller = context.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            marshaller.marshal(categories, categoriesFile);
-        } catch (JAXBException e) {
-            log.error("Error while saving categories", e);
-        }
     }
 
     public void updateAmountByTransactionLegs() {
