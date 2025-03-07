@@ -1,16 +1,15 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
 
+import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
 import com.lazoft.forwarderplus.entity.*;
-import com.lazoft.forwarderplus.enums.ClientType;
-import com.lazoft.forwarderplus.enums.ContainerSize;
-import com.lazoft.forwarderplus.enums.ContainerType;
-import com.lazoft.forwarderplus.enums.ShippingTerm;
+import com.lazoft.forwarderplus.enums.*;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
+import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -91,10 +90,6 @@ public class ShipmentAdviceDialog extends Dialog {
     private final Checkbox useHbl = new Checkbox("Use HB/L instead MB/L?");
     private final Checkbox useConsignee = new Checkbox("Use Consignee instead of Notify ?");
     private final DatePicker adviceDate = new DatePicker("Advice Date");
-    private final Checkbox showRespondentEmail = new Checkbox("Show email?");
-    private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
-    private final Checkbox showDesignation = new Checkbox("Show designation?");
-    private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
     private final IntegerField totalQuantity = new IntegerField("Total Quantity");
     private final TextField unit = new TextField("Unit");
@@ -109,15 +104,20 @@ public class ShipmentAdviceDialog extends Dialog {
     private final int TEXT_AREA_CHAR_LIMIT = 4000;
 
     private boolean isSaved = false;
-    private final AuthenticatedUser user;
+    private final User user;
     private final List<Client> clientList;
 
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
                                 CarrierService carrierService, ClientService clientService, PortService portService,
-                                UserService userService, Shipment shipment, AuthenticatedUser user) {
+                                UserService userService, Shipment shipment, AuthenticatedUser authenticatedUser) {
 
-        this.user = user;
+        if (authenticatedUser.get().isEmpty()) {
+            NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
+            close();
+        }
+
+        this.user = authenticatedUser.get().get();
         this.shipment = shipment;
         this.userService = userService;
         this.portService = portService;
@@ -168,10 +168,6 @@ public class ShipmentAdviceDialog extends Dialog {
         notifyParty.setItems(clientList.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
                 || client.getType() == ClientType.ALL).collect(Collectors.toList()));
         notifyParty.setWidth("80%");
-
-        respondent.setItems(userService.getAll());
-        respondent.setValue(user.get().orElse(null));
-        respondent.setItemLabelGenerator(User::getName);
 
         schedule.setReadOnly(true);
         approxTime.setReadOnly(true);
@@ -301,19 +297,6 @@ public class ShipmentAdviceDialog extends Dialog {
         return shipmentInfoLayout;
     }
 
-    private FormLayout getReportOptionsFormLayout() {
-        FormLayout reportConfigLayout = new FormLayout();
-        useConsignee.setEnabled(consignee.getValue() != null);
-        useHbl.setEnabled(!StringUtils.isBlank(hblNo.getValue()));
-        User user = this.user.get().get();
-        showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
-        showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
-        reportConfigLayout.add(useHbl, useConsignee, showDesignation, showRespondentEmail, hideRespondentPhone, adviceDate, respondent);
-        reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
-        reportConfigLayout.setColspan(respondent, 2);
-        return reportConfigLayout;
-    }
-
     private void setListeners() {
         editCargo.addClickListener(event -> new EditContainerDetailsDialog(shipment, shipmentService, this).open());
 
@@ -352,12 +335,18 @@ public class ShipmentAdviceDialog extends Dialog {
                 dialog.open();
                 return;
             }
-            dialog.setHeaderTitle("Advice is ready!");
-            dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
 
-            Anchor downloadAdviceAnchor = getShipmentAdviceDownloadAnchor();
-            dialog.getFooter().add(downloadAdviceAnchor);
-            dialog.open();
+            ReportOptionsDto dto = new ReportOptionsDto();
+            dto.setUser(user);
+            dto.setView(View.SHIPMENT_INVOICE);
+            dto.setUsers(userService.getAll());
+            dto.setParameters(prepareParamsForShipmentAdvice());
+            dto.setFileName("Shipment-Advice-" + shipment.getMblNo());
+            dto.setReportSourceFileName("shipment_advice.jasper");
+            dto.setReportDate(adviceDate.getValue());
+
+            Dialog reportDialog = new ReportOptionsDialog(dto);
+            reportDialog.open();
         });
 
         closeButton.addClickListener(event -> {
@@ -458,27 +447,6 @@ public class ShipmentAdviceDialog extends Dialog {
         return isInvalid;
     }
 
-    private Anchor getShipmentAdviceDownloadAnchor() {
-        Anchor anchor = new Anchor(new StreamResource("Shipment_Advice_" + shipment.getBooking().getBookingNo() +
-                ".pdf", (InputStreamFactory) () -> {
-            String report = "shipment_advice.jasper";
-            Map<String, Object> parameters = prepareParamsForShipmentAdvice();
-
-            try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-                return new ByteArrayInputStream(JasperRunManager
-                        .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
-            } catch (JRException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }), "");
-        anchor.getElement().setAttribute("download", true);
-        Button downloadButton = new Button("Download Advice");
-        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
-        downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        anchor.add(downloadButton);
-        return anchor;
-    }
-
     private Map<String, Object> prepareParamsForShipmentAdvice() {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("LOGO_URL", "Images/logo_best.png");
@@ -542,8 +510,6 @@ public class ShipmentAdviceDialog extends Dialog {
         JRDataSource dataSource = new JRBeanCollectionDataSource(tsReportDtoList);
         paramMap.put("COLLECTION_LIST", dataSource);
 
-        assert this.user.get().isPresent();
-        User user = this.user.get().get();
         paramMap.put("SIGNED_BY", user.getName());
         paramMap.put("SIGNED_BY_EMAIL", user.getEmail());
         paramMap.put("SIGNED_BY_CONTACT", user.getContactNo());
@@ -553,12 +519,6 @@ public class ShipmentAdviceDialog extends Dialog {
 
     private List<String> findErrorsForReportData() {
         List<String> errorReasons = new LinkedList<>();
-        if (user == null || user.get().isEmpty()) {
-            NotificationUtil.getNotification("Session Expired. Please reload page and login again", "", false,
-                    NotificationVariant.LUMO_ERROR, 4000);
-            this.close();
-            return errorReasons;
-        }
         if (containerType.getValue() == null) {
             errorReasons.add("Must provide container type");
         }

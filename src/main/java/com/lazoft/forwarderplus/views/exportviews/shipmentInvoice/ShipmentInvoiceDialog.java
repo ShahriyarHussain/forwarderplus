@@ -86,11 +86,6 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final ComboBox<AmountCurrency> foreignCurrComboBox = new ComboBox<>("Carrier Currency");
     private final ComboBox<AmountCurrency> localCurrencyComboBox = new ComboBox<>("Local Currency");
 
-    private final Checkbox showBankDetails = new Checkbox("Show Bank Details?");
-    private final Checkbox showEarlyPaymentMessage = new Checkbox("Show Payment Message?");
-    private final Checkbox showRespondentEmail = new Checkbox("Show email?");
-    private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
-    private final Checkbox showDesignation = new Checkbox("Show designation?");
     private final DatePicker invoiceDate = new DatePicker("Invoice Date");
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
@@ -104,18 +99,22 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final List<InvoiceItem> invoiceItems = new LinkedList<>();
     private boolean isSaved = false;
 
-    private final AuthenticatedUser user;
+    private final User user;
     private ShipmentInvoice shipmentInvoice;
     private final Shipment shipment;
 
     public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService,
                                  BankDetailsService bankDetailsService, CurrencyDataService currencyDataService,
-                                 AuthenticatedUser user, Shipment shipment) {
+                                 AuthenticatedUser authenticatedUser, Shipment shipment) {
+        if (authenticatedUser.get().isEmpty()) {
+            NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
+            close();
+        }
+        this.user = authenticatedUser.get().get();
         this.invoiceService = invoiceService;
         this.userService = userService;
         this.bankDetailsService = bankDetailsService;
         this.currencyDataService = currencyDataService;
-        this.user = user;
         this.shipmentInvoice = invoiceService.getInvoiceFromShipment(shipment);
         this.shipment = shipment;
 
@@ -227,11 +226,6 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
 
         downloadButton.addClickListener(event -> {
-            Optional<User> user = this.user.get();
-            if (user.isEmpty()) {
-                NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
-                return ;
-            }
             List<String> errors = findErrorsForReportData();
             Dialog dialog = new Dialog();
             dialog.getFooter().add(new Button("Close", e -> dialog.close()));
@@ -243,22 +237,19 @@ public class ShipmentInvoiceDialog extends Dialog {
                 dialog.open();
                 return;
             }
-            dialog.setHeaderTitle("Invoice is ready!");
-            dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
 
             ReportOptionsDto dto = new ReportOptionsDto();
-            dto.setUser(user.get());
+            dto.setUser(user);
             dto.setView(View.SHIPMENT_INVOICE);
             dto.setUsers(userService.getAll());
             dto.setBankDetailsList(bankDetailsService.getBankDetails());
             dto.setParameters(prepareParamsForShipmentInvoice());
             dto.setFileName("Invoice-" + shipment.getMblNo());
+            dto.setReportSourceFileName("invoice.jasper");
+            dto.setReportDate(invoiceDate.getValue());
 
             Dialog reportDialog = new ReportOptionsDialog(dto);
-
-            Anchor downloadAdviceAnchor = getInvoiceDownloadAnchor();
-            dialog.getFooter().add(downloadAdviceAnchor);
-            dialog.open();
+            reportDialog.open();
         });
 
         closeButton.addClickListener(event -> {
@@ -551,33 +542,12 @@ public class ShipmentInvoiceDialog extends Dialog {
         parameters.put("ROUTING_NO", bankDetails.getRoutingNo());
         parameters.put("BRANCH", bankDetails.getBranchName());
 
-        User contactDetails = user.get().get();
+        User contactDetails = user;
         parameters.put("SIGNED_BY", contactDetails.getName());
         parameters.put("SIGNED_BY_EMAIL", contactDetails.getEmail());
         parameters.put("SIGNED_BY_CONTACT", contactDetails.getContactNo());
 
         return parameters;
-    }
-
-    private Anchor getInvoiceDownloadAnchor() {
-        Anchor anchor = new Anchor(new StreamResource("Invoice-" + "shipment.getBlNo()" + ".pdf",
-                (InputStreamFactory) () -> {
-                    String report = "shipmentInvoice.jasper";
-                    Map<String, Object> parameters = prepareParamsForShipmentInvoice();
-
-                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-                        return new ByteArrayInputStream(JasperRunManager
-                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
-                    } catch (JRException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }), "");
-        anchor.getElement().setAttribute("download", true);
-        Button downloadButton = new Button("Download ShipmentInvoice");
-        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
-        downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        anchor.add(downloadButton);
-        return anchor;
     }
 
     private String getTotalColumnLabel(ComboBox<AmountCurrency> comboBox, boolean isFC) {

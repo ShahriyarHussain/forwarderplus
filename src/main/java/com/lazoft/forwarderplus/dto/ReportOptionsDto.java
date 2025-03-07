@@ -6,12 +6,14 @@ import com.lazoft.forwarderplus.enums.View;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
 public class ReportOptionsDto {
+    private LocalDate reportDate;
     private View view;
     private User user;
     private String hblNo;

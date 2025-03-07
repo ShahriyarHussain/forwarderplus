@@ -40,12 +40,11 @@ public class ReportOptionsDialog extends Dialog {
     private final Checkbox showEarlyPaymentMessage = new Checkbox("Show Payment Message?");
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
 
-
     private final ReportOptionsDto reportOptionsDto;
 
     public ReportOptionsDialog(ReportOptionsDto reportOptionsDto) {
         this.reportOptionsDto = reportOptionsDto;
-        setHeaderTitle(reportOptionsDto.getReportName() + " is ready!");
+        setHeaderTitle(reportOptionsDto.getView().getViewName() + " is ready!");
         setAttributes();
         setValuesToFields();
 
@@ -54,6 +53,8 @@ public class ReportOptionsDialog extends Dialog {
         Anchor downloadAdviceAnchor = getReportDownloadAnchor();
         add(new Hr(), new H3("Report Options"), formLayout);
         getFooter().add(downloadAdviceAnchor);
+        setCloseOnOutsideClick(false);
+        setCloseOnEsc(true);
     }
 
     private FormLayout getReportOptionsFormLayout() {
@@ -86,6 +87,8 @@ public class ReportOptionsDialog extends Dialog {
         useHbl.setVisible(reportOptionsDto.getView() == View.SHIPMENT_ADVICE);
         useConsignee.setVisible(reportOptionsDto.getView() == View.SHIPMENT_ADVICE);
 
+        reportDate.setValue(reportOptionsDto.getReportDate());
+
         showDesignation.setEnabled(true);
         showBankDetails.setEnabled(true);
         showEarlyPaymentMessage.setEnabled(true);
@@ -102,7 +105,7 @@ public class ReportOptionsDialog extends Dialog {
                     }
                 }), "");
         anchor.getElement().setAttribute("download", true);
-        Button downloadButton = new Button("Download " + reportOptionsDto.getReportName());
+        Button downloadButton = new Button("Download " + reportOptionsDto.getView().getViewName());
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         anchor.add(downloadButton);
