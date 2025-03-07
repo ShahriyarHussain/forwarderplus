@@ -11,6 +11,7 @@ import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -90,6 +91,12 @@ public class ShippingOrderView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             bookingNo.setPlaceholder("Booking No");
+            bookingNo.addKeyDownListener(keyDownEvent -> {
+                if (keyDownEvent.getKey() == Key.ENTER || keyDownEvent.getKey() == Key.NUMPAD_ENTER) {
+                    onSearch.run();
+                }
+            });
+
             containerSize.setItems(ContainerSize.values());
             containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 

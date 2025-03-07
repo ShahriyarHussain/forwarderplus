@@ -3,6 +3,7 @@ package com.lazoft.forwarderplus.views.exportviews.shippingOrder;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
+import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.DateUtil;
@@ -222,11 +223,23 @@ public class ShippingOrderDialog extends Dialog {
                     Map<String, Object> parameters = prepareParamsForShippingOrder(shipment, user);
                     String report = "shipping_order.jasper";
 
+                    ByteArrayInputStream inputStream = null;
                     try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-                        return new ByteArrayInputStream(JasperRunManager.runReportToPdf(stream, parameters,
-                                new JREmptyDataSource(1)));
+                        inputStream = new ByteArrayInputStream(JasperRunManager
+                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
+                        shipment.setStatus(ShipmentStatus.SHIPPING_ORDER_CREATED);
+                        shipmentService.saveShipment(shipment);
+                        return inputStream;
                     } catch (JRException | IOException e) {
+                        log.error("Error in shipping order report creation", e);
                         throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        log.error("Error in shipping order anchor", e);
+                        if (inputStream != null) {
+                            return inputStream;
+                        } else {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }), "");
 

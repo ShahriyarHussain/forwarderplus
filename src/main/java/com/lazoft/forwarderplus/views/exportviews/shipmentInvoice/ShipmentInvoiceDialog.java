@@ -1,8 +1,10 @@
 package com.lazoft.forwarderplus.views.exportviews.shipmentInvoice;
 
 import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
+import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
+import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.BankDetailsService;
 import com.lazoft.forwarderplus.services.CurrencyDataService;
@@ -12,6 +14,7 @@ import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.util.ReportUtil;
+import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -224,6 +227,11 @@ public class ShipmentInvoiceDialog extends Dialog {
         });
 
         downloadButton.addClickListener(event -> {
+            Optional<User> user = this.user.get();
+            if (user.isEmpty()) {
+                NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
+                return ;
+            }
             List<String> errors = findErrorsForReportData();
             Dialog dialog = new Dialog();
             dialog.getFooter().add(new Button("Close", e -> dialog.close()));
@@ -237,6 +245,16 @@ public class ShipmentInvoiceDialog extends Dialog {
             }
             dialog.setHeaderTitle("Invoice is ready!");
             dialog.add(new Hr(), new H3("Report Options"), getReportOptionsFormLayout());
+
+            ReportOptionsDto dto = new ReportOptionsDto();
+            dto.setUser(user.get());
+            dto.setView(View.SHIPMENT_INVOICE);
+            dto.setUsers(userService.getAll());
+            dto.setBankDetailsList(bankDetailsService.getBankDetails());
+            dto.setParameters(prepareParamsForShipmentInvoice());
+            dto.setFileName("Invoice-" + shipment.getMblNo());
+
+            Dialog reportDialog = new ReportOptionsDialog(dto);
 
             Anchor downloadAdviceAnchor = getInvoiceDownloadAnchor();
             dialog.getFooter().add(downloadAdviceAnchor);
@@ -353,23 +371,6 @@ public class ShipmentInvoiceDialog extends Dialog {
             return deleteButton;
         });
         invoiceItemGrid.setItems(invoiceItems);
-    }
-
-    private FormLayout getReportOptionsFormLayout() {
-        FormLayout reportConfigLayout = new FormLayout();
-        User user = this.user.get().get();
-        showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
-        showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
-        respondent.setItems(userService.getAll());
-        respondent.setValue(user);
-        bankDetails.setItems(bankDetailsService.getBankDetails());
-
-        reportConfigLayout.add(showBankDetails, showEarlyPaymentMessage, showDesignation, showRespondentEmail, hideRespondentPhone,
-                invoiceDate, bankDetails, respondent);
-        reportConfigLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
-        reportConfigLayout.setColspan(respondent, 2);
-        reportConfigLayout.setColspan(bankDetails, 2);
-        return reportConfigLayout;
     }
 
     private void prepareInvoiceDataForSave() {

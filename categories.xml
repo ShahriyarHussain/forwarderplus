@@ -1,83 +1,83 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<categories>
-    <category>
+<Items>
+    <Item>
         <name>Electric Bills</name>
         <hash>1373139387</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Allowance</name>
         <hash>-1424385864</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Automobile</name>
         <hash>-1842486160</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Food</name>
         <hash>31069378</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Transportation</name>
         <hash>165374462</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Internet Bills</name>
         <hash>2003749097</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Rent</name>
         <hash>2603186</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Education</name>
         <hash>-2095685521</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Entertainment</name>
         <hash>142666848</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Fees</name>
         <hash>3135104</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Bank Charges</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Bank Interests</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Health Care</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Groceries</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Insurance</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Miscellaneous</name>
         <hash>2027597805</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Office Allowance</name>
         <hash>-988430412</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>B/L Fee</name>
         <hash>-1772587547</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Client Payment</name>
         <hash>-772421967</hash>
-    </category>
-    <category>
+    </Item>
+    <Item>
         <name>Shipment Fee</name>
         <hash>-576508928</hash>
-    </category>
-</categories>
+    </Item>
+</Items>
