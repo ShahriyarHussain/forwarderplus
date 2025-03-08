@@ -1,30 +1,21 @@
 package com.lazoft.forwarderplus.views.blmanager;
 
-import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.entity.ContainerDetails;
 import com.lazoft.forwarderplus.entity.Shipment;
-import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
-import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
-import jakarta.annotation.security.RolesAllowed;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperRunManager;
@@ -39,14 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@PageTitle("B/L Manager")
-@Route(value = "bl-manager", layout = MainLayout.class)
-@RolesAllowed("USER")
-public class BLManagerView extends VerticalLayout {
-
-    private final TextField shipmentSearchBox = new TextField("Search by B/L No/Booking No");
-    private final Button searchButton = new Button(LineAwesomeIcon.SEARCH_SOLID.create());
-    private final Grid<Shipment> shipmentGrid = new Grid<>(Shipment.class, false);
+public class BLCreationDialog extends Dialog {
 
     private final FormLayout blFormLayout = new FormLayout();
     private final TextArea shipper = new TextArea("Shipper");
@@ -76,52 +60,20 @@ public class BLManagerView extends VerticalLayout {
     private final TextArea remarks = new TextArea("Remarks");
     private final ComboBox<String> blType = new ComboBox<>("B/L Type");
 
-    private final ShipmentService shipmentService;
+    private final Shipment shipment;
 
 
-    public BLManagerView(ShipmentService shipmentService) {
-        this.shipmentService = shipmentService;
+    public BLCreationDialog(Shipment shipment) {
+        this.shipment = shipment;
+        setHeaderTitle("Create Bill Of Lading");
         setAttributes();
-        setGridProperties();
-        setSearchLayout();
-        setListener();
+        setShipmentValues();
         setUpBLLayout();
-        add(shipmentGrid, blFormLayout);
+        add(blFormLayout);
+        getFooter().add(new Button("Close", e -> this.close()), getBlDownloadButtonByType());
     }
 
-    public void setSearchLayout() {
-        HorizontalLayout searchLayout = new HorizontalLayout();
-        searchLayout.setAlignItems(FlexComponent.Alignment.END);
-        searchLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        searchLayout.setWidth("100%");
-        searchLayout.add(shipmentSearchBox, searchButton);
-        add(searchLayout);
-    }
-
-    public void setGridProperties() {
-        shipmentGrid.setVisible(true);
-        shipmentGrid.addColumn("mblNo").setHeader("MB/L No").setAutoWidth(true);
-        shipmentGrid.addColumn("hblNo").setHeader("HB/L No").setAutoWidth(true);
-        shipmentGrid.addColumn("clientInvoiceNo").setHeader("Client Invoice").setAutoWidth(true);
-        shipmentGrid.addColumn(shipment -> {
-            Booking booking = shipment.getBooking();
-            return booking.getNumOfContainers() + " X " + booking.getContainerSize().getContainerSize();
-        }).setHeader("MB/L No").setAutoWidth(true);
-        shipmentGrid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
-        shipmentGrid.addColumn("createdOn").setHeader("Created").setAutoWidth(true);
-        shipmentGrid.addComponentColumn(shipment -> {
-          Button button = new Button("Select");
-          button.addClickListener(e -> selectShipmentForBLEdit(shipment));
-          shipmentGrid.setItems(getShipmentsBySearchString());
-//          shipmentGrid.setItems(query -> shipmentService.getShipmentsByFilter(
-//                  PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-//                  getFilterSpecification()).stream());
-          return button;
-        });
-    }
-
-    private void selectShipmentForBLEdit(Shipment shipment) {
-        shipmentGrid.setVisible(false);
+    private void setShipmentValues() {
         blFormLayout.setVisible(true);
         shipper.setValue(getClientDetailsForBl(shipment.getShipper()));
         consignee.setValue(getClientDetailsForBl(shipment.getConsignee()));
@@ -168,31 +120,12 @@ public class BLManagerView extends VerticalLayout {
     }
 
     public void setAttributes() {
-        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        shipmentSearchBox.setWidth("50%");
         blType.setItems(List.of("Draft", "Original/Non-Negotiable"));
         blType.setValue("Draft");
     }
 
-    public void setListener() {
-        searchButton.addClickListener(event -> {
-            if (StringUtils.isBlank(shipmentSearchBox.getValue())) {
-                return;
-            }
-            shipmentGrid.setVisible(true);
-            blFormLayout.setVisible(false);
-            shipmentGrid.setItems(getShipmentsBySearchString());
-        });
-    }
-
-    private List<Shipment> getShipmentsBySearchString() {
-        String searchString = "%" + StringUtils.defaultString(shipmentSearchBox.getValue()).trim().toLowerCase() + "%";
-        return shipmentService.getShipmentsByFilter(searchString);
-    }
-
 
     public void setUpBLLayout() {
-        blFormLayout.setVisible(false);
         blFormLayout.setWidth("100%");
         blFormLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
         Hr topDivider1 = new Hr(), topDivider2 = new Hr(), topDivider3 = new Hr(), topDivider4 = new Hr();
@@ -218,7 +151,7 @@ public class BLManagerView extends VerticalLayout {
                 containerNumbers, containerSeals,
                 sectionDivider8,
                 container, quantity, freightTerm, remarks,
-                blType, getBlDownloadButtonByType());
+                blType);
         blFormLayout.setColspan(topDivider1, 2);
         blFormLayout.setColspan(topDivider2, 2);
         blFormLayout.setColspan(topDivider3, 2);

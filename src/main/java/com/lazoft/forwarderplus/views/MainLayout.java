@@ -3,7 +3,8 @@ package com.lazoft.forwarderplus.views;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
-import com.lazoft.forwarderplus.views.blmanager.BLManagerView;
+import com.lazoft.forwarderplus.views.blmanager.BLCreateView;
+import com.lazoft.forwarderplus.views.blmanager.BLCreationDialog;
 import com.lazoft.forwarderplus.views.configviews.DataConfigurationView;
 import com.lazoft.forwarderplus.views.configviews.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;
@@ -86,7 +87,7 @@ public class MainLayout extends AppLayout {
             exportOverview.addItem(new SideNavItem("Shipping Order", ShippingOrderView.class, LineAwesomeIcon.BRIEFCASE_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Shipment Advice", ShipmentAdviceView.class, LineAwesomeIcon.FOLDER_MINUS_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Shipment Invoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
-            exportOverview.addItem(new SideNavItem("Create B/L", BLManagerView.class, LineAwesomeIcon.FILE_ALT.create()));
+            exportOverview.addItem(new SideNavItem("Create B/L", BLCreateView.class, LineAwesomeIcon.FILE_ALT.create()));
             nav.addItem(exportOverview);
         }
 

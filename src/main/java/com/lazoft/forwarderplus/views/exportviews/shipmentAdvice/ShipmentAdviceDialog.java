@@ -125,7 +125,7 @@ public class ShipmentAdviceDialog extends Dialog {
         this.carrierService = carrierService;
         this.scheduleService = scheduleService;
         this.shipmentService = shipmentService;
-        this.clientList = clientService.getClientsByType(List.of(ClientType.NOTIFY_PARTY, ClientType.CONSIGNEE, ClientType.NOTIFY_PARTY, ClientType.ALL));
+        this.clientList = clientService.getAllClients();
 
         this.setWidth("85%");
         this.setHeight("85%");
@@ -338,7 +338,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
             ReportOptionsDto dto = new ReportOptionsDto();
             dto.setUser(user);
-            dto.setView(View.SHIPMENT_INVOICE);
+            dto.setView(View.SHIPMENT_ADVICE);
             dto.setUsers(userService.getAll());
             dto.setParameters(prepareParamsForShipmentAdvice());
             dto.setFileName("Shipment-Advice-" + shipment.getMblNo());

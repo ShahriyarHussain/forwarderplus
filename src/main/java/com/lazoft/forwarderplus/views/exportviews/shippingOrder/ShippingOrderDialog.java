@@ -1,14 +1,19 @@
 package com.lazoft.forwarderplus.views.exportviews.shippingOrder;
 
+import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.enums.View;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.UserService;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
+import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -17,7 +22,9 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -37,12 +44,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class ShippingOrderDialog extends Dialog {
-    private final DatePicker documentDate = new DatePicker("Order Date");
+    private final DatePicker documentDate = new DatePicker("Report Date");
     private final TextField bookingNo = new TextField("Booking No");
     private final TextField cnfAgentName = new TextField("CnF Agent Name");
     private final TextField cnfAgentContact = new TextField("CnF Agent Contact");
@@ -57,7 +65,7 @@ public class ShippingOrderDialog extends Dialog {
     private final Button addClientButton = new Button(LineAwesomeIcon.USER_PLUS_SOLID.create());
     private final Button saveButton = new Button("Save");
     private final Button closeButton = new Button("Close");
-    private final Button printButton = new Button("Download As PDF");
+    private final Button downloadButton = new Button("Download as PDF");
 
     private StuffingDetails stuffingDetails;
     private final Booking booking;
@@ -67,17 +75,27 @@ public class ShippingOrderDialog extends Dialog {
     private final Shipment shipment;
     private final ShippingOrderView shippingOrderView;
     private final ShipmentService shipmentService;
+    private final UserService userService;
 
-    public ShippingOrderDialog(Shipment shipment, User user, ClientService clientService,
-                               ShipmentService shipmentService, ShippingOrderView shippingOrderView) {
-        this.clientService = clientService;
-        this.user = user;
+    public ShippingOrderDialog(Shipment shipment, AuthenticatedUser authenticatedUser, ClientService clientService,
+                               ShipmentService shipmentService, UserService userService, ShippingOrderView shippingOrderView) {
+        if (authenticatedUser.get().isEmpty()) {
+            NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
+            close();
+        }
+
+
+        this.user = authenticatedUser.get().get();
         this.clientList = clientService.getClientsByType(List.of(ClientType.NOTIFY_PARTY, ClientType.ALL));
         this.stuffingDetails = shipment.getStuffingDetails();
         this.booking = shipment.getBooking();
         this.shipment = shipment;
-        this.shippingOrderView = shippingOrderView;
+
+        this.clientService = clientService;
         this.shipmentService = shipmentService;
+        this.userService = userService;
+
+        this.shippingOrderView = shippingOrderView;
 
         setWidth("40%");
         setHeight("70%");
@@ -87,8 +105,8 @@ public class ShippingOrderDialog extends Dialog {
         setExistingValues(shipment);
         addListeners();
 
-        Anchor printButtonAnchor = getReportDownloadButtonAnchor(shipment, booking);
-        this.getFooter().add(saveButton, printButtonAnchor, closeButton);
+//        Anchor printButtonAnchor = getReportDownloadButtonAnchor(shipment, booking);
+        this.getFooter().add(closeButton, downloadButton, saveButton);
     }
 
 
@@ -115,12 +133,12 @@ public class ShippingOrderDialog extends Dialog {
         saveButton.setIcon(LineAwesomeIcon.SAVE_SOLID.create());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-        printButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
-        printButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 
         notifyParty.setWidth("90%");
         notifyParty.setRequired(true);
-        notifyParty.setItems(clientService.getAllClients());
+        notifyParty.setItems(clientService.getClientsByType(List.of(ClientType.NOTIFY_PARTY, ClientType.ALL)));
         notifyParty.setItemLabelGenerator(Client::getName);
     }
 
@@ -134,10 +152,6 @@ public class ShippingOrderDialog extends Dialog {
         shipper.setValue(shipment.getShipper().getName());
         shipper.setReadOnly(true);
         notifyParty.setValue(shipment.getNotifyParty());
-//        Client notifyParty = shipment.getNotifyParty();
-//        if (notifyParty != null) {
-//            this.notifyParty.setValue(notifyParty);
-//        }
 
         if (stuffingDetails == null) {
             return;
@@ -147,7 +161,6 @@ public class ShippingOrderDialog extends Dialog {
         units.setValue(stuffingDetails.getPackageUnit());
         quantity.setValue(stuffingDetails.getQuantity());
         vessel.setValue(StringUtils.defaultString(stuffingDetails.getVessel()));
-
     }
 
     private void addListeners() {
@@ -177,6 +190,58 @@ public class ShippingOrderDialog extends Dialog {
             shippingOrderView.refreshGrid();
             this.close();
         });
+
+        downloadButton.addClickListener(event -> {
+            List<String> errors = findErrorsForReportData();
+            Dialog dialog = new Dialog();
+            dialog.getFooter().add(new Button("Close", e -> dialog.close()));
+            if (!errors.isEmpty()) {
+                dialog.setHeaderTitle("Errors in Data");
+                ListBox<String> listBox = new ListBox<>();
+                listBox.setItems(errors);
+                dialog.add(new H4("Please fix the following before downloading Advice"), listBox);
+                dialog.open();
+                return;
+            }
+
+            ReportOptionsDto dto = new ReportOptionsDto();
+            dto.setUser(user);
+            dto.setView(View.SHIPPING_ORDER);
+            dto.setUsers(userService.getAll());
+            dto.setParameters(prepareParamsForShippingOrder());
+            dto.setFileName("shipping_order_" + booking.getBookingNo());
+            dto.setReportSourceFileName("shipping_order.jasper");
+            dto.setReportDate(documentDate.getValue());
+
+            Dialog reportDialog = new ReportOptionsDialog(dto);
+            reportDialog.open();
+        });
+    }
+
+    private List<String> findErrorsForReportData() {
+        List<String> errorReasons = new LinkedList<>();
+        if (StringUtils.isBlank(vessel.getValue())) {
+            errorReasons.add("Provide vessel name");
+        }
+        if (units.getValue() == null) {
+            errorReasons.add("Provide cargo unit");
+        }
+        if (quantity.getValue() == null || quantity.getValue() <= 0) {
+            errorReasons.add("Provide cargo quantity");
+        }
+        if (notifyParty.getValue() == null) {
+            errorReasons.add("Provide notify party");
+        }
+        if (documentDate.getValue() == null) {
+            errorReasons.add("Provide report date");
+        }
+        if (StringUtils.isBlank(cnfAgentName.getValue())) {
+            errorReasons.add("Provide CnF agent name");
+        }
+        if (StringUtils.isBlank(cnfAgentContact.getValue())) {
+            errorReasons.add("Provide CnF agent contact no");
+        }
+        return errorReasons;
     }
 
     private boolean isInvalidDataForSaveAndReport() {
@@ -217,38 +282,38 @@ public class ShippingOrderDialog extends Dialog {
         shipment.setNotifyParty(notifyParty.getValue());
     }
 
-    private Anchor getReportDownloadButtonAnchor(Shipment shipment, Booking booking) {
-        Anchor anchor = new Anchor(new StreamResource("Shipping_order_" + booking.getBookingNo() + ".pdf",
-                (InputStreamFactory) () -> {
-                    Map<String, Object> parameters = prepareParamsForShippingOrder(shipment, user);
-                    String report = "shipping_order.jasper";
+//    private Anchor getReportDownloadButtonAnchor(Shipment shipment, Booking booking) {
+//        Anchor anchor = new Anchor(new StreamResource("Shipping_order_" + booking.getBookingNo() + ".pdf",
+//                (InputStreamFactory) () -> {
+//                    Map<String, Object> parameters = prepareParamsForShippingOrder();
+//                    String report = "shipping_order.jasper";
+//
+//                    ByteArrayInputStream inputStream = null;
+//                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
+//                        inputStream = new ByteArrayInputStream(JasperRunManager
+//                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
+//                        shipment.setStatus(ShipmentStatus.SHIPPING_ORDER_CREATED);
+//                        shipmentService.saveShipment(shipment);
+//                        return inputStream;
+//                    } catch (JRException | IOException e) {
+//                        log.error("Error in shipping order report creation", e);
+//                        throw new RuntimeException(e);
+//                    } catch (Exception e) {
+//                        log.error("Error in shipping order anchor", e);
+//                        if (inputStream != null) {
+//                            return inputStream;
+//                        } else {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//                }), "");
+//
+//        anchor.getElement().setAttribute("download", true);
+//        anchor.add(printButton);
+//        return anchor;
+//    }
 
-                    ByteArrayInputStream inputStream = null;
-                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-                        inputStream = new ByteArrayInputStream(JasperRunManager
-                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
-                        shipment.setStatus(ShipmentStatus.SHIPPING_ORDER_CREATED);
-                        shipmentService.saveShipment(shipment);
-                        return inputStream;
-                    } catch (JRException | IOException e) {
-                        log.error("Error in shipping order report creation", e);
-                        throw new RuntimeException(e);
-                    } catch (Exception e) {
-                        log.error("Error in shipping order anchor", e);
-                        if (inputStream != null) {
-                            return inputStream;
-                        } else {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }), "");
-
-        anchor.getElement().setAttribute("download", true);
-        anchor.add(printButton);
-        return anchor;
-    }
-
-    private Map<String, Object> prepareParamsForShippingOrder(Shipment shipment, User user) {
+    private Map<String, Object> prepareParamsForShippingOrder() {
         Map<String, Object> paramMap = new HashMap<>();
         Booking booking = shipment.getBooking();
 

@@ -140,7 +140,7 @@ public class AmountFormatter {
 
     private static String getRoundedAmountInWords(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-            return "Zero ";
+            return "Zero";
         }
 
         StringBuilder amountInWords = new StringBuilder();

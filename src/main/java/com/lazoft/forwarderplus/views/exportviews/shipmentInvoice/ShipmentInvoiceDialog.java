@@ -509,7 +509,7 @@ public class ShipmentInvoiceDialog extends Dialog {
         parameters.put("TOTAL", AmountFormatter.getFormattedAmount(grandTotal.getValue()
                 .setScale(1, RoundingMode.UNNECESSARY), localCurrencyComboBox.getValue()));
         parameters.put("TOTAL_IN_WORD", AmountFormatter.getAmountInWords(grandTotal.getValue()) +
-                localCurrencyComboBox.getValue().getCurrencyName() + "Only");
+                localCurrencyComboBox.getValue().getCurrencyName() + " Only");
 
         List<InvoiceItemReportDto> dtoList = new LinkedList<>();
 

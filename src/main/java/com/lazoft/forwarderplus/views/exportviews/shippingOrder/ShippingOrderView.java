@@ -4,10 +4,7 @@ import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.ClientService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -50,15 +47,17 @@ public class ShippingOrderView extends Div {
     private final ShipmentService shipmentService;
     private final AuthenticatedUser authenticatedUser;
     private final ClientService clientService;
+    private final UserService userService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
     public ShippingOrderView(PortService portService, ShipmentService shipmentService, CarrierService carrierService,
-                             AuthenticatedUser authenticatedUser, ClientService clientService) {
+                             AuthenticatedUser authenticatedUser, ClientService clientService, UserService userService) {
         this.shipmentService = shipmentService;
         this.authenticatedUser = authenticatedUser;
         this.clientService = clientService;
+        this.userService = userService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -236,10 +235,10 @@ public class ShippingOrderView extends Div {
     }
 
     private Button getCreateShippingOrderButton(Shipment shipment) {
-        User user = authenticatedUser.get().orElse(shipment.getCreatedBy());
         Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShippingOrderDialog(shipment, user, clientService, shipmentService, this).open());
+        create.addClickListener(event -> new ShippingOrderDialog(
+                shipment, authenticatedUser, clientService, shipmentService, userService, this).open());
         return create;
     }
 }

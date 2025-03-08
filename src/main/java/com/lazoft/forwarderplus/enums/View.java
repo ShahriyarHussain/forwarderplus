@@ -15,8 +15,7 @@ public enum View {
     MANAGE_PARTIES("Add Parties"),
     ADD_OTHERS("Add Others"),
     CREATE_BOOKING("Create Booking"),
-    MISC_MANAGEMENT("Misc Management"), // includes Add Carrier, Add Commodity and Add Ports
-    CREATE_INVOICE("Create ShipmentInvoice");
+    MISC_MANAGEMENT("Misc Management"); // includes Add Carrier, Add Commodity and Add Ports
 
     private final String viewName;
 }

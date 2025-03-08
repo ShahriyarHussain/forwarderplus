@@ -150,7 +150,7 @@ public class ShipmentInvoiceView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, createDateFilter(), actions);
+            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, status, createDateFilter(), actions);
         }
 
         private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
@@ -250,7 +250,7 @@ public class ShipmentInvoiceView extends Div {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
-        grid.addColumn(shipment -> shipment.getStatus().getStatus()).setAutoWidth(true).setSortable(true);
+        grid.addColumn(shipment -> shipment.getStatus().getStatus()).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);

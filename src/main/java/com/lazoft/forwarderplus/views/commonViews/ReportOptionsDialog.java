@@ -61,8 +61,7 @@ public class ReportOptionsDialog extends Dialog {
         FormLayout layout = new FormLayout();
         layout.add(useHbl, useConsignee, showBankDetails, showEarlyPaymentMessage, showDesignation, showRespondentEmail,
                 hideRespondentPhone, reportDate, bankDetails, respondent);
-        layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
-        layout.setColspan(respondent, 2);
+        layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
         layout.setColspan(respondent, 2);
         layout.setColspan(bankDetails, 2);
         return layout;
@@ -80,9 +79,9 @@ public class ReportOptionsDialog extends Dialog {
     }
 
     private void setAttributes() {
-        showBankDetails.setVisible(reportOptionsDto.getView() == View.CREATE_INVOICE);
-        showEarlyPaymentMessage.setVisible(reportOptionsDto.getView() == View.CREATE_INVOICE);
-        bankDetails.setVisible(reportOptionsDto.getView() == View.CREATE_INVOICE);
+        showBankDetails.setVisible(reportOptionsDto.getView() == View.SHIPMENT_INVOICE);
+        showEarlyPaymentMessage.setVisible(reportOptionsDto.getView() == View.SHIPMENT_INVOICE);
+        bankDetails.setVisible(reportOptionsDto.getView() == View.SHIPMENT_INVOICE);
 
         useHbl.setVisible(reportOptionsDto.getView() == View.SHIPMENT_ADVICE);
         useConsignee.setVisible(reportOptionsDto.getView() == View.SHIPMENT_ADVICE);
@@ -92,6 +91,9 @@ public class ReportOptionsDialog extends Dialog {
         showDesignation.setEnabled(true);
         showBankDetails.setEnabled(true);
         showEarlyPaymentMessage.setEnabled(true);
+
+        respondent.setItemLabelGenerator(User::getName);
+        bankDetails.setItemLabelGenerator(details-> details.getBankName() + ", A/C: " + details.getAccName());
     }
 
     private Anchor getReportDownloadAnchor() {

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class ReportOptionsDto {
     private String hblNo;
     private String consignee;
     private List<User> users;
-    private List<BankDetails> bankDetailsList;
+    private List<BankDetails> bankDetailsList = new LinkedList<>();
     private String reportName;
     private String fileName;
     private String reportSourceFileName;
