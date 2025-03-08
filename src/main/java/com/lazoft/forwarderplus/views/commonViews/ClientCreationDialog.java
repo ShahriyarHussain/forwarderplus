@@ -18,10 +18,10 @@ import com.vaadin.flow.component.textfield.TextField;
 
 import java.util.List;
 
-public class ClientCreationDialogView extends Dialog {
+public class ClientCreationDialog extends Dialog {
 
-    public ClientCreationDialogView(ClientService clientService, List<Client> clientList) {
-        H3 h3 = new H3("Add Shipper");
+    public ClientCreationDialog(ClientService clientService, List<Client> clientList) {
+        H3 h3 = new H3("Add Client");
         this.getHeader().add(h3);
 
         FormLayout formLayout = new FormLayout();
@@ -91,7 +91,7 @@ public class ClientCreationDialogView extends Dialog {
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         Button closeButton = new Button("Close", event -> this.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         formLayout.add(partyName, partyType, address, email, city, country, taxId, postCode, accountNum, accountBank);
         formLayout.setColspan(address, 2);

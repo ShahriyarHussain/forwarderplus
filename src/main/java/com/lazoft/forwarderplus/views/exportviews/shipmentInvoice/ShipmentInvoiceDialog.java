@@ -4,12 +4,10 @@ import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
+import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.BankDetailsService;
-import com.lazoft.forwarderplus.services.CurrencyDataService;
-import com.lazoft.forwarderplus.services.InvoiceService;
-import com.lazoft.forwarderplus.services.UserService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
@@ -53,6 +51,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final UserService userService;
     private final BankDetailsService bankDetailsService;
     private final CurrencyDataService currencyDataService;
+    private final ShipmentService shipmentService;
 
     private final Button saveButton = new Button("Save");
     private final Button downloadButton = new Button("Download as PDF");
@@ -93,7 +92,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private ShipmentInvoice shipmentInvoice;
     private final Shipment shipment;
 
-    public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService,
+    public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService, ShipmentService shipmentService,
                                  BankDetailsService bankDetailsService, CurrencyDataService currencyDataService,
                                  AuthenticatedUser authenticatedUser, Shipment shipment) {
         if (authenticatedUser.get().isEmpty()) {
@@ -101,10 +100,13 @@ public class ShipmentInvoiceDialog extends Dialog {
             close();
         }
         this.user = authenticatedUser.get().get();
+
         this.invoiceService = invoiceService;
         this.userService = userService;
         this.bankDetailsService = bankDetailsService;
+        this.shipmentService = shipmentService;
         this.currencyDataService = currencyDataService;
+
         this.shipmentInvoice = invoiceService.getInvoiceFromShipment(shipment);
         this.shipment = shipment;
 
@@ -240,6 +242,11 @@ public class ShipmentInvoiceDialog extends Dialog {
 
             Dialog reportDialog = new ReportOptionsDialog(dto);
             reportDialog.open();
+
+            if (shipment.getStatus() == ShipmentStatus.SHIPMENT_ADVICE_OK) {
+                shipment.setStatus(ShipmentStatus.INVOICE_OK);
+                shipmentService.saveShipment(shipment);
+            }
         });
 
         closeButton.addClickListener(event -> {

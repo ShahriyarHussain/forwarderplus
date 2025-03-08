@@ -46,7 +46,7 @@ import java.util.List;
 
 @PageTitle("User Configuration")
 @Route(value = "user-config", layout = MainLayout.class)
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "IT"})
 @Uses(Icon.class)
 public class UserConfigurationView extends Div {
 

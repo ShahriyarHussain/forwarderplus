@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.blmanager;
+package com.lazoft.forwarderplus.views.exportviews.billOfLading;
 
 import com.lazoft.forwarderplus.entity.Client;
 import com.lazoft.forwarderplus.entity.ContainerDetails;
@@ -70,7 +70,9 @@ public class BLCreationDialog extends Dialog {
         setShipmentValues();
         setUpBLLayout();
         add(blFormLayout);
-        getFooter().add(new Button("Close", e -> this.close()), getBlDownloadButtonByType());
+        Button closeButton = new Button("Close", e -> this.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        getFooter().add(closeButton, getBlDownloadButtonByType());
     }
 
     private void setShipmentValues() {
@@ -87,17 +89,17 @@ public class BLCreationDialog extends Dialog {
         portOfDischarge.setValue(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
         placeOfDelivery.setValue(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
         placeOfReceipt.setValue(shipment.getBooking().getLoadingPort().getPortCityAndCountry());
-        shipperMarks.setValue(shipment.getShipperMarks());
-        goodsDescription.setValue(shipment.getGoodsDescription());
-        blNo.setValue(StringUtils.defaultIfBlank(shipment.getHblNo(), shipment.getMblNo()));
+        shipperMarks.setValue(StringUtils.defaultString(shipment.getShipperMarks()));
+        goodsDescription.setValue(StringUtils.defaultString(shipment.getGoodsDescription()));
+        blNo.setValue(StringUtils.defaultIfBlank(shipment.getHblNo(), StringUtils.defaultString(shipment.getMblNo())));
         mblNo.setValue(StringUtils.defaultString(shipment.getMblNo()));
         bookingNo.setValue(shipment.getBooking().getBookingNo());
 
         container.setValue(shipment.getBooking().getNumOfContainers() + " X "
                 + shipment.getBooking().getContainerSize().getContainerSize());
-        freightTerm.setValue(shipment.getShippingTerm().toString());
+        freightTerm.setValue(shipment.getShippingTerm() == null ? "" : shipment.getShippingTerm().toString());
 
-        if (shipment.getContainerDetails() == null) {
+        if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
             return;
         }
 

@@ -4,6 +4,7 @@ import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
+import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.ClientService;
@@ -11,7 +12,7 @@ import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.services.UserService;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
+import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
 import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -172,7 +173,7 @@ public class ShippingOrderDialog extends Dialog {
             }
         });
 
-        addClientButton.addClickListener(event -> new ClientCreationDialogView(clientService, clientList).open());
+        addClientButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
 
         notifyParty.addFocusListener(event -> notifyParty.setItems(clientList));
 
@@ -205,6 +206,11 @@ public class ShippingOrderDialog extends Dialog {
 
             Dialog reportDialog = new ReportOptionsDialog(dto);
             reportDialog.open();
+
+            if (shipment.getStatus() == ShipmentStatus.NEW) {
+                shipment.setStatus(ShipmentStatus.SHIPPING_ORDER_OK);
+                shipmentService.saveShipment(shipment);
+            }
         });
     }
 
@@ -271,37 +277,6 @@ public class ShippingOrderDialog extends Dialog {
         stuffingDetails.setVessel(vessel.getValue());
         shipment.setNotifyParty(notifyParty.getValue());
     }
-
-//    private Anchor getReportDownloadButtonAnchor(Shipment shipment, Booking booking) {
-//        Anchor anchor = new Anchor(new StreamResource("Shipping_order_" + booking.getBookingNo() + ".pdf",
-//                (InputStreamFactory) () -> {
-//                    Map<String, Object> parameters = prepareParamsForShippingOrder();
-//                    String report = "shipping_order.jasper";
-//
-//                    ByteArrayInputStream inputStream = null;
-//                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + report)) {
-//                        inputStream = new ByteArrayInputStream(JasperRunManager
-//                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
-//                        shipment.setStatus(ShipmentStatus.SHIPPING_ORDER_CREATED);
-//                        shipmentService.saveShipment(shipment);
-//                        return inputStream;
-//                    } catch (JRException | IOException e) {
-//                        log.error("Error in shipping order report creation", e);
-//                        throw new RuntimeException(e);
-//                    } catch (Exception e) {
-//                        log.error("Error in shipping order anchor", e);
-//                        if (inputStream != null) {
-//                            return inputStream;
-//                        } else {
-//                            throw new RuntimeException(e);
-//                        }
-//                    }
-//                }), "");
-//
-//        anchor.getElement().setAttribute("download", true);
-//        anchor.add(printButton);
-//        return anchor;
-//    }
 
     private Map<String, Object> prepareParamsForShippingOrder() {
         Map<String, Object> paramMap = new HashMap<>();

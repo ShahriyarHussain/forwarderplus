@@ -24,6 +24,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -46,7 +47,7 @@ import java.util.List;
 
 @PageTitle("Shipment Advice")
 @Route(value = "shipment-advice", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN"})
+@RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
 public class ShipmentAdviceView extends Div {
 
@@ -187,14 +188,14 @@ public class ShipmentAdviceView extends Div {
                         bookingJoin.get("bookingNo")), "%" + bookingNoLowerCase + "%");
                 predicates.add(bookingNoMatch);
             }
-            if (!blNo.isEmpty()) {
+            if (!status.isEmpty()) {
                 ShipmentStatus shipmentStatus = status.getValue();
                 Predicate statusMatch = criteriaBuilder.equal(root.get("status"), shipmentStatus);
                 predicates.add(statusMatch);
             }
             if (!blNo.isEmpty()) {
-                String carrierId = blNo.getValue().toLowerCase();
-                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + carrierId + "%");
+                String blNoValue = blNo.getValue().toLowerCase();
+                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + blNoValue + "%");
                 predicates.add(blMatch);
             }
             if (!portOfLoading.isEmpty()) {
@@ -252,7 +253,11 @@ public class ShipmentAdviceView extends Div {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
-        grid.addColumn(shipment -> shipment.getStatus().getStatus()).setHeader("Status").setAutoWidth(true).setSortable(true);
+        grid.addComponentColumn(shipment -> {
+            H5 statusLabel = new H5(shipment.getStatus().getStatus());
+            statusLabel.getStyle().set("font-weight", "bold");
+            return statusLabel;
+        }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);

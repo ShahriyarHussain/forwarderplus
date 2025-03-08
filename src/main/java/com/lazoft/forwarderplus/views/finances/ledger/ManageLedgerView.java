@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 
 @PageTitle("Create Ledger")
 @Route(value = "create-ledger", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN", "ACCOUNTS"})
+@RolesAllowed({"ADMIN", "FINANCE"})
 public class ManageLedgerView extends Composite<VerticalLayout> {
 
     private final TextField ledgerName = new TextField("Ledger Name");

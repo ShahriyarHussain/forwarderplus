@@ -34,7 +34,7 @@ public class Shipment {
 
     private ShippingTerm shippingTerm;
 
-    @Enumerated(EnumType.STRING)
+    //@Enumerated(EnumType.STRING)
     private ShipmentStatus status;
     private LocalDateTime createdOn;
 

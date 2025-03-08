@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.blmanager;
+package com.lazoft.forwarderplus.views.exportviews.billOfLading;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
@@ -47,7 +47,7 @@ import java.util.List;
 
 @PageTitle("Create B/L")
 @Route(value = "create-bl", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN"})
+@RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
 public class BLCreateView extends Div {
 

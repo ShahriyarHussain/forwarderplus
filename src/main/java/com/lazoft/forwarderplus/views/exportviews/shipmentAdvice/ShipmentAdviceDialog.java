@@ -8,7 +8,7 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
+import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
 import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -293,7 +293,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
         generateHbl.addClickListener(event -> {});
 
-        addClientButton.addClickListener(event -> new ClientCreationDialogView(clientService, clientList).open());
+        addClientButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
 
         saveButton.addClickListener(event -> {
             if (isInvalidEntriesForSave()) {
@@ -336,6 +336,11 @@ public class ShipmentAdviceDialog extends Dialog {
 
             Dialog reportDialog = new ReportOptionsDialog(dto);
             reportDialog.open();
+
+            if (shipment.getStatus() == ShipmentStatus.SHIPPING_ORDER_OK) {
+                shipment.setStatus(ShipmentStatus.SHIPMENT_ADVICE_OK);
+                shipmentService.saveShipment(shipment);
+            }
         });
 
         closeButton.addClickListener(event -> {

@@ -50,7 +50,7 @@ import static com.lazoft.forwarderplus.util.Constants.CATEGORIES;
 
 @PageTitle("Create Transaction")
 @Route(value = "create-transaction", layout = MainLayout.class)
-@RolesAllowed({"ADMIN", "ACCOUNTS"})
+@RolesAllowed({"ADMIN", "FINANCE"})
 @Slf4j
 public class CreateTransactionView extends VerticalLayout {
 

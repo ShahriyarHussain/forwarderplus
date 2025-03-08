@@ -3,11 +3,11 @@ package com.lazoft.forwarderplus.views;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
-import com.lazoft.forwarderplus.views.blmanager.BLCreateView;
 import com.lazoft.forwarderplus.views.configviews.DataConfigurationView;
 import com.lazoft.forwarderplus.views.configviews.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;
 import com.lazoft.forwarderplus.views.exportviews.NewBookingView;
+import com.lazoft.forwarderplus.views.exportviews.billOfLading.BLCreateView;
 import com.lazoft.forwarderplus.views.exportviews.shipmentAdvice.ShipmentAdviceView;
 import com.lazoft.forwarderplus.views.exportviews.shipmentInvoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.exportviews.shippingOrder.ShippingOrderView;
@@ -88,10 +88,6 @@ public class MainLayout extends AppLayout {
             exportOverview.addItem(new SideNavItem("Shipment Invoice", ShipmentInvoiceView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             exportOverview.addItem(new SideNavItem("Create B/L", BLCreateView.class, LineAwesomeIcon.FILE_ALT.create()));
             nav.addItem(exportOverview);
-        }
-
-        if (accessChecker.hasAccess(NewBookingView.class)) {
-            nav.addItem(new SideNavItem("Bill Of Lading", AboutView.class, LineAwesomeIcon.FILTER_SOLID.create()));
         }
 
         if (accessChecker.hasAccess(ViewShipmentsView.class)) {

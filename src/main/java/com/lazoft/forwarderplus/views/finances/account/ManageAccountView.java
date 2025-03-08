@@ -40,7 +40,7 @@ import java.util.List;
 
 @PageTitle("Create Account")
 @Route(value = "create-account", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN", "ACCOUNTS"})
+@RolesAllowed({"ADMIN", "FINANCE"})
 @Slf4j
 public class ManageAccountView extends Composite<VerticalLayout> {
 

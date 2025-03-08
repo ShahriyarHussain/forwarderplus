@@ -22,6 +22,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -43,7 +44,7 @@ import java.util.List;
 
 @PageTitle("Shipping Order")
 @Route(value = "shipping-order", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN"})
+@RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
 public class ShippingOrderView extends Div {
 
@@ -216,7 +217,11 @@ public class ShippingOrderView extends Div {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
-        grid.addColumn(shipment -> shipment.getStatus().getStatus()).setHeader("Status").setAutoWidth(true).setSortable(true);
+        grid.addComponentColumn(shipment -> {
+            H5 statusLabel = new H5(shipment.getStatus().getStatus());
+            statusLabel.getStyle().set("font-weight", "bold");
+            return statusLabel;
+        }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);

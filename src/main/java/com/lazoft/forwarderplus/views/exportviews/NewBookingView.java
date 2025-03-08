@@ -13,7 +13,7 @@ import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialogView;
+import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
@@ -47,7 +47,7 @@ import static com.lazoft.forwarderplus.util.Constants.COMMODITIES;
 @Slf4j
 @PageTitle("New Booking")
 @Route(value = "new-booking", layout = MainLayout.class)
-@RolesAllowed({"USER", "ADMIN"})
+@RolesAllowed({"EXPORT", "ADMIN"})
 public class NewBookingView extends Composite<VerticalLayout> {
 
     private final TextField bookingNo = new TextField("Booking No");
@@ -320,7 +320,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         addButton.setTooltipText("Add New Shipper");
         addButton.setIcon(LineAwesomeIcon.USER_PLUS_SOLID.create());
         addButton.setWidth("10%");
-        addButton.addClickListener(event -> new ClientCreationDialogView(clientService, clientList).open());
+        addButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
 
         clients.setWidth("90%");
         clients.setRequired(true);
