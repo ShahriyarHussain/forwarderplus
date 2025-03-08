@@ -1,7 +1,10 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Carrier;
+import com.lazoft.forwarderplus.entity.Port;
+import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.services.CarrierService;
@@ -27,7 +30,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;

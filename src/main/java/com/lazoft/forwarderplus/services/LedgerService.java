@@ -1,16 +1,13 @@
 package com.lazoft.forwarderplus.services;
 
 import com.lazoft.forwarderplus.entity.Ledger;
-import com.lazoft.forwarderplus.enums.TransactionType;
 import com.lazoft.forwarderplus.repository.LedgerRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 

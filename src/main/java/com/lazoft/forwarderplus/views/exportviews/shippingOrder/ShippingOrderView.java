@@ -1,7 +1,10 @@
 package com.lazoft.forwarderplus.views.exportviews.shippingOrder;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Carrier;
+import com.lazoft.forwarderplus.entity.Port;
+import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;

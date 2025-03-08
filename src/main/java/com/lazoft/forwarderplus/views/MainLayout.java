@@ -4,7 +4,6 @@ import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
 import com.lazoft.forwarderplus.views.blmanager.BLCreateView;
-import com.lazoft.forwarderplus.views.blmanager.BLCreationDialog;
 import com.lazoft.forwarderplus.views.configviews.DataConfigurationView;
 import com.lazoft.forwarderplus.views.configviews.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;

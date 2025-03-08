@@ -1,7 +1,5 @@
 package com.lazoft.forwarderplus.enums;
 
-import com.lazoft.forwarderplus.entity.Transaction;
-
 public enum TransactionType {
     INCOME,
     EXPENSE,
