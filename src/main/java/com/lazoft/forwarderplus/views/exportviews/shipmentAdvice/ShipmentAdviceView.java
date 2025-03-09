@@ -256,6 +256,7 @@ public class ShipmentAdviceView extends Div {
         grid.addComponentColumn(shipment -> {
             H5 statusLabel = new H5(shipment.getStatus().getStatus());
             statusLabel.getStyle().set("font-weight", "bold");
+            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
             return statusLabel;
         }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);

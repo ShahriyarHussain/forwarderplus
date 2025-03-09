@@ -7,6 +7,7 @@ import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.services.BillOfLadingService;
 import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.services.ShipmentService;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -52,12 +54,15 @@ import java.util.List;
 public class BLCreateView extends Div {
 
     private final ShipmentService shipmentService;
+    private final BillOfLadingService billOfLadingService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
-    public BLCreateView(ShipmentService shipmentService, PortService portService, CarrierService carrierService) {
+    public BLCreateView(ShipmentService shipmentService, BillOfLadingService billOfLadingService,
+                        PortService portService, CarrierService carrierService) {
         this.shipmentService = shipmentService;
+        this.billOfLadingService = billOfLadingService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -237,7 +242,12 @@ public class BLCreateView extends Div {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
-        grid.addColumn(shipment -> shipment.getStatus().getStatus()).setHeader("Status").setAutoWidth(true).setSortable(true);
+        grid.addComponentColumn(shipment -> {
+            H5 statusLabel = new H5(shipment.getStatus().getStatus());
+            statusLabel.getStyle().set("font-weight", "bold");
+            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
+            return statusLabel;
+        }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
@@ -261,7 +271,7 @@ public class BLCreateView extends Div {
     private Button getBLCreationButton(Shipment shipment) {
         Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new BLCreationDialog(shipment).open());
+        create.addClickListener(event -> new BLCreationDialog(shipment, billOfLadingService).open());
         return create;
     }
 }

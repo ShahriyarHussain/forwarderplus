@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,8 +27,11 @@ public class Shipment {
     private String mblNo;
     private String hblNo;
 
+    @Length(max = 4000)
     private String goodsDescription;
+    @Length(max = 4000)
     private String shipperMarks;
+
     private String clientInvoiceNo;
     private String commodity;
     private int numOfContainers;

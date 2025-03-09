@@ -151,7 +151,7 @@ public class ShipmentInvoiceView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, status, containerSize, carrier, createDateFilter(), actions);
+            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, containerSize, status, carrier, createDateFilter(), actions);
         }
 
         private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
@@ -254,6 +254,7 @@ public class ShipmentInvoiceView extends Div {
         grid.addComponentColumn(shipment -> {
             H5 statusLabel = new H5(shipment.getStatus().getStatus());
             statusLabel.getStyle().set("font-weight", "bold");
+            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
             return statusLabel;
         }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
