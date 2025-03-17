@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.configviews;
+package com.lazoft.forwarderplus.views.config;
 
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;

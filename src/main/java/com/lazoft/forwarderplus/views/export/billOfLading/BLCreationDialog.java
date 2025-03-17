@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.billOfLading;
+package com.lazoft.forwarderplus.views.export.billOfLading;
 
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.services.BillOfLadingService;
@@ -103,8 +103,8 @@ public class BLCreationDialog extends Dialog {
         billOfLading.setNotifyParty(getClientDetailsForBl(shipment.getNotifyParty()));
         billOfLading.setExportReference(DateUtil.getCurrentDateAsString());
         Schedule schedule = shipment.getSchedule();
-        billOfLading.setVesselVoyage(schedule == null ? "" : StringUtils.defaultString(shipment.getSchedule().getPortOfLoadingVesselName()));
-        billOfLading.setMotherVessel(schedule == null ? "" : StringUtils.defaultString(shipment.getSchedule().getMotherVesselName()));
+        billOfLading.setVesselVoyage(schedule == null ? StringUtils.EMPTY : StringUtils.defaultString(shipment.getSchedule().getPortOfLoadingVesselName()));
+        billOfLading.setMotherVessel(schedule == null ? StringUtils.EMPTY : StringUtils.defaultString(shipment.getSchedule().getMotherVesselName()));
         billOfLading.setPortOfLoading(shipment.getBooking().getLoadingPort().getPortCityAndCountry());
         billOfLading.setPortOfDischarge(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
         billOfLading.setPlaceOfDelivery(shipment.getBooking().getDestinationPort().getPortCityAndCountry());
@@ -114,11 +114,14 @@ public class BLCreationDialog extends Dialog {
         billOfLading.setBlNo(StringUtils.defaultIfBlank(shipment.getHblNo(), StringUtils.defaultString(shipment.getMblNo())));
         billOfLading.setMblNo(StringUtils.defaultString(shipment.getMblNo()));
         billOfLading.setBookingNo(shipment.getBooking().getBookingNo());
-
         billOfLading.setContainer(shipment.getBooking().getNumOfContainers() + " X " + shipment.getBooking().getContainerSize().getContainerSize());
-        billOfLading.setFreightTerm(shipment.getShippingTerm() == null ? "" : shipment.getShippingTerm().toString());
+        billOfLading.setFreightTerm(shipment.getShippingTerm() == null ? StringUtils.EMPTY : shipment.getShippingTerm().toString());
 
         if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
+            billOfLading.setGrossWeight(StringUtils.EMPTY);
+            billOfLading.setQuantity(StringUtils.EMPTY);
+            billOfLading.setContainerNumbers(StringUtils.EMPTY);
+            billOfLading.setContainerSeals(StringUtils.EMPTY);
             return;
         }
 
@@ -221,9 +224,9 @@ public class BLCreationDialog extends Dialog {
         bookingNo.setValue(billOfLading.getBookingNo());
         container.setValue(billOfLading.getContainer());
         freightTerm.setValue(billOfLading.getFreightTerm());
-        grossWeight.setValue(billOfLading.getGrossWeight());
+        grossWeight.setValue(StringUtils.defaultString(billOfLading.getGrossWeight()));
         measurement.setValue(StringUtils.defaultString(billOfLading.getMeasurement()));
-        quantity.setValue(billOfLading.getQuantity());
+        quantity.setValue(StringUtils.defaultString(billOfLading.getQuantity()));
         containerNumbers.setValue(billOfLading.getContainerNumbers());
         containerSeals.setValue(billOfLading.getContainerSeals());
         remarks.setValue(StringUtils.defaultString(billOfLading.getRemarks()));

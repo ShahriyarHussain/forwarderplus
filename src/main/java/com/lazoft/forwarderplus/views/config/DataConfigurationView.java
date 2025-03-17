@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.configviews;
+package com.lazoft.forwarderplus.views.config;
 
 import com.lazoft.forwarderplus.entity.BankDetails;
 import com.lazoft.forwarderplus.entity.Carrier;
@@ -10,10 +10,10 @@ import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.commonViews.BankDetailsCreationDialog;
-import com.lazoft.forwarderplus.views.commonViews.CarrierCreationDialog;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
-import com.lazoft.forwarderplus.views.commonViews.PortCreationDialog;
+import com.lazoft.forwarderplus.views.common.BankDetailsCreationDialog;
+import com.lazoft.forwarderplus.views.common.CarrierCreationDialog;
+import com.lazoft.forwarderplus.views.common.ClientCreationDialog;
+import com.lazoft.forwarderplus.views.common.PortCreationDialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;

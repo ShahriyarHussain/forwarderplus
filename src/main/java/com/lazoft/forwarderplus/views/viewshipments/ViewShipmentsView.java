@@ -1,17 +1,18 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.entity.Booking;
-import com.lazoft.forwarderplus.entity.Carrier;
-import com.lazoft.forwarderplus.entity.Port;
-import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.services.ReminderService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
+import com.lazoft.forwarderplus.views.common.ReminderCreationDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
@@ -21,14 +22,16 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -52,12 +55,24 @@ import java.util.List;
 public class ViewShipmentsView extends Div {
 
     private final ShipmentService shipmentService;
+    private final ReminderService reminderService;
     private Grid<Shipment> grid;
+
+    private final User user;
 
     private final Filters filters;
 
-    public ViewShipmentsView(PortService portService, ShipmentService shipmentService, CarrierService carrierService) {
+    public ViewShipmentsView(PortService portService, ShipmentService shipmentService, ReminderService reminderService,
+                             CarrierService carrierService, AuthenticatedUser authenticatedUser) {
+        if (authenticatedUser.get().isEmpty()) {
+            NotificationUtil.getNotification("Session Lost. Reload page or login again", "", false,
+                    NotificationVariant.LUMO_WARNING, 2000).open();
+            this.user = null;
+        } else {
+            this.user = authenticatedUser.get().get();
+        }
         this.shipmentService = shipmentService;
+        this.reminderService = reminderService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -67,30 +82,6 @@ public class ViewShipmentsView extends Div {
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
-    }
-
-    private HorizontalLayout createMobileFilters() {
-        // Mobile version
-        HorizontalLayout mobileFilters = new HorizontalLayout();
-        mobileFilters.setWidthFull();
-        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
-                LumoUtility.AlignItems.CENTER);
-        mobileFilters.addClassName("mobile-filters");
-
-        Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
-        mobileFilters.add(mobileIcon, filtersHeading);
-        mobileFilters.setFlexGrow(1, filtersHeading);
-        mobileFilters.addClickListener(e -> {
-            if (filters.getClassNames().contains("visible")) {
-                filters.removeClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
-            } else {
-                filters.addClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
-            }
-        });
-        return mobileFilters;
     }
 
     public static class Filters extends Div implements Specification<Shipment> {
@@ -247,29 +238,11 @@ public class ViewShipmentsView extends Div {
             }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         }
-
-        private String ignoreCharacters(String characters, String in) {
-            String result = in;
-            for (int i = 0; i < characters.length(); i++) {
-                result = result.replace("" + characters.charAt(i), "");
-            }
-            return result;
-        }
-
-        private Expression<String> ignoreCharacters(String characters, CriteriaBuilder criteriaBuilder,
-                Expression<String> inExpression) {
-            Expression<String> expression = inExpression;
-            for (int i = 0; i < characters.length(); i++) {
-                expression = criteriaBuilder.function("replace", String.class, expression,
-                        criteriaBuilder.literal(characters.charAt(i)), criteriaBuilder.literal(""));
-            }
-            return expression;
-        }
-
     }
 
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
@@ -279,19 +252,32 @@ public class ViewShipmentsView extends Div {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " -> " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
-        grid.addColumn("status").setAutoWidth(true).setSortable(true);
+        grid.addComponentColumn(shipment -> {
+            H5 statusLabel = new H5(shipment.getStatus().getStatus());
+            statusLabel.getStyle().set("font-weight", "bold");
+            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
+            return statusLabel;
+        }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
+        grid.addComponentColumn(this::getReminderCreationButton).setTextAlign(ColumnTextAlign.CENTER)
+                .setHeader("Edit Advice").setAutoWidth(true);
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());
-//        grid.setItems(shipmentService.getAll());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
         return grid;
+    }
+
+    private Button getReminderCreationButton(Shipment shipment) {
+        Button create = new Button(VaadinIcon.EDIT.create());
+        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        create.addClickListener(event -> new ReminderCreationDialog(reminderService, user, shipment.getShipmentId()).open());
+        return create;
     }
 
     private void refreshGrid() {

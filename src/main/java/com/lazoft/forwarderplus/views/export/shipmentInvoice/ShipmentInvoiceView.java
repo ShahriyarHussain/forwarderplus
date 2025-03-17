@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
+package com.lazoft.forwarderplus.views.export.shipmentInvoice;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
@@ -45,18 +45,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Shipment Advice")
-@Route(value = "shipment-advice", layout = MainLayout.class)
+@PageTitle("Shipment Invoice")
+@Route(value = "shipment-invoice", layout = MainLayout.class)
 @RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
-public class ShipmentAdviceView extends Div {
+public class ShipmentInvoiceView extends Div {
 
     private final ShipmentService shipmentService;
-    private final ScheduleService scheduleService;
-    private final CarrierService carrierService;
-    private final ClientService clientService;
-    private final PortService portService;
     private final UserService userService;
+    private final InvoiceService invoiceService;
+    private final BankDetailsService bankDetailsService;
+    private final CurrencyDataService currencyDataService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -64,15 +63,14 @@ public class ShipmentAdviceView extends Div {
 
     private final Filters filters;
 
-    public ShipmentAdviceView(PortService portService, ShipmentService shipmentService, ClientService clientService,
-                              ScheduleService scheduleService, CarrierService carrierService, UserService userService,
-                              AuthenticatedUser authenticatedUser) {
+    public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
+                               UserService userService, BankDetailsService bankDetailsService, CarrierService carrierService,
+                               CurrencyDataService currencyDataService, AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
-        this.clientService = clientService;
-        this.scheduleService = scheduleService;
-        this.carrierService = carrierService;
-        this.portService = portService;
+        this.invoiceService = invoiceService;
         this.userService = userService;
+        this.bankDetailsService = bankDetailsService;
+        this.currencyDataService = currencyDataService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
@@ -153,7 +151,7 @@ public class ShipmentAdviceView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, status, createDateFilter(), actions);
+            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, containerSize, status, carrier, createDateFilter(), actions);
         }
 
         private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
@@ -268,7 +266,7 @@ public class ShipmentAdviceView extends Div {
         grid.addItemDoubleClickListener(event -> getCreateButtonForShipment(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(PageRequest.of(query.getPage(), query.getPageSize(),
-                        VaadinSpringDataHelpers.toSpringDataSort(query)), filters).stream());
+                VaadinSpringDataHelpers.toSpringDataSort(query)), filters).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
@@ -278,8 +276,8 @@ public class ShipmentAdviceView extends Div {
     private Button getCreateButtonForShipment(Shipment shipment) {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentAdviceDialog(shipmentService, scheduleService,
-                carrierService, clientService, portService, userService, shipment, authenticatedUser).open());
+        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService,
+                shipmentService, bankDetailsService, currencyDataService, authenticatedUser, shipment).open());
         return create;
     }
 

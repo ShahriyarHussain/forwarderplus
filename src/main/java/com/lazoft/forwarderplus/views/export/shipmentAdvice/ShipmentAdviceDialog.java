@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
+package com.lazoft.forwarderplus.views.export.shipmentAdvice;
 
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
@@ -8,8 +8,8 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
-import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
+import com.lazoft.forwarderplus.views.common.ClientCreationDialog;
+import com.lazoft.forwarderplus.views.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.shipmentAdvice;
+package com.lazoft.forwarderplus.views.export.shipmentAdvice;
 
 import com.lazoft.forwarderplus.entity.ContainerDetails;
 import com.lazoft.forwarderplus.entity.Shipment;

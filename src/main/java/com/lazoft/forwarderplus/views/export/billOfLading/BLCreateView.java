@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.shipmentInvoice;
+package com.lazoft.forwarderplus.views.export.billOfLading;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
@@ -7,8 +7,10 @@ import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
-import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.*;
+import com.lazoft.forwarderplus.services.BillOfLadingService;
+import com.lazoft.forwarderplus.services.CarrierService;
+import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -26,7 +28,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,42 +41,32 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Shipment Invoice")
-@Route(value = "shipment-invoice", layout = MainLayout.class)
+@PageTitle("Create B/L")
+@Route(value = "create-bl", layout = MainLayout.class)
 @RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
-public class ShipmentInvoiceView extends Div {
+public class BLCreateView extends Div {
 
     private final ShipmentService shipmentService;
-    private final UserService userService;
-    private final InvoiceService invoiceService;
-    private final BankDetailsService bankDetailsService;
-    private final CurrencyDataService currencyDataService;
-
-    private final AuthenticatedUser authenticatedUser;
-
+    private final BillOfLadingService billOfLadingService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
-    public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
-                               UserService userService, BankDetailsService bankDetailsService, CarrierService carrierService,
-                               CurrencyDataService currencyDataService, AuthenticatedUser authenticatedUser) {
+    public BLCreateView(ShipmentService shipmentService, BillOfLadingService billOfLadingService,
+                        PortService portService, CarrierService carrierService) {
         this.shipmentService = shipmentService;
-        this.invoiceService = invoiceService;
-        this.userService = userService;
-        this.bankDetailsService = bankDetailsService;
-        this.currencyDataService = currencyDataService;
-        this.authenticatedUser = authenticatedUser;
+        this.billOfLadingService = billOfLadingService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new Filters(this::refreshGrid, portService, carrierService);
+        filters = new Filters(this::refreshGrid, carrierService, portService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -96,7 +87,7 @@ public class ShipmentInvoiceView extends Div {
         private final DatePicker createFromDate = new DatePicker("Created Date");
         private final DatePicker createdToDate = new DatePicker();
 
-        public Filters(Runnable onSearch, PortService portService, CarrierService carrierService) {
+        public Filters(Runnable onSearch, CarrierService carrierService, PortService portService) {
             List<Port> ports = portService.getAllPorts();
             List<Carrier> carriers = carrierService.getAllCarriers();
 
@@ -151,7 +142,7 @@ public class ShipmentInvoiceView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, containerSize, status, carrier, createDateFilter(), actions);
+            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, status, createDateFilter(), actions);
         }
 
         private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
@@ -186,14 +177,14 @@ public class ShipmentInvoiceView extends Div {
                         bookingJoin.get("bookingNo")), "%" + bookingNoLowerCase + "%");
                 predicates.add(bookingNoMatch);
             }
-            if (!status.isEmpty()) {
+            if (!blNo.isEmpty()) {
                 ShipmentStatus shipmentStatus = status.getValue();
                 Predicate statusMatch = criteriaBuilder.equal(root.get("status"), shipmentStatus);
                 predicates.add(statusMatch);
             }
             if (!blNo.isEmpty()) {
-                String blNoValue = blNo.getValue().toLowerCase();
-                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + blNoValue + "%");
+                String carrierId = blNo.getValue().toLowerCase();
+                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + carrierId + "%");
                 predicates.add(blMatch);
             }
             if (!portOfLoading.isEmpty()) {
@@ -213,7 +204,7 @@ public class ShipmentInvoiceView extends Div {
             if (!carrier.isEmpty()) {
                 long carrierId = carrier.getValue().getId();
                 Join<Shipment, Carrier> carrierJoin = root.join("carrier");
-                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"),  carrierId);
+                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"), carrierId);
                 predicates.add(carrierMatch);
             }
             if (!commodity.isEmpty()) {
@@ -239,9 +230,9 @@ public class ShipmentInvoiceView extends Div {
         }
     }
 
+
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
-        grid.getStyle().set("hover", "cursor");
         grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
@@ -260,29 +251,27 @@ public class ShipmentInvoiceView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
-        grid.addComponentColumn(this::getCreateButtonForShipment).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Edit Advice").setAutoWidth(true);
-        grid.addItemDoubleClickListener(event -> getCreateButtonForShipment(event.getItem()).click());
+        grid.addComponentColumn(this::getBLCreationButton).setTextAlign(ColumnTextAlign.CENTER)
+                .setHeader("Generate B/L").setAutoWidth(true);
+        grid.addItemDoubleClickListener(event -> getBLCreationButton(event.getItem()).click());
 
-        grid.setItems(query -> shipmentService.getShipmentsByFilter(PageRequest.of(query.getPage(), query.getPageSize(),
-                VaadinSpringDataHelpers.toSpringDataSort(query)), filters).stream());
+        grid.setItems(query -> shipmentService.getShipmentsByFilter(
+                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
+                filters).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
 
         return grid;
     }
 
-    private Button getCreateButtonForShipment(Shipment shipment) {
-        Button create = new Button(VaadinIcon.EDIT.create());
-        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService,
-                shipmentService, bankDetailsService, currencyDataService, authenticatedUser, shipment).open());
-        return create;
-    }
-
-
     public void refreshGrid() {
         grid.getDataProvider().refreshAll();
+    }
+
+    private Button getBLCreationButton(Shipment shipment) {
+        Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
+        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        create.addClickListener(event -> new BLCreationDialog(shipment, billOfLadingService).open());
+        return create;
     }
 }

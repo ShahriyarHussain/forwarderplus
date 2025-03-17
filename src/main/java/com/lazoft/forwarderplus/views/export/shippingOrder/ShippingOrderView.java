@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.billOfLading;
+package com.lazoft.forwarderplus.views.export.shippingOrder;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
@@ -6,16 +6,12 @@ import com.lazoft.forwarderplus.entity.Carrier;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
-import com.lazoft.forwarderplus.enums.ShipmentStatus;
-import com.lazoft.forwarderplus.services.BillOfLadingService;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.security.AuthenticatedUser;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -36,7 +32,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
@@ -47,26 +42,30 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@PageTitle("Create B/L")
-@Route(value = "create-bl", layout = MainLayout.class)
+@PageTitle("Shipping Order")
+@Route(value = "shipping-order", layout = MainLayout.class)
 @RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
-public class BLCreateView extends Div {
+public class ShippingOrderView extends Div {
 
     private final ShipmentService shipmentService;
-    private final BillOfLadingService billOfLadingService;
+    private final AuthenticatedUser authenticatedUser;
+    private final ClientService clientService;
+    private final UserService userService;
     private Grid<Shipment> grid;
 
     private final Filters filters;
 
-    public BLCreateView(ShipmentService shipmentService, BillOfLadingService billOfLadingService,
-                        PortService portService, CarrierService carrierService) {
+    public ShippingOrderView(PortService portService, ShipmentService shipmentService, CarrierService carrierService,
+                             AuthenticatedUser authenticatedUser, ClientService clientService, UserService userService) {
         this.shipmentService = shipmentService;
-        this.billOfLadingService = billOfLadingService;
+        this.authenticatedUser = authenticatedUser;
+        this.clientService = clientService;
+        this.userService = userService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new Filters(this::refreshGrid, carrierService, portService);
+        filters = new Filters(this::refreshGrid, portService, carrierService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -76,18 +75,16 @@ public class BLCreateView extends Div {
 
     public static class Filters extends Div implements Specification<Shipment> {
 
-        private final TextField blNo = new TextField("HBL/MBL No:");
         private final TextField bookingNo = new TextField("Booking No");
         private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
         private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
         private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
         private final ComboBox<String> commodity = new ComboBox<>("Commodity");
-        private final ComboBox<ShipmentStatus> status = new ComboBox<>("Status");
         private final ComboBox<ContainerSize> containerSize = new ComboBox<>("Container Size");
         private final DatePicker createFromDate = new DatePicker("Created Date");
         private final DatePicker createdToDate = new DatePicker();
 
-        public Filters(Runnable onSearch, CarrierService carrierService, PortService portService) {
+        public Filters(Runnable onSearch, PortService portService, CarrierService carrierService) {
             List<Port> ports = portService.getAllPorts();
             List<Carrier> carriers = carrierService.getAllCarriers();
 
@@ -97,19 +94,16 @@ public class BLCreateView extends Div {
                     LumoUtility.BoxSizing.BORDER);
 
             bookingNo.setPlaceholder("Booking No");
-            bookingNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));
-
-            blNo.setPlaceholder("HBL/MBL No");
-            blNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));
+            bookingNo.addKeyDownListener(keyDownEvent -> {
+                if (keyDownEvent.getKey() == Key.ENTER || keyDownEvent.getKey() == Key.NUMPAD_ENTER) {
+                    onSearch.run();
+                }
+            });
 
             containerSize.setItems(ContainerSize.values());
             containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
             commodity.setItems(CustomItemUtil.getItemsListFromFile("commodities").stream().map(CustomItem::getName).toList());
-
-            status.setItems(ShipmentStatus.values());
-            status.setItemLabelGenerator(ShipmentStatus::getStatus);
-
             carrier.setItems(carriers);
             carrier.setItemLabelGenerator(Carrier::getName);
 
@@ -123,7 +117,6 @@ public class BLCreateView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 bookingNo.clear();
-                blNo.clear();
                 createFromDate.clear();
                 createdToDate.clear();
                 portOfLoading.setValue(portOfLoading.getEmptyValue());
@@ -131,7 +124,6 @@ public class BLCreateView extends Div {
                 containerSize.setValue(containerSize.getEmptyValue());
                 carrier.clear();
                 commodity.clear();
-                status.clear();
                 onSearch.run();
             });
             Button searchBtn = new Button("Search");
@@ -142,13 +134,7 @@ public class BLCreateView extends Div {
             actions.addClassName(LumoUtility.Gap.SMALL);
             actions.addClassName("actions");
 
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, status, createDateFilter(), actions);
-        }
-
-        private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
-            if (keyDownEvent.getKey() == Key.ENTER || keyDownEvent.getKey() == Key.NUMPAD_ENTER) {
-                onSearch.run();
-            }
+            add(bookingNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, createDateFilter(), actions);
         }
 
         private Component createDateFilter() {
@@ -166,7 +152,7 @@ public class BLCreateView extends Div {
         }
 
         @Override
-        public Predicate toPredicate(Root<Shipment> root, @Nonnull CriteriaQuery<?> query, @Nonnull CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<Shipment> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
             root.fetch("schedule", JoinType.LEFT);
 
@@ -176,16 +162,6 @@ public class BLCreateView extends Div {
                 Predicate bookingNoMatch = criteriaBuilder.like(criteriaBuilder.lower(
                         bookingJoin.get("bookingNo")), "%" + bookingNoLowerCase + "%");
                 predicates.add(bookingNoMatch);
-            }
-            if (!blNo.isEmpty()) {
-                ShipmentStatus shipmentStatus = status.getValue();
-                Predicate statusMatch = criteriaBuilder.equal(root.get("status"), shipmentStatus);
-                predicates.add(statusMatch);
-            }
-            if (!blNo.isEmpty()) {
-                String carrierId = blNo.getValue().toLowerCase();
-                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + carrierId + "%");
-                predicates.add(blMatch);
             }
             if (!portOfLoading.isEmpty()) {
                 long portId = portOfLoading.getValue().getId();
@@ -204,7 +180,7 @@ public class BLCreateView extends Div {
             if (!carrier.isEmpty()) {
                 long carrierId = carrier.getValue().getId();
                 Join<Shipment, Carrier> carrierJoin = root.join("carrier");
-                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"), carrierId);
+                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"),  carrierId);
                 predicates.add(carrierMatch);
             }
             if (!commodity.isEmpty()) {
@@ -230,7 +206,6 @@ public class BLCreateView extends Div {
         }
     }
 
-
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
         grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
@@ -251,9 +226,9 @@ public class BLCreateView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addComponentColumn(this::getBLCreationButton).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Generate B/L").setAutoWidth(true);
-        grid.addItemDoubleClickListener(event -> getBLCreationButton(event.getItem()).click());
+        grid.addComponentColumn(this::getCreateShippingOrderButton).setTextAlign(ColumnTextAlign.CENTER)
+                .setHeader("Shipping Order").setAutoWidth(true);
+        grid.addItemDoubleClickListener(event -> getCreateShippingOrderButton(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -268,10 +243,11 @@ public class BLCreateView extends Div {
         grid.getDataProvider().refreshAll();
     }
 
-    private Button getBLCreationButton(Shipment shipment) {
-        Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
+    private Button getCreateShippingOrderButton(Shipment shipment) {
+        Button create = new Button(LineAwesomeIcon.PLUS_SOLID.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new BLCreationDialog(shipment, billOfLadingService).open());
+        create.addClickListener(event -> new ShippingOrderDialog(
+                shipment, authenticatedUser, clientService, shipmentService, userService, this).open());
         return create;
     }
 }

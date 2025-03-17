@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.commonViews;
+package com.lazoft.forwarderplus.views.common;
 
 import com.lazoft.forwarderplus.entity.Carrier;
 import com.lazoft.forwarderplus.services.CarrierService;

@@ -45,8 +45,6 @@ public class Shipment {
     @ManyToOne
     @JoinColumn(name = "id")
     private Carrier carrier;
-//    @ManyToOne
-//    private Commodity commodity;
     @ManyToOne
     private User createdBy;
     @ManyToOne
@@ -68,6 +66,4 @@ public class Shipment {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bookingNo", nullable = false)
     private Booking booking;
-
-
 }

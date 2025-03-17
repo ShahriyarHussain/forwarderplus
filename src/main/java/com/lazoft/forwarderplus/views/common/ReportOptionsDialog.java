@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.commonViews;
+package com.lazoft.forwarderplus.views.common;
 
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.BankDetails;

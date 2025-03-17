@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews;
+package com.lazoft.forwarderplus.views.export;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.dto.xml.CustomItems;
@@ -13,7 +13,7 @@ import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.commonViews.ClientCreationDialog;
+import com.lazoft.forwarderplus.views.common.ClientCreationDialog;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;

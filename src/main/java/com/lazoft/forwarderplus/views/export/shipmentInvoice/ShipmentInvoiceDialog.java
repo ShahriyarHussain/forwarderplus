@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.exportviews.shipmentInvoice;
+package com.lazoft.forwarderplus.views.export.shipmentInvoice;
 
 import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
@@ -12,7 +12,7 @@ import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.util.ReportUtil;
-import com.lazoft.forwarderplus.views.commonViews.ReportOptionsDialog;
+import com.lazoft.forwarderplus.views.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
