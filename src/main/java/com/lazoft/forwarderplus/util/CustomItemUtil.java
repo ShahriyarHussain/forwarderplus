@@ -15,6 +15,8 @@ import java.util.List;
 @Slf4j
 public class CustomItemUtil {
 
+    private CustomItemUtil() {}
+
     public static JAXBContext getContext() {
         try {
             return JAXBContext.newInstance(CustomItems.class);
@@ -50,7 +52,7 @@ public class CustomItemUtil {
         }
         try {
             CustomItems categories = (CustomItems) context.createUnmarshaller().unmarshal(customItemFile);
-            return categories.getCategories();
+            return categories == null || categories.getCategories() == null ? new LinkedList<>() : categories.getCategories();
         } catch (JAXBException e) {
             log.error(e.getMessage(), e);
         }

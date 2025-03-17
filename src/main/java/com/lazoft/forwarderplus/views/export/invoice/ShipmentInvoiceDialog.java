@@ -1,17 +1,15 @@
-package com.lazoft.forwarderplus.views.export.shipmentInvoice;
+package com.lazoft.forwarderplus.views.export.invoice;
 
 import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
+import com.lazoft.forwarderplus.enums.IdTypes;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
-import com.lazoft.forwarderplus.util.AmountFormatter;
-import com.lazoft.forwarderplus.util.DateUtil;
-import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.util.ReportUtil;
+import com.lazoft.forwarderplus.util.*;
 import com.lazoft.forwarderplus.views.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -34,8 +32,6 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -52,9 +48,10 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final BankDetailsService bankDetailsService;
     private final CurrencyDataService currencyDataService;
     private final ShipmentService shipmentService;
+    private final IdGenerationService idGenerationService;
 
     private final Button saveButton = new Button("Save");
-    private final Button downloadButton = new Button("Download as PDF");
+    private final Button downloadButton = new Button("Download as PDF", LineAwesomeIcon.PRINT_SOLID.create());
     private final Button closeButton = new Button("Close");
 
     private final TextField invoiceNo = new TextField("Shipment Invoice No");
@@ -94,7 +91,8 @@ public class ShipmentInvoiceDialog extends Dialog {
 
     public ShipmentInvoiceDialog(InvoiceService invoiceService, UserService userService, ShipmentService shipmentService,
                                  BankDetailsService bankDetailsService, CurrencyDataService currencyDataService,
-                                 AuthenticatedUser authenticatedUser, Shipment shipment) {
+                                 IdGenerationService idGenerationService, AuthenticatedUser authenticatedUser, Shipment shipment) {
+        this.idGenerationService = idGenerationService;
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
             close();
@@ -112,7 +110,7 @@ public class ShipmentInvoiceDialog extends Dialog {
 
         this.setWidth("70%");
         this.setHeight("85%");
-        this.setHeaderTitle("Create ShipmentInvoice");
+        this.setHeaderTitle("Create Shipment Invoice");
         this.setCloseOnOutsideClick(false);
 
         setUpFormLayout();
@@ -151,6 +149,7 @@ public class ShipmentInvoiceDialog extends Dialog {
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         generateInvoiceNo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        generateInvoiceNo.setTooltipText("Generate New Invoice No");
 
         respondent.setItemLabelGenerator(item -> item.getName() + " - " + item.getDesignation());
         bankDetails.setItemLabelGenerator(bank -> bank.getBankName() + "," + bank.getAccName() + " - " + bank.getAccNo());
@@ -187,6 +186,11 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private void setListeners() {
+        generateInvoiceNo.addClickListener(event -> {
+            IdGeneration idGeneration = idGenerationService.getIncrementedId("Invoice No", IdTypes.SHIPMENT_INVOICE_NO);
+            invoiceNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
+        });
+
         saveButton.addClickListener(event -> {
             if (isInvalidEntriesForSave()) {
                 NotificationUtil.getNotification("Please properly provide marked fields", "", false,
@@ -219,9 +223,9 @@ public class ShipmentInvoiceDialog extends Dialog {
 
         downloadButton.addClickListener(event -> {
             List<String> errors = findErrorsForReportData();
-            Dialog dialog = new Dialog();
-            dialog.getFooter().add(new Button("Close", e -> dialog.close()));
             if (!errors.isEmpty()) {
+                Dialog dialog = new Dialog();
+                dialog.getFooter().add(new Button("Close", e -> dialog.close()));
                 dialog.setHeaderTitle("Errors in Data");
                 ListBox<String> listBox = new ListBox<>();
                 listBox.setItems(errors);
@@ -463,7 +467,9 @@ public class ShipmentInvoiceDialog extends Dialog {
     private Map<String, Object> prepareParamsForShipmentInvoice() {
         final Map<String, Object> parameters = new HashMap<>();
 
-        parameters.put("LOGO_URL", ReportUtil.image_path);
+        parameters.put("LOGO_URL", Constants.IMAGE_PATH);
+//        parameters.put("REPORT_LOCALE", Locale.ENGLISH);
+
 
         parameters.put("INVOICE_NO", shipmentInvoice.getInvoiceNo());
         parameters.put("INVOICE_DATE", DateUtil.getDateAsString(invoiceDate.getValue()));
@@ -514,36 +520,20 @@ public class ShipmentInvoiceDialog extends Dialog {
             InvoiceItemReportDto reportDto = new InvoiceItemReportDto();
             reportDto.setSlNo(item.getSl());
             reportDto.setDescription(item.getDescription());
-            reportDto.setQuantityWithUnit(item.getQuantity() + " " + item.getItemUnit());
-            String currSymbol = item.isForeignCurrency() ? foreignCurrComboBox.getValue().getSymbol() :
-                    localCurrencyComboBox.getValue().getSymbol();
+            reportDto.setQuantityWithUnit(item.getQuantity() + (StringUtils.isBlank(item.getItemUnit()) ? "" : " X " + item.getItemUnit()));
+            AmountCurrency currency = item.isForeignCurrency() ? foreignCurrComboBox.getValue() :
+                    localCurrencyComboBox.getValue();
+            reportDto.setRate(currency.getSymbol() + AmountFormatter.getFormattedAmount(item.getPrice(), currency));
 
             if (item.isForeignCurrency()) {
-                reportDto.setTotalInForeignCurr(currSymbol + " " + AmountFormatter
-                        .getFormattedAmount(item.getSubTotalInForeignCurr(), foreignCurrComboBox.getValue()));
+                reportDto.setTotalInForeignCurr(currency.getSymbol() + AmountFormatter.getFormattedAmount(
+                        item.getSubTotalInForeignCurr(), foreignCurrComboBox.getValue()));
             }
-            reportDto.setSubtotal(localCurrencyComboBox.getValue().getSymbol() + " " + AmountFormatter
-                    .getFormattedAmount(item.getSubTotalInLocalCurr(), foreignCurrComboBox.getValue()));
-            reportDto.setRate(currSymbol + item.getPrice());
+            reportDto.setSubtotal(localCurrencyComboBox.getValue().getSymbol() + AmountFormatter.getFormattedAmount(
+                    item.getSubTotalInLocalCurr(), localCurrencyComboBox.getValue()));
             dtoList.add(reportDto);
         }
-
-        JRDataSource dataSource = new JRBeanCollectionDataSource(dtoList);
-        parameters.put("COLLECTION_LIST", dataSource);
-
-
-        BankDetails bankDetails = new BankDetails("test", "test", "test", "test", "test");
-        parameters.put("BANK_NAME", bankDetails.getBankName());
-        parameters.put("AC_NAME", bankDetails.getAccName());
-        parameters.put("AC_NO", bankDetails.getAccNo());
-        parameters.put("ROUTING_NO", bankDetails.getRoutingNo());
-        parameters.put("BRANCH", bankDetails.getBranchName());
-
-        User contactDetails = user;
-        parameters.put("SIGNED_BY", contactDetails.getName());
-        parameters.put("SIGNED_BY_EMAIL", contactDetails.getEmail());
-        parameters.put("SIGNED_BY_CONTACT", contactDetails.getContactNo());
-
+        parameters.put("DTO_ITEMS", dtoList);
         return parameters;
     }
 

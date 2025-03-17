@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.export.shippingOrder;
+package com.lazoft.forwarderplus.views.export.order;
 
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;

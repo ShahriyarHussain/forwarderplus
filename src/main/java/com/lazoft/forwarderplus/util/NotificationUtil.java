@@ -12,6 +12,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
 public class NotificationUtil {
 
+    private NotificationUtil() {}
+
     public static Notification getNotification(String message, String expandedMessage, boolean isExpandable,
                                        NotificationVariant variant, int duration) {
         Notification notification = new Notification();

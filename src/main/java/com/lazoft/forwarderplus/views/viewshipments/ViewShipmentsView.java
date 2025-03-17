@@ -9,6 +9,7 @@ import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.services.ReminderService;
 import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -115,7 +117,7 @@ public class ViewShipmentsView extends Div {
             containerSize.setItems(ContainerSize.values());
             containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
-            commodity.setItems(CustomItemUtil.getItemsListFromFile("commodities").stream().map(CustomItem::getName).toList());
+            commodity.setItems(CustomItemUtil.getItemsListFromFile(Constants.COMMODITIES).stream().map(CustomItem::getName).toList());
 
             status.setItems(ShipmentStatus.values());
             status.setItemLabelGenerator(ShipmentStatus::getStatus);
@@ -253,10 +255,12 @@ public class ViewShipmentsView extends Div {
             return booking.getLoadingPort().getPortCityAndCountry() + " -> " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
         grid.addComponentColumn(shipment -> {
-            H5 statusLabel = new H5(shipment.getStatus().getStatus());
-            statusLabel.getStyle().set("font-weight", "bold");
-            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
-            return statusLabel;
+            Span statusBadge = new Span(shipment.getStatus().getStatus());
+            statusBadge.getElement().getThemeList().add("badge");
+            statusBadge.getStyle().setBackgroundColor(shipment.getStatus().getColor());
+            statusBadge.getStyle().setColor("beige");
+            statusBadge.getStyle().set("font-weight", "bold");
+            return statusBadge;
         }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))

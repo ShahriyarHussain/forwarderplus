@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="shipmentInvoice" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e9a1dcb5-78dc-44eb-9aad-3254286e3581">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoice" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e9a1dcb5-78dc-44eb-9aad-3254286e3581">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="inch"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="inch"/>
@@ -166,6 +166,29 @@
 	<parameter name="COLLECTION_LIST" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource" isForPrompting="false">
 		<defaultValueExpression><![CDATA[null]]></defaultValueExpression>
 	</parameter>
+	<parameter name="SHOW_EMAIL" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_HBL" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_CONSIGNEE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_BANK" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_PAYMENT" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_DESIGNATION" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_PHONE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_DATE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SIGNED_BY_DESIGNATION" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -1163,7 +1186,7 @@
 								<textElement textAlignment="Center" verticalAlignment="Middle">
 									<font fontName="Inter" isBold="true"/>
 								</textElement>
-								<text><![CDATA[Subtotal]]></text>
+								<text><![CDATA[Subtotal In BDT]]></text>
 							</staticText>
 						</jr:columnHeader>
 						<jr:detailCell style="Table 1_TD" height="20">
@@ -1223,38 +1246,20 @@ Chattogram Office: Faruk Chamber, 1403 Mujib Road, Agrabad, Chattogram.]]></text
 		</band>
 	</pageFooter>
 	<summary>
-		<band height="264" splitType="Stretch">
+		<band height="283" splitType="Stretch">
 			<staticText>
-				<reportElement positionType="Float" x="0" y="155" width="555" height="13" uuid="fa669cbb-5d38-4acb-bcff-2fcd43dc4d4d"/>
+				<reportElement positionType="Float" x="0" y="155" width="555" height="13" uuid="fa669cbb-5d38-4acb-bcff-2fcd43dc4d4d">
+					<printWhenExpression><![CDATA[$P{SHOW_PAYMENT}]]></printWhenExpression>
+				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font fontName="Inter" size="8"/>
 				</textElement>
 				<text><![CDATA[We appreciate your kind and early payment. Feel free to contact us for any further queries.]]></text>
 			</staticText>
-			<textField textAdjust="StretchHeight">
-				<reportElement positionType="Float" x="0" y="173" width="553" height="91" uuid="420838bc-0f39-4b05-8f3f-2119006fa91f">
-					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
-				</reportElement>
-				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
-					<pen lineWidth="1.0"/>
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter"/>
-					<paragraph leftIndent="0"/>
-				</textElement>
-				<textFieldExpression><![CDATA["Respectfully" + System.lineSeparator()  + System.lineSeparator() +
-
-$P{SIGNED_BY} + System.lineSeparator() +
-"E-MAIL: " + $P{SIGNED_BY_EMAIL}+ System.lineSeparator() +
-"CELL : " + $P{SIGNED_BY_CONTACT}]]></textFieldExpression>
-			</textField>
 			<staticText>
 				<reportElement x="0" y="50" width="100" height="20" uuid="da0fb742-da8d-4d23-a2b5-2a1ed6c444ad">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" size="11" isBold="true" isItalic="false" isUnderline="true"/>
@@ -1265,6 +1270,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="74" width="194" height="15" uuid="286be54d-8d90-4ae9-88c5-b216dba80e1d">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="63" height="15" uuid="f7e4a5cc-7129-419f-b96b-0797add2f91b">
@@ -1305,6 +1311,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="89" width="194" height="15" uuid="12c87670-a636-4ecb-ae4b-cc78be612b00">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="63" height="15" uuid="3d7a22d3-e96e-4244-8581-b8f5928ff979">
@@ -1344,6 +1351,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="104" width="194" height="15" uuid="677f7a5b-ec73-465f-a6f7-f7bf3c629253">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="63" height="15" uuid="499203b5-21b1-4861-8713-1d690264e474">
@@ -1383,6 +1391,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="119" width="194" height="15" uuid="82a0fc0d-ad95-4b42-9dd6-7475ef1de976">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="63" height="15" uuid="c4e8fbd6-48d0-4d7c-a1e9-91941f0a3e2a">
@@ -1422,6 +1431,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="134" width="194" height="15" uuid="bf3c0a3d-b68c-4b8c-b8cb-0b3f67599547">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="63" height="15" uuid="a4a506b9-5c32-40b5-9e4b-5be10dc7d44d">
@@ -1461,6 +1471,7 @@ $P{SIGNED_BY} + System.lineSeparator() +
 			<frame>
 				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="10" width="554" height="15" uuid="3b0e41fd-43a5-4981-b4dc-a102310e4976">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
 				</reportElement>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="0" width="82" height="15" uuid="ed5f86f4-bb7b-4ce6-9448-e34624c88a4d">
@@ -1500,7 +1511,9 @@ $P{SIGNED_BY} + System.lineSeparator() +
 				</textField>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="25" width="554" height="15" uuid="abe4f526-44b9-4e6f-9e95-ea446bfc6eca"/>
+				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="25" width="554" height="15" uuid="abe4f526-44b9-4e6f-9e95-ea446bfc6eca">
+					<printWhenExpression><![CDATA[$P{SHOW_BANK}]]></printWhenExpression>
+				</reportElement>
 				<textField isBlankWhenNull="true">
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="94" y="0" width="452" height="15" uuid="10d5a321-d98e-409e-9fb3-efe3e9470c15">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1538,6 +1551,59 @@ $P{SIGNED_BY} + System.lineSeparator() +
 					<text><![CDATA[Conversion Rate]]></text>
 				</staticText>
 			</frame>
+			<staticText>
+				<reportElement x="0" y="180" width="80" height="14" uuid="cd60dd4f-e39c-4f2e-a161-5077a29a69d0">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[Respectfully,]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="202" width="555" height="16" uuid="6d0c0f48-3cb2-443f-8f6e-4c830d174cfe">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9" isBold="true"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="221" width="555" height="13" uuid="a8a46393-e651-49ea-a0e8-e1f3ef4d7b75">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_DESIGNATION}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_DESIGNATION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="236" width="555" height="13" uuid="66d1ae0e-d570-49fa-9769-1b6345b0739c">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_EMAIL}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_EMAIL}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="251" width="555" height="15" uuid="68318673-0f93-402e-be5e-55a91b762785">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_PHONE}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_CONTACT}]]></textFieldExpression>
+			</textField>
 		</band>
 	</summary>
 </jasperReport>

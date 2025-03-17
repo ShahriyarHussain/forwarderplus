@@ -1,9 +1,12 @@
 package com.lazoft.forwarderplus.views.common;
 
+import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.BankDetails;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.View;
+import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -14,17 +17,22 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
+import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperRunManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 public class ReportOptionsDialog extends Dialog {
 
@@ -32,7 +40,7 @@ public class ReportOptionsDialog extends Dialog {
     private final Checkbox useConsignee = new Checkbox("Use Consignee instead of Notify ?");
     private final DatePicker reportDate = new DatePicker("Report Date");
     private final Checkbox showRespondentEmail = new Checkbox("Show email?");
-    private final Checkbox hideRespondentPhone = new Checkbox("Hide contact no?");
+    private final Checkbox showRespondentPhone = new Checkbox("Show contact no?");
     private final Checkbox showDesignation = new Checkbox("Show designation?");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
@@ -41,12 +49,15 @@ public class ReportOptionsDialog extends Dialog {
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
 
     private final ReportOptionsDto reportOptionsDto;
+    private final Map<String, Object> parameters;
 
     public ReportOptionsDialog(ReportOptionsDto reportOptionsDto) {
         this.reportOptionsDto = reportOptionsDto;
+        parameters = reportOptionsDto.getParameters();
         setHeaderTitle(reportOptionsDto.getView().getViewName() + " is ready!");
         setAttributes();
         setValuesToFields();
+        setListeners();
 
         getFooter().add(new Button("Close", e -> this.close()));
         FormLayout formLayout = getReportOptionsFormLayout();
@@ -57,10 +68,62 @@ public class ReportOptionsDialog extends Dialog {
         setCloseOnEsc(true);
     }
 
+    private void setListeners() {
+        showRespondentEmail.addValueChangeListener(event -> {
+            parameters.put("SHOW_EMAIL", event.getValue());
+        });
+        useHbl.addValueChangeListener(event -> {
+            parameters.put("SHOW_HBL", event.getValue());
+        });
+        useConsignee.addValueChangeListener(event -> {
+            parameters.put("SHOW_CONSIGNEE", event.getValue());
+        });
+        showBankDetails.addValueChangeListener(event -> {
+            parameters.put("SHOW_BANK", event.getValue());
+        });
+        showEarlyPaymentMessage.addValueChangeListener(event -> {
+            parameters.put("SHOW_PAYMENT", event.getValue());
+        });
+        showDesignation.addValueChangeListener(event -> {
+            parameters.put("SHOW_DESIGNATION", event.getValue());
+        });
+        showRespondentPhone.addValueChangeListener(event -> {
+            parameters.put("SHOW_PHONE", event.getValue());
+        });
+        reportDate.addValueChangeListener(event -> {
+           parameters.put("REPORT_DATE", DateUtil.getDateAsString(event.getValue()));
+        });
+
+        bankDetails.addValueChangeListener(event -> {
+            if (event.getValue() == null) {
+                return;
+            }
+            BankDetails bankDetails = event.getValue();
+            parameters.put("BANK_NAME", bankDetails.getBankName());
+            parameters.put("AC_NAME", bankDetails.getAccName());
+            parameters.put("AC_NO", bankDetails.getAccNo());
+            parameters.put("ROUTING_NO", bankDetails.getRoutingNo());
+            parameters.put("BRANCH", bankDetails.getBranchName());
+            reportOptionsDto.setParameters(parameters);
+        });
+
+        respondent.addValueChangeListener(event -> {
+            if (event.getValue() == null) {
+                return;
+            }
+            User user = event.getValue();
+            parameters.put("SIGNED_BY", user.getName());
+            parameters.put("SIGNED_BY_EMAIL", user.getEmail());
+            parameters.put("SIGNED_BY_CONTACT", user.getContactNo());
+            parameters.put("SIGNED_BY_DESIGNATION", user.getDesignation());
+            reportOptionsDto.setParameters(parameters);
+        });
+    }
+
     private FormLayout getReportOptionsFormLayout() {
         FormLayout layout = new FormLayout();
         layout.add(useHbl, useConsignee, showBankDetails, showEarlyPaymentMessage, showDesignation, showRespondentEmail,
-                hideRespondentPhone, reportDate, bankDetails, respondent);
+                showRespondentPhone, reportDate, bankDetails, respondent);
         layout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
         layout.setColspan(respondent, 2);
         layout.setColspan(bankDetails, 2);
@@ -75,7 +138,21 @@ public class ReportOptionsDialog extends Dialog {
         showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
         respondent.setItems(reportOptionsDto.getUsers());
         respondent.setValue(user);
+        setRespondentValues(user);
         bankDetails.setItems(reportOptionsDto.getBankDetailsList());
+
+
+        if (parameters.get("DTO_ITEMS") != null) {
+            JRDataSource dataSource = new JRBeanCollectionDataSource((List<InvoiceItemReportDto>) parameters.get("DTO_ITEMS"));
+            parameters.put("COLLECTION_LIST", dataSource);
+        }
+    }
+
+    private void setRespondentValues(User user) {
+        parameters.put("SIGNED_BY", user.getName());
+        parameters.put("SIGNED_BY_EMAIL", user.getEmail());
+        parameters.put("SIGNED_BY_CONTACT", user.getContactNo());
+        parameters.put("SIGNED_BY_DESIGNATION", user.getDesignation());
     }
 
     private void setAttributes() {
@@ -94,6 +171,13 @@ public class ReportOptionsDialog extends Dialog {
 
         respondent.setItemLabelGenerator(User::getName);
         bankDetails.setItemLabelGenerator(details-> details.getBankName() + ", A/C: " + details.getAccName());
+
+        useConsignee.setValue(true);
+        showBankDetails.setValue(true);
+        showEarlyPaymentMessage.setValue(true);
+        showDesignation.setValue(true);
+        showRespondentEmail.setValue(true);
+        showRespondentPhone.setValue(true);
     }
 
     private Anchor getReportDownloadAnchor() {
@@ -101,8 +185,9 @@ public class ReportOptionsDialog extends Dialog {
                 (InputStreamFactory) () -> {
                     try (InputStream stream = getClass().getResourceAsStream("/Reports/" + reportOptionsDto.getReportSourceFileName())) {
                         return new ByteArrayInputStream(JasperRunManager
-                                .runReportToPdf(stream, reportOptionsDto.getParameters(), new JREmptyDataSource(1)));
+                                .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
                     } catch (JRException | IOException e) {
+                        NotificationUtil.getNotification("Error while generating report", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 5000).open();
                         throw new RuntimeException(e);
                     }
                 }), "");

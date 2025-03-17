@@ -50,6 +50,8 @@
 	<parameter name="SHIPPING_LINE" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="DATE" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="QUANTITY" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ORIGIN_DOOR_LOCATION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DEST_DOOR_LOCATION" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -644,6 +646,26 @@
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTACT}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="110" y="110" width="444" height="12" uuid="0389821d-b1dd-4369-81fd-3c95f646b050">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Justified">
+					<font fontName="Inter" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{DEST_DOOR_LOCATION}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="110" y="78" width="444" height="12" uuid="f39b8295-d444-4d12-8496-b0db4162bd98">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Justified">
+					<font fontName="Inter" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ORIGIN_DOOR_LOCATION}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

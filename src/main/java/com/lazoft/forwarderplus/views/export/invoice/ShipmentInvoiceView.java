@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.export.shipmentInvoice;
+package com.lazoft.forwarderplus.views.export.invoice;
 
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
@@ -24,7 +24,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -56,6 +56,7 @@ public class ShipmentInvoiceView extends Div {
     private final InvoiceService invoiceService;
     private final BankDetailsService bankDetailsService;
     private final CurrencyDataService currencyDataService;
+    private final IdGenerationService idGenerationService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -65,13 +66,15 @@ public class ShipmentInvoiceView extends Div {
 
     public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
                                UserService userService, BankDetailsService bankDetailsService, CarrierService carrierService,
-                               CurrencyDataService currencyDataService, AuthenticatedUser authenticatedUser) {
+                               CurrencyDataService currencyDataService, IdGenerationService idGenerationService,
+                               AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
         this.invoiceService = invoiceService;
         this.userService = userService;
         this.bankDetailsService = bankDetailsService;
         this.currencyDataService = currencyDataService;
         this.authenticatedUser = authenticatedUser;
+        this.idGenerationService = idGenerationService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -252,10 +255,12 @@ public class ShipmentInvoiceView extends Div {
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();
         }).setHeader("Route").setAutoWidth(true).setSortable(false);
         grid.addComponentColumn(shipment -> {
-            H5 statusLabel = new H5(shipment.getStatus().getStatus());
-            statusLabel.getStyle().set("font-weight", "bold");
-            statusLabel.getStyle().set("color", shipment.getStatus().getColor());
-            return statusLabel;
+            Span statusBadge = new Span(shipment.getStatus().getStatus());
+            statusBadge.getElement().getThemeList().add("badge");
+            statusBadge.getStyle().setBackgroundColor(shipment.getStatus().getColor());
+            statusBadge.getStyle().setColor("beige");
+            statusBadge.getStyle().set("font-weight", "bold");
+            return statusBadge;
         }).setHeader("Status").setAutoWidth(true).setSortable(true);
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
@@ -277,7 +282,7 @@ public class ShipmentInvoiceView extends Div {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService,
-                shipmentService, bankDetailsService, currencyDataService, authenticatedUser, shipment).open());
+                shipmentService, bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
         return create;
     }
 

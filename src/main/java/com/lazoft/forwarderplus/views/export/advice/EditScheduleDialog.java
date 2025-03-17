@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.export.shipmentAdvice;
+package com.lazoft.forwarderplus.views.export.advice;
 
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.services.PortService;

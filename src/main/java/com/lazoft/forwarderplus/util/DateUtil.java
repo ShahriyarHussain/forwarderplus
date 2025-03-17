@@ -6,6 +6,8 @@ import java.util.Locale;
 
 public class DateUtil {
 
+    private DateUtil() {}
+
     public static String getCurrentDateAsString() {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy").withLocale(Locale.ENGLISH));
     }

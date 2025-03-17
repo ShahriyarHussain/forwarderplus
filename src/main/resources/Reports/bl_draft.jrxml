@@ -37,7 +37,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Shipper]]></text>
@@ -47,7 +47,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Consignee]]></text>
@@ -58,7 +58,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Notify Party]]></text>
@@ -66,7 +66,7 @@
 			<staticText>
 				<reportElement x="1" y="235" width="200" height="14" uuid="fcf6458e-6bd5-4c6b-a867-53fc33ae37cb"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Vessel & Voyage]]></text>
@@ -76,7 +76,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Port of Loading]]></text>
@@ -86,7 +86,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Port of Discharge]]></text>
@@ -96,7 +96,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Place of Delivery]]></text>
@@ -106,7 +106,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Also Notify Party]]></text>
@@ -116,7 +116,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Delivery Agent]]></text>
@@ -126,7 +126,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[B/L No]]></text>
@@ -136,7 +136,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Marks & Number]]></text>
@@ -146,7 +146,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Description]]></text>
@@ -156,7 +156,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Gross Weight]]></text>
@@ -166,7 +166,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Measurement]]></text>
@@ -176,7 +176,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Container]]></text>
@@ -186,7 +186,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Quantity]]></text>
@@ -196,7 +196,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Container No]]></text>
@@ -206,7 +206,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Freight]]></text>
@@ -216,7 +216,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Export Reference]]></text>
@@ -226,7 +226,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Container Seal]]></text>
@@ -249,7 +249,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SHIPPER}]]></textFieldExpression>
@@ -263,7 +263,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BL_NO}]]></textFieldExpression>
@@ -290,7 +290,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONSIGNEE}]]></textFieldExpression>
@@ -311,7 +311,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{VESSEL_VOYAGE}]]></textFieldExpression>
@@ -327,7 +327,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PORT_OF_LOADING}]]></textFieldExpression>
@@ -378,7 +378,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{NOTIFY_PARTY}]]></textFieldExpression>
@@ -398,7 +398,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Place of Receipt]]></text>
@@ -446,23 +446,23 @@
 				</reportElement>
 			</line>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="201" y="297" width="201" height="34" uuid="94ce3018-316e-4739-9d41-55f79ff707cb">
+				<reportElement x="201" y="297" width="175" height="34" uuid="94ce3018-316e-4739-9d41-55f79ff707cb">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter"/>
+					<font fontName="Inter-Font"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PORT_OF_DISCHARGE}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
-				<reportElement x="379" y="297" width="176" height="34" uuid="356600c4-a11e-439c-b8e4-715c2c0bea1f">
+				<reportElement x="378" y="297" width="176" height="32" uuid="356600c4-a11e-439c-b8e4-715c2c0bea1f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PLACE_OF_DELIVERY}]]></textFieldExpression>
@@ -473,7 +473,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{PLACE_OF_RECEIPT}]]></textFieldExpression>
@@ -484,7 +484,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{ALSO_NOTIFY_PARTY}]]></textFieldExpression>
@@ -495,7 +495,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{EXPORT_REFERENCE}]]></textFieldExpression>
@@ -506,7 +506,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DELIVERY_AGENT}]]></textFieldExpression>
@@ -554,7 +554,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Remarks]]></text>
@@ -580,7 +580,7 @@
 				</reportElement>
 				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{REMARKS}]]></textFieldExpression>
@@ -590,7 +590,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement>
-					<font fontName="Inter" size="18" isBold="true"/>
+					<font fontName="Inter-Font" size="18" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{FREIGHT}]]></textFieldExpression>
@@ -601,7 +601,7 @@
 				</reportElement>
 				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter" isBold="false"/>
+					<font fontName="Inter-Font" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER_SEAL}]]></textFieldExpression>
@@ -612,7 +612,7 @@
 				</reportElement>
 				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER_NO}]]></textFieldExpression>
@@ -623,7 +623,7 @@
 				</reportElement>
 				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{CONTAINER}]]></textFieldExpression>
@@ -634,7 +634,7 @@
 				</reportElement>
 				<box topPadding="5"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{QUANTITY}]]></textFieldExpression>
@@ -645,7 +645,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DESCRIPTION}]]></textFieldExpression>
@@ -656,7 +656,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{SHIPPER_MARKS}]]></textFieldExpression>
@@ -667,7 +667,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter" size="10" isBold="false"/>
+					<font fontName="Inter-Font" size="10" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{GROSS_WEIGHT}]]></textFieldExpression>
@@ -678,7 +678,7 @@
 				</reportElement>
 				<box topPadding="10"/>
 				<textElement>
-					<font fontName="Inter" size="10" isBold="false"/>
+					<font fontName="Inter-Font" size="10" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{MEASUREMENT}]]></textFieldExpression>
@@ -688,7 +688,7 @@
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" isBold="true"/>
+					<font fontName="Inter-Font" isBold="true"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<text><![CDATA[Booking No]]></text>
@@ -699,7 +699,7 @@
 				</reportElement>
 				<box topPadding="3" leftPadding="0"/>
 				<textElement>
-					<font fontName="Inter" size="9" isBold="false"/>
+					<font fontName="Inter-Font" size="9" isBold="false"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{BOOKING_NO}]]></textFieldExpression>

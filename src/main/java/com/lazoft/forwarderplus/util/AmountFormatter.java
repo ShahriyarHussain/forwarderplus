@@ -1,14 +1,15 @@
 package com.lazoft.forwarderplus.util;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Map;
-import java.util.Stack;
+import java.text.NumberFormat;
+import java.util.*;
 
 public class AmountFormatter {
 
@@ -52,8 +53,11 @@ public class AmountFormatter {
             Map.entry("80", "Eighty"),
             Map.entry("90", "Ninety"));
 
+    private AmountFormatter() {}
+
 
     public static String getFormattedAmount(BigDecimal bigDecimal, AmountCurrency currency) {
+//        LocaleUtils.toLocale(Locale.ENGLISH);
         if (currency == AmountCurrency.BDT || currency == AmountCurrency.INR) {
             return getBDRegionFormattedAmount(bigDecimal);
         } else {
@@ -70,7 +74,7 @@ public class AmountFormatter {
             String[] decimalSplitArray = basicFormatted.split("\\.");
             return separateWithCommaBDCurrency(decimalSplitArray[0]) + "." + decimalSplitArray[1];
         } catch (Exception e) {
-            logger.error("ERROR while formatting amount: " + e.getMessage());
+            logger.error("ERROR while formatting amount: ", e);
             return getForeignCurrencyFormatter().format(bigDecimal); //if exception, return built in formatted value
         }
     }
@@ -92,7 +96,7 @@ public class AmountFormatter {
 
     private static String formatAmount(String s) {
         int charCount = DIGIT_INTERVAL_BEFORE_FIRST_COMMA;
-        Stack<Character> charStack = new Stack<>();
+        Deque<Character> charStack = new ArrayDeque<>();
 
         for (int i = s.length() - 1; i > -1; i--) {
             if (charCount == 0) {
@@ -105,21 +109,33 @@ public class AmountFormatter {
         return getFormattedAmountFromStack(charStack);
     }
 
-    private static String getFormattedAmountFromStack(Stack<Character> charStack) {
+    private static String getFormattedAmountFromStack(Deque<Character> charStack) {
         StringBuilder sb = new StringBuilder();
         while (!charStack.isEmpty()) {
             sb.append(charStack.pop());
         }
         return sb.toString();
     }
-
+//
     public static DecimalFormat getBasicFormatter() {
-        return new DecimalFormat("###0.00");
+        DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
+        decimalFormat.applyPattern("###0.00");
+        return decimalFormat;
     }
 
     public static DecimalFormat getForeignCurrencyFormatter() {
-        return new DecimalFormat("#,###0.00");
+        DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
+        decimalFormat.applyPattern("#,##0.00");
+        return decimalFormat;
     }
+
+//    public static DecimalFormat getBasicFormatter() {
+//        return new DecimalFormat("###0.00");
+//    }
+//
+//    public static DecimalFormat getForeignCurrencyFormatter() {
+//        return new DecimalFormat("#,###0.00");
+//    }
 
     public static String getAmountInWords(BigDecimal amount) {
         if (amount == null) {
