@@ -1,7 +1,6 @@
 package com.lazoft.forwarderplus.util;
 
 import com.lazoft.forwarderplus.enums.AmountCurrency;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,7 +8,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Locale;
+import java.util.Map;
 
 public class AmountFormatter {
 

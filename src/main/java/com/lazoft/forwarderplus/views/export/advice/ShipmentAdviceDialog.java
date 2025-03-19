@@ -8,8 +8,8 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.views.common.ClientCreationDialog;
-import com.lazoft.forwarderplus.views.common.ReportOptionsDialog;
+import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
+import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -24,7 +24,6 @@ import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -40,7 +39,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ShipmentAdviceDialog extends Dialog {
@@ -76,10 +74,6 @@ public class ShipmentAdviceDialog extends Dialog {
     private final TextField approxTime = new TextField("Transit Time");
     private final Button editSchedule = new Button(LineAwesomeIcon.PEN_SOLID.create());
 
-    private final Checkbox useHbl = new Checkbox("Use HB/L instead MB/L?");
-    private final Checkbox useConsignee = new Checkbox("Use Consignee instead of Notify ?");
-    private final DatePicker adviceDate = new DatePicker("Advice Date");
-
     private final IntegerField totalQuantity = new IntegerField("Total Quantity");
     private final TextField unit = new TextField("Unit");
     private final BigDecimalField totalGrossWeight = new BigDecimalField("Total Weight (KGs)");
@@ -90,7 +84,7 @@ public class ShipmentAdviceDialog extends Dialog {
     private final Button closeButton = new Button("Close");
     private final Button addClientButton = new Button(LineAwesomeIcon.USER_PLUS_SOLID.create());
 
-    private final int TEXT_AREA_CHAR_LIMIT = 4000;
+    private static final int TEXT_AREA_CHAR_LIMIT = 4000;
 
     private boolean isSaved = false;
     private final User user;
@@ -103,10 +97,12 @@ public class ShipmentAdviceDialog extends Dialog {
 
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
+            this.user = null;
             close();
+        } else {
+            this.user = authenticatedUser.get().get();
         }
 
-        this.user = authenticatedUser.get().get();
         this.shipment = shipment;
         this.userService = userService;
         this.portService = portService;
@@ -143,19 +139,17 @@ public class ShipmentAdviceDialog extends Dialog {
         carrierComboBox.setItems(carrierService.getAllCarriers());
         carrierComboBox.setItemLabelGenerator(Carrier::getName);
 
-        adviceDate.setValue(LocalDate.now());
-
         shipper.setItemLabelGenerator(Client::getName);
         shipper.setItems(clientList.stream().filter(client -> client.getType() == ClientType.SHIPPER
-                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+                || client.getType() == ClientType.ALL).toList());
 
         consignee.setItemLabelGenerator(Client::getName);
         consignee.setItems(clientList.stream().filter(client -> client.getType() == ClientType.CONSIGNEE
-                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+                || client.getType() == ClientType.ALL).toList());
 
         notifyParty.setItemLabelGenerator(Client::getName);
         notifyParty.setItems(clientList.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
-                || client.getType() == ClientType.ALL).collect(Collectors.toList()));
+                || client.getType() == ClientType.ALL).toList());
         notifyParty.setWidth("80%");
 
         schedule.setReadOnly(true);
@@ -272,7 +266,7 @@ public class ShipmentAdviceDialog extends Dialog {
         hblComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
 
         HorizontalLayout notifyPartyLayout = new HorizontalLayout(notifyParty, addClientButton);
-        notifyPartyLayout.setAlignItems(VerticalLayout.Alignment.END);
+        notifyPartyLayout.setAlignItems(FlexComponent.Alignment.END);
 
         hblComponent.setAlignItems(FlexComponent.Alignment.END);
         shipmentInfoLayout.add(bookingNo, clientInvoiceNo, mblNo, hblComponent,
@@ -327,12 +321,14 @@ public class ShipmentAdviceDialog extends Dialog {
 
             ReportOptionsDto dto = new ReportOptionsDto();
             dto.setUser(user);
+            dto.setConsignee(consignee.getValue().getName());
+            dto.setHblNo(hblNo.getValue());
             dto.setView(View.SHIPMENT_ADVICE);
             dto.setUsers(userService.getAll());
             dto.setParameters(prepareParamsForShipmentAdvice());
             dto.setFileName("Shipment-Advice-" + shipment.getMblNo());
             dto.setReportSourceFileName("shipment_advice.jasper");
-            dto.setReportDate(adviceDate.getValue());
+            dto.setReportDate(LocalDate.now());
 
             Dialog reportDialog = new ReportOptionsDialog(dto);
             reportDialog.open();
@@ -361,7 +357,7 @@ public class ShipmentAdviceDialog extends Dialog {
     }
 
     private void setValuesToShipmentForSaving() {
-        if (!(freightTerm.getValue() == null)) {
+        if (freightTerm.getValue() != null) {
             shipment.setShippingTerm(freightTerm.getValue());
         }
         if (!StringUtils.isBlank(clientInvoiceNo.getValue())) {
@@ -444,12 +440,9 @@ public class ShipmentAdviceDialog extends Dialog {
     private Map<String, Object> prepareParamsForShipmentAdvice() {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("LOGO_URL", "Images/logo_best.png");
+        paramMap.put("MBL_NO", mblNo.getValue());
+        paramMap.put("HBL_NO", hblNo.getValue());
 
-        paramMap.put("ADVICE_DATE", StringUtils.defaultIfBlank(DateUtil.getDateAsString(adviceDate.getValue()),
-                DateUtil.getCurrentDateAsString()));
-
-        paramMap.put("MBL_NO", useHbl.getValue() ? hblNo.getValue() : mblNo.getValue());
-//        paramMap.put("HBL_NO", hblNo.getValue());
         paramMap.put("BOOKING_NO", bookingNo.getValue());
         paramMap.put("SHIPPER_INVOICE_NO", clientInvoiceNo.getValue());
 
@@ -460,14 +453,14 @@ public class ShipmentAdviceDialog extends Dialog {
         }
 
         paramMap.put("SHIPPER_NAME", shipper.getValue().getName());
-        paramMap.put("CONSIGNEE", useConsignee.getValue() ? consignee.getValue().getName()
-                : notifyParty.getValue().getName());
+        paramMap.put("NOTIFY_PARTY", notifyParty.getValue().getName());
+        paramMap.put("CONSIGNEE", consignee.getValue().getName());
 
         paramMap.put("NUM_OF_CONTAINER", numOfContainers.getValue() + " X " +
                 containerSize.getValue().getContainerSize() + " " +  containerType.getValue().getContainerType());
         paramMap.put("COMMODITY", commodities.getValue());
-        paramMap.put("QUANTITY", totalQuantity.getValue().toString());
-        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue().toString());
+        paramMap.put("QUANTITY", totalQuantity.getValue().toString() + unit.getValue());
+        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue().toString() + " KGs");
 
         Schedule shipmentSchedule = shipment.getSchedule();
         paramMap.put("PORT_OF_LOADING", shipmentSchedule.getPortOfLoading().getPortShortCode());
@@ -503,39 +496,34 @@ public class ShipmentAdviceDialog extends Dialog {
 
         JRDataSource dataSource = new JRBeanCollectionDataSource(tsReportDtoList);
         paramMap.put("COLLECTION_LIST", dataSource);
-
-        paramMap.put("SIGNED_BY", user.getName());
-        paramMap.put("SIGNED_BY_EMAIL", user.getEmail());
-        paramMap.put("SIGNED_BY_CONTACT", user.getContactNo());
-
         return paramMap;
     }
 
     private List<String> findErrorsForReportData() {
         List<String> errorReasons = new LinkedList<>();
         if (containerType.getValue() == null) {
-            errorReasons.add("Must provide container type");
+            errorReasons.add("Provide container type");
         }
         if (containerSize.getValue() == null) {
-            errorReasons.add("Must provide container size");
+            errorReasons.add("Provide container size");
         }
         if (numOfContainers.getValue() == null || numOfContainers.getValue() < 1) {
-            errorReasons.add("Cannot be empty or ZERO");
+            errorReasons.add("Number of Containers cannot be empty or ZERO");
         }
         if (shipper.getValue() == null) {
-            errorReasons.add("Must provide shipper");
+            errorReasons.add("Provide shipper");
         }
         if (consignee.getValue() == null && notifyParty.getValue() == null) {
-            errorReasons.add("Must provide either Consignee or notify party");
+            errorReasons.add("Provide either Consignee or notify party");
         }
         if (carrierComboBox.getValue() == null) {
-            errorReasons.add("Must provide Carrier");
+            errorReasons.add("Provide a valid carrier");
         }
         if (StringUtils.isBlank(commodities.getValue())) {
-            errorReasons.add("Must provide Carrier");
+            errorReasons.add("Commodities cannot be empty");
         }
         if (shipment.getContainerDetails() == null || shipment.getContainerDetails().isEmpty()) {
-            errorReasons.add("Container/Cargo details not provided");
+            errorReasons.add("Provide Container/Cargo details");
         }
         errorReasons.addAll(validateScheduleForReport(shipment.getSchedule()));
         return errorReasons;

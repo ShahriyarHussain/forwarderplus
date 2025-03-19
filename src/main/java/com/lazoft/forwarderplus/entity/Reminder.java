@@ -1,7 +1,8 @@
 package com.lazoft.forwarderplus.entity;
 
 import com.lazoft.forwarderplus.enums.ReminderVisibility;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

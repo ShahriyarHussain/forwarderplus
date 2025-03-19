@@ -1,6 +1,5 @@
-package com.lazoft.forwarderplus.views.common;
+package com.lazoft.forwarderplus.components.common;
 
-import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.BankDetails;
 import com.lazoft.forwarderplus.entity.User;
@@ -17,21 +16,17 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
-import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperRunManager;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 public class ReportOptionsDialog extends Dialog {
@@ -69,29 +64,17 @@ public class ReportOptionsDialog extends Dialog {
     }
 
     private void setListeners() {
-        showRespondentEmail.addValueChangeListener(event -> {
-            parameters.put("SHOW_EMAIL", event.getValue());
-        });
-        useHbl.addValueChangeListener(event -> {
-            parameters.put("SHOW_HBL", event.getValue());
-        });
-        useConsignee.addValueChangeListener(event -> {
-            parameters.put("SHOW_CONSIGNEE", event.getValue());
-        });
-        showBankDetails.addValueChangeListener(event -> {
-            parameters.put("SHOW_BANK", event.getValue());
-        });
-        showEarlyPaymentMessage.addValueChangeListener(event -> {
-            parameters.put("SHOW_PAYMENT", event.getValue());
-        });
-        showDesignation.addValueChangeListener(event -> {
-            parameters.put("SHOW_DESIGNATION", event.getValue());
-        });
-        showRespondentPhone.addValueChangeListener(event -> {
-            parameters.put("SHOW_PHONE", event.getValue());
-        });
+        showRespondentEmail.addValueChangeListener(event -> parameters.put("SHOW_EMAIL", event.getValue()));
+        useHbl.addValueChangeListener(event -> parameters.put("SHOW_HBL", event.getValue()));
+        useConsignee.addValueChangeListener(event -> parameters.put("SHOW_CONSIGNEE", event.getValue()));
+        showBankDetails.addValueChangeListener(event -> parameters.put("SHOW_BANK", event.getValue()));
+        showEarlyPaymentMessage.addValueChangeListener(event -> parameters.put("SHOW_PAYMENT", event.getValue()));
+        showDesignation.addValueChangeListener(event -> parameters.put("SHOW_DESIGNATION", event.getValue()));
+        showRespondentPhone.addValueChangeListener(event -> parameters.put("SHOW_PHONE", event.getValue()));
         reportDate.addValueChangeListener(event -> {
-           parameters.put("REPORT_DATE", DateUtil.getDateAsString(event.getValue()));
+            if (event.getValue() != null) {
+                parameters.put("REPORT_DATE", DateUtil.getDateAsString(event.getValue()));
+            }
         });
 
         bankDetails.addValueChangeListener(event -> {
@@ -104,7 +87,6 @@ public class ReportOptionsDialog extends Dialog {
             parameters.put("AC_NO", bankDetails.getAccNo());
             parameters.put("ROUTING_NO", bankDetails.getRoutingNo());
             parameters.put("BRANCH", bankDetails.getBranchName());
-            reportOptionsDto.setParameters(parameters);
         });
 
         respondent.addValueChangeListener(event -> {
@@ -116,7 +98,6 @@ public class ReportOptionsDialog extends Dialog {
             parameters.put("SIGNED_BY_EMAIL", user.getEmail());
             parameters.put("SIGNED_BY_CONTACT", user.getContactNo());
             parameters.put("SIGNED_BY_DESIGNATION", user.getDesignation());
-            reportOptionsDto.setParameters(parameters);
         });
     }
 
@@ -132,19 +113,41 @@ public class ReportOptionsDialog extends Dialog {
 
     private void setValuesToFields() {
         User user = reportOptionsDto.getUser();
+
         useConsignee.setEnabled(!StringUtils.isBlank(reportOptionsDto.getConsignee()));
+        useConsignee.setValue(false);
+        parameters.put("SHOW_CONSIGNEE", useConsignee.getValue());
+
         useHbl.setEnabled(!StringUtils.isBlank(reportOptionsDto.getHblNo()));
+        useHbl.setValue(false);
+        parameters.put("SHOW_HBL", useHbl.getValue());
+
         showRespondentEmail.setEnabled(!StringUtils.isBlank(user.getEmail()));
+        showRespondentEmail.setValue(!StringUtils.isBlank(user.getEmail()));
+        parameters.put("SHOW_EMAIL", showRespondentEmail.getValue());
+
         showDesignation.setEnabled(!StringUtils.isBlank(user.getDesignation()));
+        showDesignation.setValue(!StringUtils.isBlank(user.getDesignation()));
+        parameters.put("SHOW_DESIGNATION", showDesignation.getValue());
+
+        showRespondentPhone.setValue(true);
+        parameters.put("SHOW_PHONE", showRespondentPhone.getValue());
+
         respondent.setItems(reportOptionsDto.getUsers());
         respondent.setValue(user);
         setRespondentValues(user);
-        bankDetails.setItems(reportOptionsDto.getBankDetailsList());
 
+        reportDate.setValue(reportOptionsDto.getReportDate());
+        parameters.put("REPORT_DATE", DateUtil.getDateAsString(reportDate.getValue()));
 
-        if (parameters.get("DTO_ITEMS") != null) {
-            JRDataSource dataSource = new JRBeanCollectionDataSource((List<InvoiceItemReportDto>) parameters.get("DTO_ITEMS"));
-            parameters.put("COLLECTION_LIST", dataSource);
+        if (reportOptionsDto.getView() == View.SHIPMENT_INVOICE) {
+            bankDetails.setItems(reportOptionsDto.getBankDetailsList());
+            bankDetails.setValue(reportOptionsDto.getBankDetailsList().get(0));
+            showBankDetails.setValue(true);
+            parameters.put("SHOW_BANK", true);
+
+            showEarlyPaymentMessage.setValue(true);
+            parameters.put("SHOW_PAYMENT", true);
         }
     }
 
@@ -165,19 +168,8 @@ public class ReportOptionsDialog extends Dialog {
 
         reportDate.setValue(reportOptionsDto.getReportDate());
 
-        showDesignation.setEnabled(true);
-        showBankDetails.setEnabled(true);
-        showEarlyPaymentMessage.setEnabled(true);
-
         respondent.setItemLabelGenerator(User::getName);
         bankDetails.setItemLabelGenerator(details-> details.getBankName() + ", A/C: " + details.getAccName());
-
-        useConsignee.setValue(true);
-        showBankDetails.setValue(true);
-        showEarlyPaymentMessage.setValue(true);
-        showDesignation.setValue(true);
-        showRespondentEmail.setValue(true);
-        showRespondentPhone.setValue(true);
     }
 
     private Anchor getReportDownloadAnchor() {
@@ -187,7 +179,8 @@ public class ReportOptionsDialog extends Dialog {
                         return new ByteArrayInputStream(JasperRunManager
                                 .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
                     } catch (JRException | IOException e) {
-                        NotificationUtil.getNotification("Error while generating report", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 5000).open();
+//                        NotificationUtil.getNotification("Error while generating report", e.getMessage(),
+//                                true, NotificationVariant.LUMO_ERROR, 5000).open();
                         throw new RuntimeException(e);
                     }
                 }), "");

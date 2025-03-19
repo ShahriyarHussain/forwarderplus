@@ -281,8 +281,8 @@ public class ShipmentInvoiceView extends Div {
     private Button getCreateButtonForShipment(Shipment shipment) {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService,
-                shipmentService, bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
+        create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService, shipmentService,
+                bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
         return create;
     }
 

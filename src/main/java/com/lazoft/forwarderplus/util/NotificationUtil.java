@@ -15,11 +15,10 @@ public class NotificationUtil {
     private NotificationUtil() {}
 
     public static Notification getNotification(String message, String expandedMessage, boolean isExpandable,
-                                       NotificationVariant variant, int duration) {
+                                               NotificationVariant variant, int duration) {
+
         Notification notification = new Notification();
-        Icon icon =  variant == NotificationVariant.LUMO_PRIMARY ? VaadinIcon.CHECK_CIRCLE.create()
-                : variant == NotificationVariant.LUMO_ERROR ? VaadinIcon.CLOSE_CIRCLE.create()
-                : VaadinIcon.EXCLAMATION_CIRCLE.create();
+        Icon icon = getIconByVariant(variant);
 
         Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create(), clickEvent -> notification.close());
         closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
@@ -41,5 +40,13 @@ public class NotificationUtil {
         notification.setDuration(duration);
         notification.addThemeVariants(variant);
         return notification;
+    }
+
+    private static Icon getIconByVariant(NotificationVariant variant) {
+        return switch (variant) {
+            case LUMO_PRIMARY -> VaadinIcon.CHECK_CIRCLE.create();
+            case LUMO_ERROR -> VaadinIcon.EXCLAMATION_CIRCLE.create();
+            default -> VaadinIcon.EXCLAMATION_CIRCLE.create();
+        };
     }
 }

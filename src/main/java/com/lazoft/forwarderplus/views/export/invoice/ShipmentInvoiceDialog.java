@@ -9,8 +9,11 @@ import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
-import com.lazoft.forwarderplus.util.*;
-import com.lazoft.forwarderplus.views.common.ReportOptionsDialog;
+import com.lazoft.forwarderplus.util.AmountFormatter;
+import com.lazoft.forwarderplus.util.Constants;
+import com.lazoft.forwarderplus.util.DateUtil;
+import com.lazoft.forwarderplus.util.NotificationUtil;
+import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -32,6 +35,8 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -389,7 +394,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private boolean isInvalidDataToAddItem() {
-        if (foreignCurrency.getValue() && foreignCurrComboBox.getValue() == null) {
+        if (Boolean.TRUE.equals(foreignCurrency.getValue()) && foreignCurrComboBox.getValue() == null) {
             foreignCurrComboBox.setInvalid(true);
             foreignCurrComboBox.setErrorMessage("Must provide currency for FC Items");
             return true;
@@ -468,8 +473,6 @@ public class ShipmentInvoiceDialog extends Dialog {
         final Map<String, Object> parameters = new HashMap<>();
 
         parameters.put("LOGO_URL", Constants.IMAGE_PATH);
-//        parameters.put("REPORT_LOCALE", Locale.ENGLISH);
-
 
         parameters.put("INVOICE_NO", shipmentInvoice.getInvoiceNo());
         parameters.put("INVOICE_DATE", DateUtil.getDateAsString(invoiceDate.getValue()));
@@ -533,7 +536,8 @@ public class ShipmentInvoiceDialog extends Dialog {
                     item.getSubTotalInLocalCurr(), localCurrencyComboBox.getValue()));
             dtoList.add(reportDto);
         }
-        parameters.put("DTO_ITEMS", dtoList);
+        JRDataSource dataSource = new JRBeanCollectionDataSource(dtoList);
+        parameters.put("COLLECTION_LIST", dataSource);
         return parameters;
     }
 

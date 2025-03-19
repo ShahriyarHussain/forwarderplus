@@ -31,76 +31,49 @@
 		<field name="detailName" class="java.lang.String"/>
 		<field name="detailValue" class="java.lang.String"/>
 	</subDataset>
-	<parameter name="BL_NO" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["ABCD1234"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="BOOKING_NO" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["BKG123456"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="SHIPPER_INVOICE_NO" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["INV123123"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="STUFFING_DATE" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["20-MAR-2023"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="SHIPPER_NAME" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["My Shipper"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="CONSIGNEE" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["My Consignee"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="NUM_OF_CONTAINER" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["4X40' HC"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="COMMODITY" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["Woven Fabrics"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="QUANTITY" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["20 PKGS"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="GROSS_WEIGHT" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["26,360 KGs"]]></defaultValueExpression>
-	</parameter>
+	<parameter name="MBL_NO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="HBL_NO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BOOKING_NO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SHIPPER_INVOICE_NO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="STUFFING_DATE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SHIPPER_NAME" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="CONSIGNEE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NOTIFY_PARTY" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUM_OF_CONTAINER" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="COMMODITY" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="QUANTITY" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="GROSS_WEIGHT" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="CONTAINERS" class="java.lang.String" isForPrompting="false"/>
-	<parameter name="SEAL_NO" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["ABCD0987, BNVMC09877, ABCD0987, BNVMC09877, ABCD0987, BNVMC09877, ABCD0987, BNVMC09877, ABCD0987, BNVMC09877"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="ADVICE_DATE" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["19-11-2023"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="PORT_OF_LOADING" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["CGP"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="MV_CONNECT_PORT" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["CMB"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="POL_ETA" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["11-11-2023"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="POL_ETD" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["11-11-2023"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="MV_PORT_FEEDER_ETA" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["11-11-2023"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="LOGO_URL" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["/home/shihab/JaspersoftWorkspace/forwarder_plus/logo_best.png"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="FEEDER" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["HR HARERE 123C"]]></defaultValueExpression>
-	</parameter>
-	<parameter name="STUFFING_DEPOT" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["PORTLINK"]]></defaultValueExpression>
-	</parameter>
+	<parameter name="SEAL_NO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ADVICE_DATE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="REPORT_DATE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PORT_OF_LOADING" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="MV_CONNECT_PORT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="POL_ETA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="POL_ETD" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="MV_PORT_FEEDER_ETA" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LOGO_URL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="FEEDER" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="STUFFING_DEPOT" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="COLLECTION_LIST" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource" isForPrompting="false"/>
-	<parameter name="SIGNED_BY_CONTACT" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["+880151234556"]]></defaultValueExpression>
+	<parameter name="SIGNED_BY_CONTACT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SIGNED_BY" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SIGNED_BY_EMAIL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SIGNED_BY_DESIGNATION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SHOW_DESIGNATION" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
 	</parameter>
-	<parameter name="SIGNED_BY" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["Mehedi Hasan"]]></defaultValueExpression>
+	<parameter name="SHOW_EMAIL" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
 	</parameter>
-	<parameter name="SIGNED_BY_EMAIL" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["mehedi@unisonshippingbd.com"]]></defaultValueExpression>
+	<parameter name="SHOW_PHONE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_HBL" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SHOW_CONSIGNEE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[]]>
@@ -147,7 +120,7 @@
 				<text><![CDATA[Shipment Details]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="193" y="0" width="170" height="30" uuid="94e102f7-f095-4655-8b67-944b7379418d"/>
+				<reportElement x="145" y="0" width="267" height="30" uuid="94e102f7-f095-4655-8b67-944b7379418d"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Inter" size="18" isBold="true" isUnderline="true"/>
 				</textElement>
@@ -169,7 +142,7 @@
 					<font fontName="Inter" size="12" isBold="true"/>
 					<paragraph leftIndent="0" rightIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Date: " + $P{ADVICE_DATE}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Date: " + $P{REPORT_DATE}]]></textFieldExpression>
 			</textField>
 			<frame>
 				<reportElement positionType="Float" x="1" y="60" width="554" height="15" uuid="8a31b9bd-d676-4495-bea6-5cf1727364ca"/>
@@ -204,7 +177,7 @@
 						<font fontName="Inter"/>
 						<paragraph leftIndent="4"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$P{BL_NO}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{SHOW_HBL} ? $P{HBL_NO} : $P{MBL_NO}]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement positionType="Float" stretchType="ElementGroupHeight" x="98" y="0" width="10" height="15" uuid="58247e60-fe3e-4132-8eb8-c0ef4969c596">
@@ -419,7 +392,7 @@
 						<font fontName="Inter"/>
 						<paragraph leftIndent="4"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$P{CONSIGNEE}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{SHOW_CONSIGNEE} ? $P{CONSIGNEE} : $P{NOTIFY_PARTY}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
@@ -1197,7 +1170,7 @@ Chattogram Office: Faruk Chamber, 1403 Mujib Road, Agrabad, Chattogram.]]></text
 		</band>
 	</pageFooter>
 	<summary>
-		<band height="166" splitType="Stretch">
+		<band height="221" splitType="Stretch">
 			<staticText>
 				<reportElement positionType="Float" x="0" y="10" width="554" height="80" forecolor="#F70521" uuid="d75aa995-e400-44e1-aec8-8db31a11dc1f"/>
 				<textElement textAlignment="Justified" markup="none">
@@ -1209,19 +1182,58 @@ Chattogram Office: Faruk Chamber, 1403 Mujib Road, Agrabad, Chattogram.]]></text
 3. Please provide your VGM within 24 hours of stuffing. If failed to do so, we will not be responsible for shut out from feeder/mother vessel. 
 4. In case of roll over/shut out due to non-compliance of VGM, there will incur charges i.e. $100USD/container (VGM non-compliance charge), renomination cost (at actual) and dead freight (as applicable).]]></text>
 			</staticText>
-			<textField textAdjust="StretchHeight" isBlankWhenNull="false">
-				<reportElement positionType="Float" stretchType="ElementGroupHeight" x="0" y="100" width="552" height="66" uuid="e0edd038-ac39-4b38-b052-50f6b815c52f">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="162" width="555" height="13" uuid="c08a4874-d043-4ba2-ae4e-c570181d467f">
 					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_DESIGNATION}]]></printWhenExpression>
 				</reportElement>
-				<textElement verticalAlignment="Middle">
-					<font fontName="Inter"/>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Respectfully" + System.lineSeparator()  + System.lineSeparator() +
-
-$P{SIGNED_BY} + System.lineSeparator() +
-"E-MAIL: " + $P{SIGNED_BY_EMAIL}+ System.lineSeparator() +
-"CELL : " + $P{SIGNED_BY_CONTACT}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_DESIGNATION}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="143" width="555" height="16" uuid="e1e7cce3-2f59-4084-948b-8c486c673593">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9" isBold="true"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="121" width="80" height="14" uuid="3f6cf3dc-95ba-4a5a-ae83-1c72ca12d0c2">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[Respectfully,]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="177" width="555" height="13" uuid="68497546-1e36-411e-9176-21547ad2017f">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_EMAIL}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_EMAIL}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="192" width="555" height="15" uuid="3a66bb05-5aa6-45a5-8a87-cf6a579e8326">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<printWhenExpression><![CDATA[$P{SHOW_PHONE}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="Inter-Font" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SIGNED_BY_CONTACT}]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>
