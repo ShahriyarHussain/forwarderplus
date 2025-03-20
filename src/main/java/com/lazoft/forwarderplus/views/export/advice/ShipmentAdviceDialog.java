@@ -1,5 +1,7 @@
 package com.lazoft.forwarderplus.views.export.advice;
 
+import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
+import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
 import com.lazoft.forwarderplus.entity.*;
@@ -8,12 +10,9 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
-import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -49,6 +48,7 @@ public class ShipmentAdviceDialog extends Dialog {
     private final ClientService clientService;
     private final PortService portService;
     private final UserService userService;
+    private final IdGenerationService idGenerationService;
     private final Shipment shipment;
 
     private final TextField mblNo = new TextField("Master B/L No:");
@@ -93,7 +93,8 @@ public class ShipmentAdviceDialog extends Dialog {
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
                                 CarrierService carrierService, ClientService clientService, PortService portService,
-                                UserService userService, Shipment shipment, AuthenticatedUser authenticatedUser) {
+                                UserService userService, IdGenerationService idGenerationService,
+                                Shipment shipment, AuthenticatedUser authenticatedUser) {
 
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("User not logged in! Reload page and try again", "", false, NotificationVariant.LUMO_ERROR, 3000).open();
@@ -110,6 +111,7 @@ public class ShipmentAdviceDialog extends Dialog {
         this.carrierService = carrierService;
         this.scheduleService = scheduleService;
         this.shipmentService = shipmentService;
+        this.idGenerationService = idGenerationService;
         this.clientList = clientService.getAllClients();
 
         this.setWidth("85%");
@@ -285,7 +287,16 @@ public class ShipmentAdviceDialog extends Dialog {
 
         editSchedule.addClickListener(event -> new EditScheduleDialog(portService, shipmentService, scheduleService,shipment, this).open());
 
-        generateHbl.addClickListener(event -> {});
+        generateHbl.addClickListener(event -> {
+            try {
+                IdGeneration idGeneration = idGenerationService.getIncrementedId(IdTypes.HOUSE_BL);
+                hblNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
+            } catch (IllegalArgumentException e) {
+                NotificationUtil.getNotification("Id generation not set for this field", "", false, NotificationVariant.LUMO_WARNING, 3000).open();
+            } catch (Exception e) {
+                NotificationUtil.getNotification("Error while generating Id", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 3000).open();
+            }
+        });
 
         addClientButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
 
@@ -448,7 +459,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
         StuffingDetails stuffingDetails = shipment.getStuffingDetails();
         if (stuffingDetails != null) {
-            paramMap.put("STUFFING_DATE", stuffingDetails.getStuffingDate());
+            paramMap.put("STUFFING_DATE", DateUtil.getDateAsString(stuffingDetails.getStuffingDate()));
             paramMap.put("STUFFING_DEPOT", stuffingDetails.getStuffingDepot());
         }
 

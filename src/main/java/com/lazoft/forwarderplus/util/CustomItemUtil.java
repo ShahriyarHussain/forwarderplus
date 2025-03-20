@@ -8,12 +8,18 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
 public class CustomItemUtil {
+
+    private static final String NEW_FILE_CONTENT = """
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <Items>
+            </Items>""";
 
     private CustomItemUtil() {}
 
@@ -28,15 +34,18 @@ public class CustomItemUtil {
 
     public static File getFile(String fileName) {
         try {
-            File commoditiesFile = new File("./" + fileName + ".xml");
-            if (commoditiesFile.exists()) {
-                return commoditiesFile;
+            File customItemFile = new File("./" + fileName + ".xml");
+            if (customItemFile.exists()) {
+                return customItemFile;
             }
-            boolean newFileCreated = commoditiesFile.createNewFile();
+            boolean newFileCreated = customItemFile.createNewFile();
             if (newFileCreated) {
-                return commoditiesFile;
+                FileWriter fileWriter = new FileWriter(customItemFile);
+                fileWriter.write(NEW_FILE_CONTENT);
+                fileWriter.close();
+                return customItemFile;
             }
-            return null;
+            throw new IOException("Cannot create file " + customItemFile.getAbsolutePath());
         } catch (IOException e) {
             log.error("Error while getting file", e);
             return null;

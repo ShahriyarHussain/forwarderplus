@@ -26,7 +26,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,6 +39,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -279,8 +279,8 @@ public class ShipmentInvoiceView extends Div {
     }
 
     private Button getCreateButtonForShipment(Shipment shipment) {
-        Button create = new Button(VaadinIcon.EDIT.create());
-        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
+        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService, shipmentService,
                 bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
         return create;

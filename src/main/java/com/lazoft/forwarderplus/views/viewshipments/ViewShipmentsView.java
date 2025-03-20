@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
+import com.lazoft.forwarderplus.components.common.ReminderCreationDialog;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
@@ -13,7 +14,6 @@ import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.components.common.ReminderCreationDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;

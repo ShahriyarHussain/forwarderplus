@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface IdGenerationRepository extends JpaRepository<IdGeneration, Long> {
 
-    @Query("select i from IdGeneration i where i.name = :name and i.alwaysUseFor = :type")
-    Optional<IdGeneration> getIdGenerationByNameAndIdTypes(@Param("name") String name, @Param("type") IdTypes idTypes);
+    @Query("select i from IdGeneration i where i.alwaysUseFor = :type")
+    Optional<IdGeneration> getIdGenerationByIdTypes(@Param("type") IdTypes idTypes);
 }

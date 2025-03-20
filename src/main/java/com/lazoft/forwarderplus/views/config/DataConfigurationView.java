@@ -1,19 +1,10 @@
 package com.lazoft.forwarderplus.views.config;
 
-import com.lazoft.forwarderplus.entity.BankDetails;
-import com.lazoft.forwarderplus.entity.Carrier;
-import com.lazoft.forwarderplus.entity.Client;
-import com.lazoft.forwarderplus.entity.Port;
-import com.lazoft.forwarderplus.services.BankDetailsService;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.ClientService;
-import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.components.common.*;
+import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.common.BankDetailsCreationDialog;
-import com.lazoft.forwarderplus.views.common.CarrierCreationDialog;
-import com.lazoft.forwarderplus.views.common.ClientCreationDialog;
-import com.lazoft.forwarderplus.views.common.PortCreationDialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -43,6 +34,7 @@ public class DataConfigurationView extends VerticalLayout {
     private final Grid<BankDetails> bankDetailsGrid = new Grid<>(BankDetails.class, false);
     private final Grid<Port> portGrid = new Grid<>(Port.class, false);
     private final Grid<Carrier> carrierGrid = new Grid<>(Carrier.class, false);
+    private final Grid<IdGeneration> idGrid = new Grid<>(IdGeneration.class, false);
 
     private final ListBox<GridDataType> dataItems = new ListBox<>();
     private final Button addNewButton = new Button("Add New", LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
@@ -54,20 +46,23 @@ public class DataConfigurationView extends VerticalLayout {
     private final PortService portService;
     private final BankDetailsService bankDetailsService;
     private final CarrierService carrierService;
+    private final IdGenerationService idGenerationService;
 
-    private final Map<DataType, Grid> gridMap = Map.of(DataType.Client, clientGrid, DataType.Bank_Details, bankDetailsGrid,
-            DataType.Port, portGrid, DataType.Carrier, carrierGrid);
+    private final Map<DataType, Grid> gridMap = Map.of(DataType.CLIENT, clientGrid, DataType.BANK_DETAILS, bankDetailsGrid,
+            DataType.PORT, portGrid, DataType.CARRIER, carrierGrid, DataType.ID_GENERATION, idGrid);
 
     enum DataType {
-        Client, Bank_Details, Port, Carrier
+        CLIENT, BANK_DETAILS, PORT, CARRIER, ID_GENERATION
     }
 
     public DataConfigurationView(ClientService clientService, PortService portService,
-                                 BankDetailsService bankDetailsService, CarrierService carrierService) {
+                                 BankDetailsService bankDetailsService, CarrierService carrierService,
+                                 IdGenerationService idGenerationService) {
         this.clientService = clientService;
         this.portService = portService;
         this.bankDetailsService = bankDetailsService;
         this.carrierService = carrierService;
+        this.idGenerationService = idGenerationService;
 
         setAttributes();
         setListeners();
@@ -76,8 +71,9 @@ public class DataConfigurationView extends VerticalLayout {
         setBankDetailsGrid();
         setCarrierGrid();
         setPortGrid();
-        refreshData(DataType.Client);
-        makeGridVisible(DataType.Client);
+        setIdGrid();
+        refreshData(DataType.CLIENT);
+        makeGridVisible(DataType.CLIENT);
 
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSizeFull();
@@ -86,7 +82,7 @@ public class DataConfigurationView extends VerticalLayout {
         dataListLayout.setHeight("100%");
         dataListLayout.setWidth("10%");
 
-        VerticalLayout gridLayout = new VerticalLayout(clientGrid, bankDetailsGrid, portGrid, carrierGrid);
+        VerticalLayout gridLayout = new VerticalLayout(clientGrid, bankDetailsGrid, portGrid, carrierGrid, idGrid);
         gridLayout.setHeight("100%");
         gridLayout.setWidth("80%");
 
@@ -118,10 +114,11 @@ public class DataConfigurationView extends VerticalLayout {
 
     private void setListBoxData() {
         List<GridDataType> gridDataTypes = new ArrayList<>();
-        gridDataTypes.add(new GridDataType(DataType.Client, "Client", true));
-        gridDataTypes.add(new GridDataType(DataType.Bank_Details, "Bank Details", false));
-        gridDataTypes.add(new GridDataType(DataType.Carrier, "Carrier", false));
-        gridDataTypes.add(new GridDataType(DataType.Port, "Port", false));
+        gridDataTypes.add(new GridDataType(DataType.CLIENT, "Client", true));
+        gridDataTypes.add(new GridDataType(DataType.BANK_DETAILS, "Bank Details", false));
+        gridDataTypes.add(new GridDataType(DataType.CARRIER, "Carrier", false));
+        gridDataTypes.add(new GridDataType(DataType.PORT, "Port", false));
+        gridDataTypes.add(new GridDataType(DataType.ID_GENERATION, "Id Generation", false));
 
         dataItems.setItems(gridDataTypes);
         dataItems.setItemLabelGenerator(GridDataType::label);
@@ -173,6 +170,17 @@ public class DataConfigurationView extends VerticalLayout {
                 VaadinSpringDataHelpers.toSpringDataSort(query))).stream());
     }
 
+    private void setIdGrid() {
+        idGrid.addColumn("name").setHeader("Name").setAutoWidth(true);
+        idGrid.addColumn("prefix").setHeader("Prefix").setAutoWidth(true);
+        idGrid.addColumn("incrementNum").setHeader("Id Number").setAutoWidth(true);
+        idGrid.addColumn("suffix").setHeader("Suffix").setAutoWidth(true);
+        idGrid.addColumn("incrementBy").setHeader("Increase By").setAutoWidth(true);
+        idGrid.addColumn("alwaysUseFor").setHeader("Use For").setAutoWidth(true);
+        idGrid.setItems(query -> idGenerationService.getAllIds(PageRequest.of(query.getPage(),
+                query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query))).stream());
+    }
+
     private void refreshData(DataType type) {
         gridMap.get(type).getDataProvider().refreshAll();
     }
@@ -180,15 +188,18 @@ public class DataConfigurationView extends VerticalLayout {
     private void setListeners() {
         deleteButton.addClickListener(event -> {
             DataType type = dataItems.getValue().type;
-            if (type == DataType.Client) {
-                deleteSelectedClients((Grid<Client>) gridMap.get(DataType.Client));
-            } else if (type == DataType.Bank_Details) {
+            if (type == DataType.CLIENT) {
+                deleteSelectedClients((Grid<Client>) gridMap.get(DataType.CLIENT));
+            } else if (type == DataType.BANK_DETAILS) {
                 deleteSelectedBankDetails((Grid<BankDetails>) gridMap.get(type));
-            } else if (type == DataType.Carrier) {
+            } else if (type == DataType.CARRIER) {
                 deleteSelectedCarriers((Grid<Carrier>) gridMap.get(type));
-            } else if (type == DataType.Port) {
+            } else if (type == DataType.PORT) {
                 deleteSelectedPorts((Grid<Port>) gridMap.get(type));
+            } else if (type == DataType.ID_GENERATION) {
+                deleteSelectedIds((Grid<IdGeneration>) gridMap.get(type));
             }
+
             refreshData(type);
             NotificationUtil.getNotification("Deleted Successfully!", "", false,
                     NotificationVariant.LUMO_PRIMARY, 2000).open();
@@ -196,14 +207,16 @@ public class DataConfigurationView extends VerticalLayout {
 
         addNewButton.addClickListener(event -> {
             DataType type = dataItems.getValue().type;
-            if (type == DataType.Client) {
+            if (type == DataType.CLIENT) {
                 new ClientCreationDialog(clientService, new LinkedList<>()).open();
-            } else if (type == DataType.Bank_Details) {
+            } else if (type == DataType.BANK_DETAILS) {
                 new BankDetailsCreationDialog(bankDetailsService).open();
-            } else if (type == DataType.Carrier) {
+            } else if (type == DataType.CARRIER) {
                 new CarrierCreationDialog(carrierService).open();
-            } else if (type == DataType.Port) {
+            } else if (type == DataType.PORT) {
                 new PortCreationDialog(portService).open();
+            } else if (type == DataType.ID_GENERATION) {
+                new IdCreationDialog(idGenerationService).open();
             }
             refreshData(type);
         });
@@ -214,6 +227,11 @@ public class DataConfigurationView extends VerticalLayout {
             NotificationUtil.getNotification("Refreshed Data!", "", false,
                     NotificationVariant.LUMO_PRIMARY, 2000).open();
         });
+    }
+
+    private void deleteSelectedIds(Grid<IdGeneration> idGenerationGrid) {
+        Set<IdGeneration> selectedItems = idGenerationGrid.getSelectedItems();
+        idGenerationService.deleteIds(selectedItems);
     }
 
     private void deleteSelectedPorts(Grid<Port> portGrid) {

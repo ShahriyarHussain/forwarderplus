@@ -5,7 +5,6 @@ import com.lazoft.forwarderplus.entity.BankDetails;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.View;
 import com.lazoft.forwarderplus.util.DateUtil;
-import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;

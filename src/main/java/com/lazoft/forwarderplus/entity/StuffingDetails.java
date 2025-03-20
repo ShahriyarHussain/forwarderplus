@@ -3,7 +3,6 @@ package com.lazoft.forwarderplus.entity;
 import com.lazoft.forwarderplus.enums.PackageUnit;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,9 +24,7 @@ public class StuffingDetails {
     private BigDecimal stuffingCharge;
     private Integer quantity;
     private PackageUnit packageUnit;
-
-    @ManyToOne
-    private StuffingDepot stuffingDepot;
+    private String stuffingDepot;
 }
 
 

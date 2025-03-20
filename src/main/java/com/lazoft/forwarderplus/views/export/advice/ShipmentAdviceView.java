@@ -26,7 +26,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -40,6 +39,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -57,6 +57,7 @@ public class ShipmentAdviceView extends Div {
     private final ClientService clientService;
     private final PortService portService;
     private final UserService userService;
+    private final IdGenerationService idGenerationService;
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -66,13 +67,14 @@ public class ShipmentAdviceView extends Div {
 
     public ShipmentAdviceView(PortService portService, ShipmentService shipmentService, ClientService clientService,
                               ScheduleService scheduleService, CarrierService carrierService, UserService userService,
-                              AuthenticatedUser authenticatedUser) {
+                              IdGenerationService idGenerationService, AuthenticatedUser authenticatedUser) {
         this.shipmentService = shipmentService;
         this.clientService = clientService;
         this.scheduleService = scheduleService;
         this.carrierService = carrierService;
         this.portService = portService;
         this.userService = userService;
+        this.idGenerationService = idGenerationService;
         this.authenticatedUser = authenticatedUser;
 
         setSizeFull();
@@ -244,10 +246,10 @@ public class ShipmentAdviceView extends Div {
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
         grid.getStyle().set("hover", "cursor");
-        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
+        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true).setSortable(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
-        grid.addColumn("clientInvoiceNo").setAutoWidth(true);
+        grid.addColumn("clientInvoiceNo").setAutoWidth(true).setSortable(false);
         grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
@@ -278,10 +280,10 @@ public class ShipmentAdviceView extends Div {
     }
 
     private Button getCreateButtonForShipment(Shipment shipment) {
-        Button create = new Button(VaadinIcon.EDIT.create());
-        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
+        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         create.addClickListener(event -> new ShipmentAdviceDialog(shipmentService, scheduleService,
-                carrierService, clientService, portService, userService, shipment, authenticatedUser).open());
+                carrierService, clientService, portService, userService, idGenerationService, shipment, authenticatedUser).open());
         return create;
     }
 

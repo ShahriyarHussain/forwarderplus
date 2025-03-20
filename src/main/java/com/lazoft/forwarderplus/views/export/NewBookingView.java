@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.export;
 
+import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
@@ -13,7 +14,6 @@ import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
@@ -69,7 +69,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
     private final List<Carrier> carrierList = new LinkedList<>();
     private final List<Port> portList = new LinkedList<>();
     private final List<CustomItem> commodityList;
-    private final String commoditiesFileName = COMMODITIES;
 
     private final ClientService clientService;
     private final CarrierService carrierService;
@@ -85,7 +84,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         this.carrierService = carrierService;
         this.portService = portService;
         this.bookingService = bookingService;
-        this.commodityList = CustomItemUtil.getItemsListFromFile(commoditiesFileName);
+        this.commodityList = CustomItemUtil.getItemsListFromFile(COMMODITIES);
 
         if (authenticatedUser.get().isPresent()) {
             user = authenticatedUser.get().get();
@@ -180,7 +179,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
                 return;
             }
             CustomItems newCommodity = new CustomItems(commodityList);
-            CustomItemUtil.saveCustomItems(newCommodity, commoditiesFileName);
+            CustomItemUtil.saveCustomItems(newCommodity, COMMODITIES);
             try {
                 Booking booking = createNewBooking();
                 showBookingConfirmationDialog(booking);

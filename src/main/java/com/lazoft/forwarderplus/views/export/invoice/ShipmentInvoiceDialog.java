@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.export.invoice;
 
+import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
@@ -13,7 +14,6 @@ import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
-import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -192,8 +192,14 @@ public class ShipmentInvoiceDialog extends Dialog {
 
     private void setListeners() {
         generateInvoiceNo.addClickListener(event -> {
-            IdGeneration idGeneration = idGenerationService.getIncrementedId("Invoice No", IdTypes.SHIPMENT_INVOICE_NO);
-            invoiceNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
+            try {
+                IdGeneration idGeneration = idGenerationService.getIncrementedId(IdTypes.SHIPMENT_INVOICE_NO);
+                invoiceNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
+            } catch (IllegalArgumentException e) {
+                NotificationUtil.getNotification("Id generation not set for this page", "", false, NotificationVariant.LUMO_WARNING, 3000).open();
+            } catch (Exception e) {
+                NotificationUtil.getNotification("Error while generating Id", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 3000).open();
+            }
         });
 
         saveButton.addClickListener(event -> {
