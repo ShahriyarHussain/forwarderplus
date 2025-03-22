@@ -3,8 +3,6 @@ package com.lazoft.forwarderplus.views.export.order;
 import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.PackageUnit;
@@ -14,8 +12,6 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.services.UserService;
-import com.lazoft.forwarderplus.util.Constants;
-import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
@@ -43,8 +39,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.lazoft.forwarderplus.util.Constants.DEPOT;
-
 @Slf4j
 public class ShippingOrderDialog extends Dialog {
     private final DatePicker documentDate = new DatePicker("Report Date");
@@ -58,8 +52,6 @@ public class ShippingOrderDialog extends Dialog {
     private final ComboBox<Client> notifyParty = new ComboBox<>("Notify Party");
     private final IntegerField quantity = new IntegerField("Quantity");
     private final ComboBox<PackageUnit> units = new ComboBox<>("Units");
-    private final DatePicker stuffingDate = new DatePicker("Stuffing Date");
-    private final ComboBox<String> stuffingDepot = new ComboBox<>("Stuffing Depot");
 
     private final Button addClientButton = new Button(LineAwesomeIcon.USER_PLUS_SOLID.create());
     private final Button saveButton = new Button("Save");
@@ -75,7 +67,6 @@ public class ShippingOrderDialog extends Dialog {
     private final ShippingOrderView shippingOrderView;
     private final ShipmentService shipmentService;
     private final UserService userService;
-    private final List<CustomItem> depotList;
 
     public ShippingOrderDialog(Shipment shipment, AuthenticatedUser authenticatedUser, ClientService clientService,
                                ShipmentService shipmentService, UserService userService, ShippingOrderView shippingOrderView) {
@@ -89,17 +80,13 @@ public class ShippingOrderDialog extends Dialog {
         this.stuffingDetails = shipment.getStuffingDetails();
         this.booking = shipment.getBooking();
         this.shipment = shipment;
-
         this.clientService = clientService;
         this.shipmentService = shipmentService;
         this.userService = userService;
-
         this.shippingOrderView = shippingOrderView;
 
-        this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
-
         setWidth("40%");
-        setHeight("80%");
+        setHeight("70%");
 
         setUpMainLayout();
         setFieldAttributes();
@@ -119,7 +106,6 @@ public class ShippingOrderDialog extends Dialog {
                 bookingNo, vessel,
                 portOfLoading, portOfDischarge,
                 shipper, notifyPartyLayout,
-                stuffingDate, stuffingDepot,
                 cnfAgentName, cnfAgentContact,
                 quantity, units);
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
@@ -141,9 +127,6 @@ public class ShippingOrderDialog extends Dialog {
         notifyParty.setRequired(true);
         notifyParty.setItems(clientService.getClientsByType(List.of(ClientType.NOTIFY_PARTY, ClientType.ALL)));
         notifyParty.setItemLabelGenerator(Client::getName);
-
-        stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
-        stuffingDepot.setAllowCustomValue(true);
     }
 
     private void setExistingValues(Shipment shipment) {
@@ -156,12 +139,9 @@ public class ShippingOrderDialog extends Dialog {
         shipper.setValue(shipment.getShipper().getName());
         shipper.setReadOnly(true);
         notifyParty.setValue(shipment.getNotifyParty());
-
         if (stuffingDetails == null) {
             return;
         }
-        stuffingDepot.setValue(stuffingDetails.getStuffingDepot());
-        stuffingDate.setValue(stuffingDetails.getStuffingDate());
         cnfAgentName.setValue(StringUtils.defaultString(stuffingDetails.getCnfAgentName()));
         cnfAgentContact.setValue(StringUtils.defaultString(stuffingDetails.getCnfAgentContactNo()));
         units.setValue(stuffingDetails.getPackageUnit());
@@ -171,9 +151,6 @@ public class ShippingOrderDialog extends Dialog {
 
     private void addListeners() {
         saveButton.addClickListener(event -> {
-            CustomItems newDepots = new CustomItems(depotList);
-            CustomItemUtil.saveCustomItems(newDepots, DEPOT);
-
             if (isInvalidDataForSaveAndReport()) {
                 NotificationUtil.getNotification("Please provide correct values", "", false,
                         NotificationVariant.LUMO_WARNING, 3000).open();
@@ -181,7 +158,7 @@ public class ShippingOrderDialog extends Dialog {
             }
             prepareDataForSaving();
             try {
-                shipmentService.addStuffingDetailsToShipment(shipment, stuffingDetails);
+                shipmentService.updateShipmentWithStuffingDetails(shipment, stuffingDetails);
                 NotificationUtil.getNotification("Saved Successfully!", "", false,
                         NotificationVariant.LUMO_PRIMARY, 4000).open();
             } catch (Exception e) {
@@ -189,16 +166,6 @@ public class ShippingOrderDialog extends Dialog {
                 NotificationUtil.getNotification("Failed to save Data Due To Unexpected Error",
                         e.getMessage(), true, NotificationVariant.LUMO_ERROR, 6000).open();
             }
-        });
-
-        stuffingDepot.addCustomValueSetListener(event -> {
-            String customValue = event.getDetail();
-            if (customValue == null) {
-                return;
-            }
-            depotList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode()));
-            stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
-            stuffingDepot.setValue(customValue);
         });
 
         addClientButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
@@ -303,8 +270,6 @@ public class ShippingOrderDialog extends Dialog {
         stuffingDetails.setCnfAgentContactNo(cnfAgentContact.getValue());
         stuffingDetails.setQuantity(quantity.getValue());
         stuffingDetails.setVessel(vessel.getValue());
-        stuffingDetails.setStuffingDepot(stuffingDepot.getValue());
-        stuffingDetails.setStuffingDate(stuffingDate.getValue());
         shipment.setNotifyParty(notifyParty.getValue());
     }
 

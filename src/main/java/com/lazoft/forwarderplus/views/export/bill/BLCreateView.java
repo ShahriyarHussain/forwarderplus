@@ -1,10 +1,12 @@
-package com.lazoft.forwarderplus.views.export.order;
+package com.lazoft.forwarderplus.views.export.bill;
 
 import com.lazoft.forwarderplus.components.filter.ShipmentFilter;
 import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Shipment;
-import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.*;
+import com.lazoft.forwarderplus.services.BillOfLadingService;
+import com.lazoft.forwarderplus.services.CarrierService;
+import com.lazoft.forwarderplus.services.PortService;
+import com.lazoft.forwarderplus.services.ShipmentService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -27,26 +29,22 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 
-@PageTitle("Shipping Order")
-@Route(value = "shipping-order", layout = MainLayout.class)
+@PageTitle("Create B/L")
+@Route(value = "create-bl", layout = MainLayout.class)
 @RolesAllowed({"EXPORT", "ADMIN"})
 @Uses(Icon.class)
-public class ShippingOrderView extends Div {
+public class BLCreateView extends Div {
 
     private final ShipmentService shipmentService;
-    private final AuthenticatedUser authenticatedUser;
-    private final ClientService clientService;
-    private final UserService userService;
+    private final BillOfLadingService billOfLadingService;
     private Grid<Shipment> grid;
 
     private final ShipmentFilter filters;
 
-    public ShippingOrderView(PortService portService, ShipmentService shipmentService, CarrierService carrierService,
-                             AuthenticatedUser authenticatedUser, ClientService clientService, UserService userService) {
+    public BLCreateView(ShipmentService shipmentService, BillOfLadingService billOfLadingService,
+                        PortService portService, CarrierService carrierService) {
         this.shipmentService = shipmentService;
-        this.authenticatedUser = authenticatedUser;
-        this.clientService = clientService;
-        this.userService = userService;
+        this.billOfLadingService = billOfLadingService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
@@ -60,10 +58,10 @@ public class ShippingOrderView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
-        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true).setSortable(true);
+        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
-        grid.addColumn("clientInvoiceNo").setAutoWidth(true).setSortable(false);
+        grid.addColumn("clientInvoiceNo").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
@@ -80,9 +78,9 @@ public class ShippingOrderView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addComponentColumn(this::getCreateShippingOrderButton).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Edit Order").setAutoWidth(true);
-        grid.addItemDoubleClickListener(event -> getCreateShippingOrderButton(event.getItem()).click());
+        grid.addComponentColumn(this::getBLCreationButton).setTextAlign(ColumnTextAlign.CENTER)
+                .setHeader("Generate B/L").setAutoWidth(true);
+        grid.addItemDoubleClickListener(event -> getBLCreationButton(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -97,11 +95,10 @@ public class ShippingOrderView extends Div {
         grid.getDataProvider().refreshAll();
     }
 
-    private Button getCreateShippingOrderButton(Shipment shipment) {
+    private Button getBLCreationButton(Shipment shipment) {
         Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        create.addClickListener(event -> new ShippingOrderDialog(
-                shipment, authenticatedUser, clientService, shipmentService, userService, this).open());
+        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        create.addClickListener(event -> new BLCreationDialog(shipment, billOfLadingService).open());
         return create;
     }
 }

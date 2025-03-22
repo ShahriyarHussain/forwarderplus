@@ -68,7 +68,7 @@ public class ShipmentService {
     }
 
     @Transactional
-    public void addStuffingDetailsToShipment(Shipment shipment, StuffingDetails stuffingDetails) {
+    public void updateShipmentWithStuffingDetails(Shipment shipment, StuffingDetails stuffingDetails) {
         StuffingDetails savedStuffingDetails = stuffingDetailsService.saveStuffingDetails(stuffingDetails);
         shipment.setStuffingDetails(savedStuffingDetails);
         saveShipment(shipment);
