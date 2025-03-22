@@ -4,13 +4,13 @@ import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
+import com.lazoft.forwarderplus.dto.xml.CustomItem;
+import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.*;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
-import com.lazoft.forwarderplus.util.AmountFormatter;
-import com.lazoft.forwarderplus.util.DateUtil;
-import com.lazoft.forwarderplus.util.NotificationUtil;
+import com.lazoft.forwarderplus.util.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -39,6 +39,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static com.lazoft.forwarderplus.util.Constants.DEPOT;
 
 @Slf4j
 public class ShipmentAdviceDialog extends Dialog {
@@ -69,6 +71,9 @@ public class ShipmentAdviceDialog extends Dialog {
     private final Button generateHbl = new Button(LineAwesomeIcon.ATOM_SOLID.create());
     private final RadioButtonGroup<ShippingTerm> freightTerm = new RadioButtonGroup<>("Freight Term");
 
+    private final DatePicker stuffingDate = new DatePicker("Stuffing Date");
+    private final ComboBox<String> stuffingDepot = new ComboBox<>("Stuffing Depot");
+
     private final TextField schedule = new TextField("Schedule");
     private final DatePicker departureDate = new DatePicker("ETD Origin:");
     private final DatePicker arrivalDate = new DatePicker("ETA Destination:");
@@ -90,6 +95,9 @@ public class ShipmentAdviceDialog extends Dialog {
     private boolean isSaved = false;
     private final User user;
     private final List<Client> clientList;
+    private final List<CustomItem> depotList;
+
+    private final StuffingDetails stuffingDetails;
 
 
     public ShipmentAdviceDialog(ShipmentService shipmentService, ScheduleService scheduleService,
@@ -114,6 +122,13 @@ public class ShipmentAdviceDialog extends Dialog {
         this.shipmentService = shipmentService;
         this.idGenerationService = idGenerationService;
         this.clientList = clientService.getAllClients();
+        this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
+
+        if (shipment.getStuffingDetails() == null) {
+            this.stuffingDetails = new StuffingDetails();
+        } else {
+            this.stuffingDetails = shipment.getStuffingDetails();
+        }
 
         this.setWidth("85%");
         this.setHeight("85%");
@@ -171,6 +186,9 @@ public class ShipmentAdviceDialog extends Dialog {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+
+        stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
+        stuffingDepot.setAllowCustomValue(true);
     }
 
     public void fillUpExistingValues() {
@@ -189,9 +207,15 @@ public class ShipmentAdviceDialog extends Dialog {
         goodsDescription.setValue(StringUtils.defaultIfBlank(shipment.getGoodsDescription(), ""));
         shipperMarks.setValue(StringUtils.defaultIfBlank(shipment.getShipperMarks(), ""));
         freightTerm.setValue(shipment.getShippingTerm());
-
         fillUpScheduleValues();
         fillUpCargoValues();
+
+        StuffingDetails stuffingDetails = shipment.getStuffingDetails();
+        if (stuffingDetails == null) {
+            return;
+        }
+        stuffingDepot.setValue(stuffingDetails.getStuffingDepot());
+        stuffingDate.setValue(stuffingDetails.getStuffingDate());
     }
 
     private void fillUpScheduleValues() {
@@ -274,10 +298,11 @@ public class ShipmentAdviceDialog extends Dialog {
         hblComponent.setAlignItems(FlexComponent.Alignment.END);
         shipmentInfoLayout.add(bookingNo, clientInvoiceNo, mblNo, hblComponent,
                 containerType, numOfContainers, containerSize, commodities,
-                carrierComboBox, shipper, consignee, notifyPartyLayout, freightTerm,
+                carrierComboBox, shipper, consignee, notifyPartyLayout,
+                stuffingDate, stuffingDepot, freightTerm,
                 goodsDescription, shipperMarks);
         shipmentInfoLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
-        shipmentInfoLayout.setColspan(freightTerm, 3);
+//        shipmentInfoLayout.setColspan(freightTerm, 2);
         shipmentInfoLayout.setColspan(goodsDescription, 2);
         shipmentInfoLayout.setColspan(shipperMarks, 2);
         return shipmentInfoLayout;
@@ -302,12 +327,17 @@ public class ShipmentAdviceDialog extends Dialog {
         addClientButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
 
         saveButton.addClickListener(event -> {
+            CustomItems newDepots = new CustomItems(depotList);
+            CustomItemUtil.saveCustomItems(newDepots, DEPOT);
+
             if (isInvalidEntriesForSave()) {
                 return;
             }
+
+            prepareDataForSaving();
             setValuesToShipmentForSaving();
             try {
-                shipmentService.saveShipment(shipment);
+                shipmentService.updateShipmentWithStuffingDetails(shipment, stuffingDetails);
                 isSaved = true;
                 NotificationUtil.getNotification("Saved Successfully!", "", false,
                         NotificationVariant.LUMO_PRIMARY, 3000).open();
@@ -366,6 +396,32 @@ public class ShipmentAdviceDialog extends Dialog {
             confirmDialog.setCancelButton(cancel);
             confirmDialog.open();
         });
+
+        stuffingDepot.addCustomValueSetListener(event -> {
+            String customValue = event.getDetail();
+            if (customValue == null) {
+                return;
+            }
+            depotList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode()));
+            stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
+            stuffingDepot.setValue(customValue);
+        });
+    }
+
+    private void prepareDataForSaving() {
+        stuffingDetails.setStuffingId(shipment.getShipmentId());
+        if (shipment.getContainerDetails() != null && !shipment.getContainerDetails().isEmpty()) {
+            stuffingDetails.setPackageUnit(shipment.getContainerDetails().get(0).getPackageUnit());
+        }
+        stuffingDetails.setQuantity(totalQuantity.getValue());
+        if (shipment.getSchedule() != null) {
+            stuffingDetails.setVessel(shipment.getSchedule().getPortOfLoadingVesselName());
+        }
+        stuffingDetails.setStuffingDepot(stuffingDepot.getValue());
+        stuffingDetails.setStuffingDate(stuffingDate.getValue());
+        if (notifyParty.getValue() != null) {
+            shipment.setNotifyParty(notifyParty.getValue());
+        }
     }
 
     private void setValuesToShipmentForSaving() {
@@ -401,6 +457,12 @@ public class ShipmentAdviceDialog extends Dialog {
         }
         if (!StringUtils.isBlank(shipperMarks.getValue())) {
             shipment.setShipperMarks(StringUtils.truncate(shipperMarks.getValue(), TEXT_AREA_CHAR_LIMIT));
+        }
+        if (!StringUtils.isBlank(stuffingDepot.getValue())) {
+            stuffingDetails.setStuffingDepot(stuffingDepot.getValue());
+        }
+        if (stuffingDate != null) {
+            stuffingDetails.setStuffingDate(stuffingDate.getValue());
         }
     }
 
@@ -446,6 +508,11 @@ public class ShipmentAdviceDialog extends Dialog {
             shipperMarks.setErrorMessage("Cannot exceed " + TEXT_AREA_CHAR_LIMIT + " Characters");
             isInvalid = true;
         }
+//        if (stuffingDate.getValue() != null) {
+//            stuffingDate.setInvalid(true);
+//            stuffingDate.setErrorMessage("Please provide a date");
+//            isInvalid = true;
+//        }
         return isInvalid;
     }
 
@@ -466,7 +533,9 @@ public class ShipmentAdviceDialog extends Dialog {
 
         paramMap.put("SHIPPER_NAME", shipper.getValue().getName());
         paramMap.put("NOTIFY_PARTY", notifyParty.getValue().getName());
-        paramMap.put("CONSIGNEE", consignee.getValue().getName());
+        if (consignee.getValue() != null) {
+            paramMap.put("CONSIGNEE", consignee.getValue().getName());
+        }
 
         paramMap.put("NUM_OF_CONTAINER", numOfContainers.getValue() + " X " +
                 containerSize.getValue().getContainerSize() + " " +  containerType.getValue().getContainerType());

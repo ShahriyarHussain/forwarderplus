@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.export.billOfLading;
+package com.lazoft.forwarderplus.views.export.bill;
 
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.services.BillOfLadingService;

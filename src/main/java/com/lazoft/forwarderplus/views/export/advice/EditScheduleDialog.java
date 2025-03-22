@@ -96,10 +96,14 @@ public class EditScheduleDialog extends Dialog {
         if (schedule == null) {
             portOfLoading.setValue(shipment.getBooking().getLoadingPort());
             portOfDestination.setValue(shipment.getBooking().getDestinationPort());
+            if (shipment.getStuffingDetails() == null) {
+                return;
+            }
+            feederVessel.setValue(StringUtils.defaultString(shipment.getStuffingDetails().getVessel()));
             return;
         }
 
-        feederVessel.setValue(StringUtils.defaultIfBlank(schedule.getPortOfLoadingVesselName(), ""));
+        feederVessel.setValue(StringUtils.defaultString(schedule.getPortOfLoadingVesselName()));
 
         portOfLoading.setValue(schedule.getPortOfLoading());
         etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());
