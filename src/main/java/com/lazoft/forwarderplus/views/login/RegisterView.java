@@ -100,38 +100,17 @@ public class RegisterView extends VerticalLayout {
         country.addValueChangeListener(event ->
                 contactNumber.setPrefixComponent(new H5(event.getValue().getCountryCode())));
 
-        registerButton.addClickListener(event -> {
-            if (!isAllFieldsValid()) {
-                return;
-            }
-            User user = new User();
-            user.setUsername(userName.getValue());
-            user.setName(fullName.getValue());
-            user.setEmail(email.getValue());
-            user.setHashedPassword(passwordEncoder.encode(password.getValue()));
-            if (country.getValue() != null) {
-                user.setContactNo(country.getValue().getCountryCode() + contactNumber.getValue());
-            }
-            user.setDesignation(designation.getValue());
-            user.setRoles(Set.of(Role.USER));
-            user.setUserNotLocked(false);
-            user.setPasswordNotExpired(true);
-            user.setNotTerminated(true);
-            user.setCreatedOn(LocalDateTime.now());
-            userService.create(user);
-            ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setHeader("User Created Successfully!");
-            confirmDialog.setText(new H5("You need approval from ADMIN before you can log in"));
-            confirmDialog.setCancelable(false);
-            confirmDialog.setConfirmButton(new Button("OK", confirmEvent -> confirmEvent.getSource().getUI()
-                    .ifPresent(ui -> ui.navigate("login"))));
-            confirmDialog.open();
-        });
+        registerButton.addClickListener(event -> registerUser());
 
         loginButton.addClickListener(event -> registerButton.getUI().ifPresent(ui -> ui.navigate("login")));
 
         userName.addBlurListener(event -> {
             if (userName.isInvalid()) {
+                return;
+            }
+            if (StringUtils.containsWhitespace(userName.getValue())) {
+                userName.setInvalid(true);
+                userName.setErrorMessage("username must not contain spaces");
                 return;
             }
             if (userService.get(event.getSource().getValue()).isPresent()) {
@@ -166,6 +145,34 @@ public class RegisterView extends VerticalLayout {
         confirmPassword.addBlurListener(event -> validatePassword());
     }
 
+    private void registerUser() {
+        if (!isAllFieldsValid()) {
+            return;
+        }
+        User user = new User();
+        user.setUsername(userName.getValue());
+        user.setName(fullName.getValue());
+        user.setEmail(email.getValue());
+        user.setHashedPassword(passwordEncoder.encode(password.getValue()));
+        if (country.getValue() != null) {
+            user.setContactNo(country.getValue().getCountryCode() + contactNumber.getValue());
+        }
+        user.setDesignation(designation.getValue());
+        user.setRoles(Set.of(Role.USER));
+        user.setUserNotLocked(false);
+        user.setPasswordNotExpired(true);
+        user.setNotTerminated(true);
+        user.setCreatedOn(LocalDateTime.now());
+        userService.create(user);
+        ConfirmDialog confirmDialog = new ConfirmDialog();
+        confirmDialog.setHeader("User Created Successfully!");
+        confirmDialog.setText(new H5("You need approval from ADMIN before you can log in"));
+        confirmDialog.setCancelable(false);
+        confirmDialog.setConfirmButton(new Button("OK", confirmEvent -> confirmEvent.getSource().getUI()
+                .ifPresent(ui -> ui.navigate("login"))));
+        confirmDialog.open();
+    }
+
     private boolean isAllFieldsValid() {
         if (email.isInvalid()) {
             email.setErrorMessage("Invalid email");
@@ -192,8 +199,8 @@ public class RegisterView extends VerticalLayout {
             confirmPassword.setInvalid(true);
         } else if (password.getValue().matches("")) {
             password.setInvalid(true);
-//        } else if (!isStrongPassword()) {
-//            password.setInvalid(true);
+        } else if (!isStrongPassword()) {
+            password.setInvalid(true);
         } else {
             confirmPassword.setInvalid(false);
         }
@@ -201,41 +208,27 @@ public class RegisterView extends VerticalLayout {
 
     private boolean isStrongPassword() {
         String pass = password.getValue();
-        if (!email.isInvalid() && !userName.isInvalid() && !fullName.isInvalid()
-                && StringUtils.containsAnyIgnoreCase(pass, userName.getValue(), fullName.getValue(), email.getValue(),
-                email.getValue().substring(0, email.getValue().indexOf('@')))) {
-            password.setInvalid(true);
-            password.setErrorMessage("Password cannot contain parts of name, username, or email");
-            return false;
-        }
         if (pass.length() < 6) {
             password.setInvalid(true);
             password.setErrorMessage("Password length must be at least 6 characters");
             return false;
         }
 
-        boolean lower = false, upper = false, numeric = false, special = false;
+        boolean upper = false ;
+        boolean numeric = false;
         for (char c : pass.toCharArray()) {
-            if (CharUtils.isAsciiAlphaLower(c)) {
-                lower = true;
-                continue;
-            }
             if (CharUtils.isAsciiNumeric(c)) {
                 upper = true;
                 continue;
             }
             if (CharUtils.isAsciiAlphaUpper(c)) {
                 numeric = true;
-                continue;
-            }
-            if (CharUtils.isAscii(c)) {
-                special = true;
             }
         }
 
-        if (!(lower && upper && numeric && special)) {
+        if (!(upper && numeric)) {
             password.setInvalid(true);
-            password.setErrorMessage("Password must have 1 uppercase, 1 lowercase, 1 number and 1 special character");
+            password.setErrorMessage("Password must have 1 uppercase character and 1 number");
             return false;
         }
 
