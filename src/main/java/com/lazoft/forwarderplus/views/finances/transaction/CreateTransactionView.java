@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.finances.transaction;
 
+import com.lazoft.forwarderplus.components.dialog.CreateTransactionLegDialog;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.Account;

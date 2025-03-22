@@ -17,8 +17,8 @@ import java.util.List;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
-    @SequenceGenerator(name = "idgenerator", initialValue = 1000)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "accidgenerator")
+    @SequenceGenerator(name = "accidgenerator", initialValue = 100, allocationSize = 1)
     private long accountId;
     private String name;
     private String accountNo;

@@ -208,10 +208,10 @@ public class ShippingOrderView extends Div {
 
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
-        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
+        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true).setSortable(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
-        grid.addColumn("clientInvoiceNo").setAutoWidth(true);
+        grid.addColumn("clientInvoiceNo").setAutoWidth(true).setSortable(false);
         grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
@@ -229,7 +229,7 @@ public class ShippingOrderView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
         grid.addComponentColumn(this::getCreateShippingOrderButton).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Shipping Order").setAutoWidth(true);
+                .setHeader("Edit Order").setAutoWidth(true);
         grid.addItemDoubleClickListener(event -> getCreateShippingOrderButton(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(

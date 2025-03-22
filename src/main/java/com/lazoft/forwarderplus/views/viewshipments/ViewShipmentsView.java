@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
-import com.lazoft.forwarderplus.components.common.ReminderCreationDialog;
+import com.lazoft.forwarderplus.components.dialog.ReminderCreationDialog;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;

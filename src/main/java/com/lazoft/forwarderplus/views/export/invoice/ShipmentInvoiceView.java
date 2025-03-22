@@ -245,10 +245,10 @@ public class ShipmentInvoiceView extends Div {
     private Component createGrid() {
         grid = new Grid<>(Shipment.class, false);
         grid.getStyle().set("hover", "cursor");
-        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true);
+        grid.addColumn(shipment -> shipment.getBooking().getBookingNo()).setHeader("Booking No").setAutoWidth(true).setSortable(true);
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
-        grid.addColumn("clientInvoiceNo").setAutoWidth(true);
+        grid.addColumn("clientInvoiceNo").setAutoWidth(true).setSortable(false);
         grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
@@ -265,9 +265,8 @@ public class ShipmentInvoiceView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addComponentColumn(this::getCreateButtonForShipment).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Edit Advice").setAutoWidth(true);
+                .setHeader("Edit Invoice").setAutoWidth(true);
         grid.addItemDoubleClickListener(event -> getCreateButtonForShipment(event.getItem()).click());
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(PageRequest.of(query.getPage(), query.getPageSize(),
@@ -285,7 +284,6 @@ public class ShipmentInvoiceView extends Div {
                 bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
         return create;
     }
-
 
     public void refreshGrid() {
         grid.getDataProvider().refreshAll();

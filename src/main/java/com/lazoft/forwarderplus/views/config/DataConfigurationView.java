@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views.config;
 
-import com.lazoft.forwarderplus.components.common.*;
+import com.lazoft.forwarderplus.components.dialog.*;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.NotificationUtil;
@@ -99,7 +99,6 @@ public class DataConfigurationView extends VerticalLayout {
         gridMap.values().forEach(grid -> {
             grid.getStyle().set("hover", "cursor");
             grid.setSelectionMode(Grid.SelectionMode.MULTI);
-//            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
             grid.addClassNames(LumoUtility.Border.TOP);
             grid.setHeight("600px");
         });

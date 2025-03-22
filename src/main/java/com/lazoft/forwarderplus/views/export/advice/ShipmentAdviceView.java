@@ -266,7 +266,6 @@ public class ShipmentAdviceView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
-        grid.addColumn(shipment -> shipment.getCreatedBy().getUsername()).setHeader("Created By").setAutoWidth(true);
         grid.addComponentColumn(this::getCreateButtonForShipment).setTextAlign(ColumnTextAlign.CENTER)
                 .setHeader("Edit Advice").setAutoWidth(true);
         grid.addItemDoubleClickListener(event -> getCreateButtonForShipment(event.getItem()).click());
@@ -286,7 +285,6 @@ public class ShipmentAdviceView extends Div {
                 carrierService, clientService, portService, userService, idGenerationService, shipment, authenticatedUser).open());
         return create;
     }
-
 
     public void refreshGrid() {
         grid.getDataProvider().refreshAll();

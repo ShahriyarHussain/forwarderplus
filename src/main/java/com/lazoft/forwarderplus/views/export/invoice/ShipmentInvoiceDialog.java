@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views.export.invoice;
 
-import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
+import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.InvoiceItemReportDto;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.entity.*;
@@ -183,43 +183,19 @@ public class ShipmentInvoiceDialog extends Dialog {
         int sl = 1;
         for (InvoiceItem item : invoiceItems) {
             item.setSl(sl++);
-            item.setSubTotalInLocalCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())).multiply(shipmentInvoice.getConversionRate()));
-            item.setSubTotalInForeignCurr(item.getPrice().multiply(new BigDecimal(item.getQuantity())));
-            item.setForeignCurrency(item.getSubTotalInForeignCurr() != null &&
-                    !item.getSubTotalInForeignCurr().equals(item.getSubTotalInLocalCurr()));
+            BigDecimal convRate = item.isForeignCurrency() ? conversionRate.getValue() : BigDecimal.ONE;
+            BigDecimal subTotalInForeignCurr = item.getPrice().multiply(new BigDecimal(item.getQuantity()));
+            item.setSubTotalInLocalCurr(subTotalInForeignCurr.multiply(convRate));
+            if (item.isForeignCurrency()) {
+                item.setSubTotalInForeignCurr(subTotalInForeignCurr);
+            }
         }
     }
 
     private void setListeners() {
-        generateInvoiceNo.addClickListener(event -> {
-            try {
-                IdGeneration idGeneration = idGenerationService.getIncrementedId(IdTypes.SHIPMENT_INVOICE_NO);
-                invoiceNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
-            } catch (IllegalArgumentException e) {
-                NotificationUtil.getNotification("Id generation not set for this page", "", false, NotificationVariant.LUMO_WARNING, 3000).open();
-            } catch (Exception e) {
-                NotificationUtil.getNotification("Error while generating Id", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 3000).open();
-            }
-        });
+        generateInvoiceNo.addClickListener(event -> generateInvoiceNo());
 
-        saveButton.addClickListener(event -> {
-            if (isInvalidEntriesForSave()) {
-                NotificationUtil.getNotification("Please properly provide marked fields", "", false,
-                        NotificationVariant.LUMO_WARNING, 4000).open();
-                return;
-            }
-            prepareInvoiceDataForSave();
-            try {
-                invoiceService.saveInvoice(shipmentInvoice);
-                isSaved = true;
-                NotificationUtil.getNotification("Successfully saved", "", false,
-                        NotificationVariant.LUMO_PRIMARY, 4000).open();
-            } catch (Exception e) {
-                NotificationUtil.getNotification("Unexpected error while saving ShipmentInvoice", e.getMessage(), true,
-                        NotificationVariant.LUMO_ERROR, 6000).open();
-                log.error("Error while saving ShipmentInvoice", e);
-            }
-        });
+        saveButton.addClickListener(event -> saveEntries());
 
         addItem.addClickListener(event -> {
             if (isInvalidDataToAddItem()) {
@@ -232,37 +208,7 @@ public class ShipmentInvoiceDialog extends Dialog {
             refreshGrandTotals();
         });
 
-        downloadButton.addClickListener(event -> {
-            List<String> errors = findErrorsForReportData();
-            if (!errors.isEmpty()) {
-                Dialog dialog = new Dialog();
-                dialog.getFooter().add(new Button("Close", e -> dialog.close()));
-                dialog.setHeaderTitle("Errors in Data");
-                ListBox<String> listBox = new ListBox<>();
-                listBox.setItems(errors);
-                dialog.add(new H4("Please fix the following before downloading ShipmentInvoice"), listBox);
-                dialog.open();
-                return;
-            }
-
-            ReportOptionsDto dto = new ReportOptionsDto();
-            dto.setUser(user);
-            dto.setView(View.SHIPMENT_INVOICE);
-            dto.setUsers(userService.getAll());
-            dto.setBankDetailsList(bankDetailsService.getBankDetails());
-            dto.setParameters(prepareParamsForShipmentInvoice());
-            dto.setFileName("Invoice-" + shipment.getMblNo());
-            dto.setReportSourceFileName("invoice.jasper");
-            dto.setReportDate(invoiceDate.getValue());
-
-            Dialog reportDialog = new ReportOptionsDialog(dto);
-            reportDialog.open();
-
-            if (shipment.getStatus() == ShipmentStatus.SHIPMENT_ADVICE_OK) {
-                shipment.setStatus(ShipmentStatus.INVOICE_OK);
-                shipmentService.saveShipment(shipment);
-            }
-        });
+        downloadButton.addClickListener(event -> prepareDataAndShowDownloadReportPrompt());
 
         closeButton.addClickListener(event -> {
             if (isSaved) {
@@ -274,7 +220,7 @@ public class ShipmentInvoiceDialog extends Dialog {
             confirmDialog.setText("Are you sure you want to close ? All unsaved changes will be lost.");
             confirmDialog.setCancelable(true);
             confirmDialog.setConfirmButton(new Button("Yes, I am Sure", confirmEvent -> this.close()));
-            Button cancel = new Button("Close", confirmEvent -> confirmDialog.close());
+            Button cancel = new Button("Cancel", confirmEvent -> confirmDialog.close());
             cancel.addThemeVariants(ButtonVariant.LUMO_ERROR);
             confirmDialog.setCancelButton(cancel);
             confirmDialog.open();
@@ -309,6 +255,68 @@ public class ShipmentInvoiceDialog extends Dialog {
             }
             conversionRate.setValue(rate);
         });
+    }
+
+    private void generateInvoiceNo() {
+        try {
+            IdGeneration idGeneration = idGenerationService.getIncrementedId(IdTypes.SHIPMENT_INVOICE_NO);
+            invoiceNo.setValue(idGeneration.getPrefix() + idGeneration.getIncrementNum() + idGeneration.getSuffix());
+        } catch (IllegalArgumentException e) {
+            NotificationUtil.getNotification("Id generation not set for this page", "", false, NotificationVariant.LUMO_WARNING, 3000).open();
+        } catch (Exception e) {
+            NotificationUtil.getNotification("Error while generating Id", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 3000).open();
+        }
+    }
+
+    private void saveEntries() {
+        if (isInvalidEntriesForSave()) {
+            NotificationUtil.getNotification("Please properly provide marked fields", "", false,
+                    NotificationVariant.LUMO_WARNING, 4000).open();
+            return;
+        }
+        prepareInvoiceDataForSave();
+        try {
+            invoiceService.saveInvoice(shipmentInvoice);
+            isSaved = true;
+            NotificationUtil.getNotification("Successfully saved", "", false,
+                    NotificationVariant.LUMO_PRIMARY, 4000).open();
+        } catch (Exception e) {
+            NotificationUtil.getNotification("Unexpected error while saving ShipmentInvoice", e.getMessage(), true,
+                    NotificationVariant.LUMO_ERROR, 6000).open();
+            log.error("Error while saving ShipmentInvoice", e);
+        }
+    }
+
+    private void prepareDataAndShowDownloadReportPrompt() {
+        List<String> errors = findErrorsForReportData();
+        if (!errors.isEmpty()) {
+            Dialog dialog = new Dialog();
+            dialog.getFooter().add(new Button("Close", e -> dialog.close()));
+            dialog.setHeaderTitle("Errors in Data");
+            ListBox<String> listBox = new ListBox<>();
+            listBox.setItems(errors);
+            dialog.add(new H4("Please fix the following before downloading ShipmentInvoice"), listBox);
+            dialog.open();
+            return;
+        }
+
+        ReportOptionsDto dto = new ReportOptionsDto();
+        dto.setUser(user);
+        dto.setView(View.SHIPMENT_INVOICE);
+        dto.setUsers(userService.getAll());
+        dto.setBankDetailsList(bankDetailsService.getBankDetails());
+        dto.setParameters(prepareParamsForShipmentInvoice());
+        dto.setFileName("Invoice-" + shipment.getMblNo());
+        dto.setReportSourceFileName("invoice.jasper");
+        dto.setReportDate(invoiceDate.getValue());
+
+        Dialog reportDialog = new ReportOptionsDialog(dto);
+        reportDialog.open();
+
+        if (shipment.getStatus() == ShipmentStatus.SHIPMENT_ADVICE_OK) {
+            shipment.setStatus(ShipmentStatus.INVOICE_OK);
+            shipmentService.saveShipment(shipment);
+        }
     }
 
     public void setUpFormLayout() {
@@ -426,17 +434,23 @@ public class ShipmentInvoiceDialog extends Dialog {
     private InvoiceItem getInvoiceItemFromEntries() {
         InvoiceItem item = new InvoiceItem();
         item.setSl(invoiceItems.size() + 1);
-        item.setItemUnit(itemUnit.getValue());
+
         item.setDescription(description.getValue());
         item.setPrice(price.getValue());
-        item.setQuantity(quantity.getValue());
+        int itemQuantity = quantity.getValue() != null ? quantity.getValue() : 1;
+        item.setQuantity(itemQuantity);
+        item.setItemUnit(itemUnit.getValue());
+        item.setForeignCurrency(foreignCurrency.getValue());
+
         BigDecimal convRate = BigDecimal.ONE;
-        if (foreignCurrComboBox.getValue() != null && foreignCurrency.getValue()) {
-            item.setSubTotalInForeignCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())));
+        BigDecimal subTotalInForeignCurr = price.getValue();
+        if (Boolean.TRUE.equals(foreignCurrency.getValue()) && foreignCurrComboBox.getValue() != null ) {
+            subTotalInForeignCurr = price.getValue().multiply(new BigDecimal(itemQuantity));
+            item.setSubTotalInForeignCurr(subTotalInForeignCurr);
             item.setForeignCurrency(true);
             convRate = conversionRate.getValue();
         }
-        item.setSubTotalInLocalCurr(price.getValue().multiply(new BigDecimal(quantity.getValue())).multiply(convRate));
+        item.setSubTotalInLocalCurr(subTotalInForeignCurr.multiply(convRate));
         item.setId(shipment.getShipmentId() + String.valueOf(item.getSl()));
         return item;
     }
@@ -532,14 +546,13 @@ public class ShipmentInvoiceDialog extends Dialog {
             reportDto.setQuantityWithUnit(item.getQuantity() + (StringUtils.isBlank(item.getItemUnit()) ? "" : " X " + item.getItemUnit()));
             AmountCurrency currency = item.isForeignCurrency() ? foreignCurrComboBox.getValue() :
                     localCurrencyComboBox.getValue();
-            reportDto.setRate(currency.getSymbol() + AmountFormatter.getFormattedAmount(item.getPrice(), currency));
+            reportDto.setRate(currency + " " + AmountFormatter.getFormattedAmount(item.getPrice(), currency));
 
             if (item.isForeignCurrency()) {
                 reportDto.setTotalInForeignCurr(currency.getSymbol() + AmountFormatter.getFormattedAmount(
                         item.getSubTotalInForeignCurr(), foreignCurrComboBox.getValue()));
             }
-            reportDto.setSubtotal(localCurrencyComboBox.getValue().getSymbol() + AmountFormatter.getFormattedAmount(
-                    item.getSubTotalInLocalCurr(), localCurrencyComboBox.getValue()));
+            reportDto.setSubtotal(AmountFormatter.getFormattedAmount(item.getSubTotalInLocalCurr(), localCurrencyComboBox.getValue()));
             dtoList.add(reportDto);
         }
         JRDataSource dataSource = new JRBeanCollectionDataSource(dtoList);

@@ -1,9 +1,10 @@
-package com.lazoft.forwarderplus.views.config;
+package com.lazoft.forwarderplus.components.dialog;
 
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;
 import com.lazoft.forwarderplus.services.UserService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
+import com.lazoft.forwarderplus.views.config.UserConfigurationView;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -26,7 +27,6 @@ public class EditUserDialog extends Dialog {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final User selectedUser;
-    private final UserConfigurationView userConfigurationView;
 
     private final TextField username = new TextField("Username");
     private final TextField fullname = new TextField("Full Name");
@@ -43,7 +43,6 @@ public class EditUserDialog extends Dialog {
         this.passwordEncoder = passwordEncoder;
         this.selectedUser = selectedUser;
         this.userService = userService;
-        this.userConfigurationView = userConfigurationView;
         this.setWidth(800, Unit.PIXELS);
 
         setExistingValues();

@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.components.common;
+package com.lazoft.forwarderplus.components.dialog;
 
 import com.lazoft.forwarderplus.entity.BankDetails;
 import com.lazoft.forwarderplus.services.BankDetailsService;

@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -144,9 +145,14 @@ public class EditContainerDetailsDialog extends Dialog {
         StringBuilder duplicateContainers = new StringBuilder();
         List<ContainerDetails> containerDetailsList = new LinkedList<>();
 
+        BigDecimal numOfContainers = new BigDecimal(containers.size());
+
+        BigDecimal grossWeightPerContainer = grossWeight.getValue().divide(numOfContainers, 0, RoundingMode.FLOOR);
+        int quantityPerContainer = noOfPackages.getValue() / containers.size();
+
         for (int i = 0; i < containers.size(); i++) {
-            containerDetailsList.add(new ContainerDetails(containers.get(i), sealNumbers.get(i), grossWeight.getValue(),
-                    noOfPackages.getValue(), packageUnitComboBox.getValue(), shipment.getShipmentId()));
+            containerDetailsList.add(new ContainerDetails(containers.get(i), sealNumbers.get(i), grossWeightPerContainer,
+                    quantityPerContainer, packageUnitComboBox.getValue(), shipment.getShipmentId()));
         }
 
         boolean itemExists = false;

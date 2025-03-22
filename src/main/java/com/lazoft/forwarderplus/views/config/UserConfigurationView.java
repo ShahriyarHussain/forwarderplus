@@ -1,5 +1,6 @@
 package com.lazoft.forwarderplus.views.config;
 
+import com.lazoft.forwarderplus.components.dialog.EditUserDialog;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;

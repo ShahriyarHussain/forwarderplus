@@ -1,7 +1,7 @@
 package com.lazoft.forwarderplus.views.export.order;
 
-import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
-import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
+import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
+import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.dto.xml.CustomItems;

@@ -1,7 +1,8 @@
-package com.lazoft.forwarderplus.views.finances.transaction;
+package com.lazoft.forwarderplus.components.dialog;
 
 import com.lazoft.forwarderplus.entity.TransactionLeg;
 import com.lazoft.forwarderplus.util.NotificationUtil;
+import com.lazoft.forwarderplus.views.finances.transaction.CreateTransactionView;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;

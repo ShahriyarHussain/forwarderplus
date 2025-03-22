@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.views.export;
 
-import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
+import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
@@ -104,7 +104,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         H3 h3 = new H3("New Booking (Export)");
         h3.setWidth("max-content");
 
-        getContent().setWidth("100%");
+        getContent().setWidth("80%");
         getContent().getStyle().set("flex-grow", "1");
         layoutRow.addClassName(Gap.MEDIUM);
         layoutRow.setWidth("100%");

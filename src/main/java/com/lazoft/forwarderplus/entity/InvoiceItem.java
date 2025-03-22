@@ -20,9 +20,8 @@ public class InvoiceItem {
     private long quantity;
     private BigDecimal price;
     private String itemUnit;
-
-    @Transient
     private boolean isForeignCurrency;
+
     @Transient
     private BigDecimal subTotalInLocalCurr;
     @Transient

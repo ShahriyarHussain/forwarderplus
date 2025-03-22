@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.views.finances.account;
+package com.lazoft.forwarderplus.components.dialog;
 
 import com.lazoft.forwarderplus.entity.Ledger;
 import com.lazoft.forwarderplus.entity.LedgerTagInfo;

@@ -1,13 +1,14 @@
 package com.lazoft.forwarderplus.views.export.advice;
 
-import com.lazoft.forwarderplus.components.common.ClientCreationDialog;
-import com.lazoft.forwarderplus.components.common.ReportOptionsDialog;
+import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
+import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.*;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
+import com.lazoft.forwarderplus.util.AmountFormatter;
 import com.lazoft.forwarderplus.util.DateUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -332,7 +333,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
             ReportOptionsDto dto = new ReportOptionsDto();
             dto.setUser(user);
-            dto.setConsignee(consignee.getValue().getName());
+            dto.setConsignee(consignee.getValue() == null ? null : consignee.getValue().getName());
             dto.setHblNo(hblNo.getValue());
             dto.setView(View.SHIPMENT_ADVICE);
             dto.setUsers(userService.getAll());
@@ -470,8 +471,8 @@ public class ShipmentAdviceDialog extends Dialog {
         paramMap.put("NUM_OF_CONTAINER", numOfContainers.getValue() + " X " +
                 containerSize.getValue().getContainerSize() + " " +  containerType.getValue().getContainerType());
         paramMap.put("COMMODITY", commodities.getValue());
-        paramMap.put("QUANTITY", totalQuantity.getValue().toString() + unit.getValue());
-        paramMap.put("GROSS_WEIGHT", totalGrossWeight.getValue().toString() + " KGs");
+        paramMap.put("QUANTITY", totalQuantity.getValue().toString() + " " +unit.getValue());
+        paramMap.put("GROSS_WEIGHT", AmountFormatter.getFormattedAmount(totalGrossWeight.getValue(), AmountCurrency.BDT) + " KGs");
 
         Schedule shipmentSchedule = shipment.getSchedule();
         paramMap.put("PORT_OF_LOADING", shipmentSchedule.getPortOfLoading().getPortShortCode());

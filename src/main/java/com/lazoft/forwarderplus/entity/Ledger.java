@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 public class Ledger {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
-    @SequenceGenerator(name = "idgenerator", initialValue = 1000)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ledgeridgenerator")
+    @SequenceGenerator(name = "ledgeridgenerator", initialValue = 100, allocationSize = 1)
     private long ledgerId;
     private String name;
     private String code;
