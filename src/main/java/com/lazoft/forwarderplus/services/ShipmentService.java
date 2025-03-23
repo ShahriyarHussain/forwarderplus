@@ -94,4 +94,9 @@ public class ShipmentService {
         shipment.setSchedule(savedSchedule);
         saveShipment(shipment);
     }
+
+    @Transactional
+    public void deleteShipments(Set<Shipment> shipments) {
+        shipmentRepository.deleteAll(shipments);
+    }
 }

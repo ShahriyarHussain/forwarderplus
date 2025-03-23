@@ -1,15 +1,14 @@
 package com.lazoft.forwarderplus.views.viewshipments;
 
 import com.lazoft.forwarderplus.components.dialog.ReminderCreationDialog;
+import com.lazoft.forwarderplus.components.filter.ShipmentFilter;
 import com.lazoft.forwarderplus.dto.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ContainerSize;
+import com.lazoft.forwarderplus.enums.Role;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.ReminderService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
@@ -42,12 +41,14 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.criteria.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @PageTitle("Search & View Shipments")
 @Route(value = "view-shipments", layout = MainLayout.class)
@@ -57,14 +58,17 @@ public class ViewShipmentsView extends Div {
 
     private final ShipmentService shipmentService;
     private final ReminderService reminderService;
+    private final BookingService bookingService;
     private Grid<Shipment> grid;
+
+    private final Button deleteButton = new Button("Delete", VaadinIcon.EXCLAMATION_CIRCLE.create());
 
     private final User user;
 
-    private final Filters filters;
+    private final ShipmentFilter filters;
 
     public ViewShipmentsView(PortService portService, ShipmentService shipmentService, ReminderService reminderService,
-                             CarrierService carrierService, AuthenticatedUser authenticatedUser) {
+                             CarrierService carrierService, BookingService bookingService, AuthenticatedUser authenticatedUser) {
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("Session Lost. Reload page or login again", "", false,
                     NotificationVariant.LUMO_WARNING, 2000).open();
@@ -75,170 +79,20 @@ public class ViewShipmentsView extends Div {
         this.shipmentService = shipmentService;
         this.reminderService = reminderService;
 
+        deleteButton.getStyle().set("margin", "10px");
+        deleteButton.setVisible(authenticatedUser.get().get().getRoles().contains(Role.ADMIN));
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+        deleteButton.addClickListener(event -> deleteShipments());
+
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new Filters(this::refreshGrid, portService, carrierService);
-        VerticalLayout layout = new VerticalLayout(filters, createGrid());
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        VerticalLayout layout = new VerticalLayout(filters, createGrid(), deleteButton);
         layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
-    }
-
-    public static class Filters extends Div implements Specification<Shipment> {
-
-        private final TextField blNo = new TextField("HBL/MBL No:");
-        private final TextField bookingNo = new TextField("Booking No");
-        private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
-        private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
-        private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
-        private final ComboBox<String> commodity = new ComboBox<>("Commodity");
-        private final ComboBox<ShipmentStatus> status = new ComboBox<>("Status");
-        private final ComboBox<ContainerSize> containerSize = new ComboBox<>("Container Size");
-        private final DatePicker createFromDate = new DatePicker("Created Date");
-        private final DatePicker createdToDate = new DatePicker();
-
-        public Filters(Runnable onSearch, PortService portService, CarrierService carrierService) {
-            List<Port> ports = portService.getAllPorts();
-            List<Carrier> carriers = carrierService.getAllCarriers();
-
-            setWidthFull();
-            addClassName("filter-layout");
-            addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
-                    LumoUtility.BoxSizing.BORDER);
-
-            bookingNo.setPlaceholder("Booking No");
-            bookingNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));
-
-            blNo.setPlaceholder("HBL/MBL No");
-            blNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));
-
-            containerSize.setItems(ContainerSize.values());
-            containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
-
-            commodity.setItems(CustomItemUtil.getItemsListFromFile(Constants.COMMODITIES).stream().map(CustomItem::getName).toList());
-
-            status.setItems(ShipmentStatus.values());
-            status.setItemLabelGenerator(ShipmentStatus::getStatus);
-
-            carrier.setItems(carriers);
-            carrier.setItemLabelGenerator(Carrier::getName);
-
-            portOfLoading.setItems(ports);
-            portOfLoading.setItemLabelGenerator(Port::getPortLabel);
-            portOfDestination.setItems(ports);
-            portOfDestination.setItemLabelGenerator(Port::getPortLabel);
-
-            // Action buttons
-            Button resetBtn = new Button("Reset");
-            resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            resetBtn.addClickListener(e -> {
-                bookingNo.clear();
-                blNo.clear();
-                createFromDate.clear();
-                createdToDate.clear();
-                portOfLoading.setValue(portOfLoading.getEmptyValue());
-                portOfDestination.setValue(portOfDestination.getEmptyValue());
-                containerSize.setValue(containerSize.getEmptyValue());
-                carrier.clear();
-                commodity.clear();
-                status.clear();
-                onSearch.run();
-            });
-            Button searchBtn = new Button("Search");
-            searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            searchBtn.addClickListener(e -> onSearch.run());
-
-            Div actions = new Div(resetBtn, searchBtn);
-            actions.addClassName(LumoUtility.Gap.SMALL);
-            actions.addClassName("actions");
-
-            add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, carrier, containerSize, createDateFilter(), actions);
-        }
-
-        private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
-            if (keyDownEvent.getKey() == Key.ENTER || keyDownEvent.getKey() == Key.NUMPAD_ENTER) {
-                onSearch.run();
-            }
-        }
-
-        private Component createDateFilter() {
-            createFromDate.setPlaceholder("From");
-            createdToDate.setPlaceholder("To");
-
-            // For screen readers
-            createFromDate.setAriaLabel("Created From");
-            createdToDate.setAriaLabel("Created From");
-
-            FlexLayout portSelectionComponent = new FlexLayout(createFromDate, new Text(" – "), createdToDate);
-            portSelectionComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
-            portSelectionComponent.addClassName(LumoUtility.Gap.XSMALL);
-            return portSelectionComponent;
-        }
-
-        @Override
-        public Predicate toPredicate(Root<Shipment> root, @Nonnull CriteriaQuery<?> query, @Nonnull CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-            root.fetch("schedule", JoinType.LEFT);
-
-            if (!bookingNo.isEmpty()) {
-                String bookingNoLowerCase = bookingNo.getValue().toLowerCase();
-                Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Predicate bookingNoMatch = criteriaBuilder.like(criteriaBuilder.lower(
-                        bookingJoin.get("bookingNo")), "%" + bookingNoLowerCase + "%");
-                predicates.add(bookingNoMatch);
-            }
-            if (!blNo.isEmpty()) {
-                ShipmentStatus shipmentStatus = status.getValue();
-                Predicate statusMatch = criteriaBuilder.equal(root.get("status"), shipmentStatus);
-                predicates.add(statusMatch);
-            }
-            if (!blNo.isEmpty()) {
-                String carrierId = blNo.getValue().toLowerCase();
-                Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + carrierId + "%");
-                predicates.add(blMatch);
-            }
-            if (!portOfLoading.isEmpty()) {
-                long portId = portOfLoading.getValue().getId();
-                Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Join<Booking, Port> portJoin = bookingJoin.join("loadingPort");
-                Predicate portMatch = criteriaBuilder.equal(portJoin.get("id"), portId);
-                predicates.add(portMatch);
-            }
-            if (!portOfDestination.isEmpty()) {
-                long portId = portOfDestination.getValue().getId();
-                Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Join<Booking, Port> portJoin = bookingJoin.join("destinationPort");
-                Predicate portMatch = criteriaBuilder.equal(portJoin.get("id"), portId);
-                predicates.add(portMatch);
-            }
-            if (!carrier.isEmpty()) {
-                long carrierId = carrier.getValue().getId();
-                Join<Shipment, Carrier> carrierJoin = root.join("carrier");
-                Predicate carrierMatch = criteriaBuilder.equal(carrierJoin.get("id"),  carrierId);
-                predicates.add(carrierMatch);
-            }
-            if (!commodity.isEmpty()) {
-                String lowerCaseFilter = commodity.getValue().toLowerCase();
-                Predicate commodityMatch = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("commodity")), "%" + lowerCaseFilter + "%");
-                predicates.add(commodityMatch);
-            }
-            if (createFromDate.getValue() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdOn"),
-                        criteriaBuilder.literal(createFromDate.getValue())));
-            }
-            if (createdToDate.getValue() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdOn"),
-                        criteriaBuilder.literal(createdToDate.getValue())));
-            }
-            if (!containerSize.isEmpty()) {
-                Join<Shipment, Booking> bookingJoin = root.join("booking");
-                Predicate containerSizeMatch = criteriaBuilder.equal(bookingJoin.get("containerSize"), containerSize.getValue());
-                predicates.add(containerSizeMatch);
-            }
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
+        this.bookingService = bookingService;
     }
 
     private Component createGrid() {
@@ -248,7 +102,7 @@ public class ViewShipmentsView extends Div {
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("clientInvoiceNo").setAutoWidth(true);
-        grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
+        grid.addColumn(shipment -> StringUtils.truncate(shipment.getShipper().getName(), 35)).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " -> " + booking.getDestinationPort().getPortCityAndCountry();
@@ -276,12 +130,31 @@ public class ViewShipmentsView extends Div {
         return grid;
     }
 
+    private void deleteShipments() {
+        Set<Shipment> selectedShipments = grid.getSelectedItems();
+        if (selectedShipments.isEmpty()) {
+            NotificationUtil.getNotification("No Items Selected!", "", false, NotificationVariant.LUMO_WARNING, 2000).open();
+            return;
+        }
+
+//        List<Booking> bookings = selectedShipments.stream().map(Shipment::getBooking).distinct().toList();
+
+        try {
+            shipmentService.deleteShipments(selectedShipments);
+            NotificationUtil.getNotification("Deleted Successfully!", "", false, NotificationVariant.LUMO_PRIMARY, 2000).open();
+        } catch (Exception e) {
+            NotificationUtil.getNotification("Error while deleting", "", true, NotificationVariant.LUMO_ERROR, 4000).open();
+        }
+        refreshGrid();
+    }
+
     private Button getReminderCreationButton(Shipment shipment) {
         Button create = new Button(VaadinIcon.EDIT.create());
         create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         create.addClickListener(event -> new ReminderCreationDialog(reminderService, user, shipment.getShipmentId()).open());
         return create;
     }
+
 
     private void refreshGrid() {
         grid.getDataProvider().refreshAll();

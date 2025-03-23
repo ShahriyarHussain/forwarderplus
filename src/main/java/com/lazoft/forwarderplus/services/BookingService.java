@@ -34,4 +34,8 @@ public class BookingService {
     }
 
 
+    @Transactional
+    public void deleteBooking(List<Booking> bookings) {
+        bookingRepository.deleteAll(bookings);
+    }
 }

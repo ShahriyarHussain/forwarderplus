@@ -150,7 +150,7 @@ public class ShipmentAdviceDialog extends Dialog {
         hblNo.setWidth("80%");
 
         containerType.setItems(ContainerType.values());
-        containerType.setItemLabelGenerator(ContainerType::getContainerType);
+        containerType.setItemLabelGenerator(ContainerType::getType);
         containerSize.setItems(ContainerSize.values());
         containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
@@ -402,7 +402,7 @@ public class ShipmentAdviceDialog extends Dialog {
             if (customValue == null) {
                 return;
             }
-            depotList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode()));
+            depotList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode(), null));
             stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
             stuffingDepot.setValue(customValue);
         });
@@ -538,7 +538,7 @@ public class ShipmentAdviceDialog extends Dialog {
         }
 
         paramMap.put("NUM_OF_CONTAINER", numOfContainers.getValue() + " X " +
-                containerSize.getValue().getContainerSize() + " " +  containerType.getValue().getContainerType());
+                containerSize.getValue().getContainerSize() + " " +  containerType.getValue().getType());
         paramMap.put("COMMODITY", commodities.getValue());
         paramMap.put("QUANTITY", totalQuantity.getValue().toString() + " " +unit.getValue());
         paramMap.put("GROSS_WEIGHT", AmountFormatter.getFormattedAmount(totalGrossWeight.getValue(), AmountCurrency.BDT) + " KGs");

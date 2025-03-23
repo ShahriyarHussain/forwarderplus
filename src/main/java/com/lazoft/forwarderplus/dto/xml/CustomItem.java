@@ -20,4 +20,7 @@ public class CustomItem {
 
     @XmlElement(name = "hash")
     private Integer hash;
+
+    @XmlElement(name = "bookingTemplate")
+    private BookingTemplate bookingTemplate;
 }
