@@ -88,7 +88,7 @@ public class EditContainerDetailsDialog extends Dialog {
         grid.setItems(containerList);
         numOfCont.setValue(shipment.getNumOfContainers());
         containerSize.setValue(shipment.getBooking().getContainerSize().getContainerSize());
-        containerType.setValue(shipment.getBooking().getContainerType().getContainerType());
+        containerType.setValue(shipment.getBooking().getContainerType().getType());
     }
 
     private void setAttributes() {

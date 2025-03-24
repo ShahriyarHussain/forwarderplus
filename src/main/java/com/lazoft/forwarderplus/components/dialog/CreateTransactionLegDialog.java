@@ -27,7 +27,7 @@ public class CreateTransactionLegDialog extends Dialog {
 
     private final List<TransactionLeg> transactionLegs;
     private final CreateTransactionView createTransactionView;
-    private int serialNo = 1;
+    private int serialNo;
 
     private final TextField remarks = new TextField("Remarks");
     private final BigDecimalField amount = new BigDecimalField("Amount");

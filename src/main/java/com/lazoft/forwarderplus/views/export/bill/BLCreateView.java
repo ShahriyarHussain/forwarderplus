@@ -24,6 +24,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -62,7 +63,7 @@ public class BLCreateView extends Div {
         grid.addColumn("hblNo").setHeader("House B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("mblNo").setHeader("Master B/L No").setAutoWidth(true).setSortable(false);
         grid.addColumn("clientInvoiceNo").setAutoWidth(true);
-        grid.addColumn(shipment -> shipment.getShipper().getName()).setHeader("Shipper").setAutoWidth(true);
+        grid.addColumn(shipment -> StringUtils.truncate(shipment.getShipper().getName(), 35)).setHeader("Shipper").setAutoWidth(true);
         grid.addColumn(shipment -> {
             Booking booking = shipment.getBooking();
             return booking.getLoadingPort().getPortCityAndCountry() + " - " + booking.getDestinationPort().getPortCityAndCountry();

@@ -197,7 +197,7 @@ public class CreateTransactionView extends VerticalLayout {
             if (customValue == null) {
                 return;
             }
-            categoryList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode()));
+            categoryList.add(new CustomItem(customValue, event.getDetail().trim().toLowerCase().hashCode(), null));
             category.setItems(categoryList.stream().map(CustomItem::getName).toList());
             category.setValue(customValue);
         });
