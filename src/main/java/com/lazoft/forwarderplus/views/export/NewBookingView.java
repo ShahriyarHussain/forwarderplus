@@ -184,6 +184,34 @@ public class NewBookingView extends Composite<VerticalLayout> {
         }
     }
 
+    private FormLayout getEntryFormLayout() {
+        FormLayout formLayout = new FormLayout();
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
+        formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, loadingPort,
+                destinationPort, numOfShipments, getClientLayout(), remarks, new Hr());
+        formLayout.setMaxWidth("75%");
+        return formLayout;
+    }
+
+    private HorizontalLayout getClientLayout() {
+        HorizontalLayout clientLayout = new HorizontalLayout();
+        clientLayout.setAlignItems(FlexComponent.Alignment.END);
+        Button addButton = new Button();
+        addButton.setTooltipText("Add New Shipper");
+        addButton.setIcon(LineAwesomeIcon.USER_PLUS_SOLID.create());
+        addButton.setWidth("10%");
+        addButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
+
+        clients.setWidth("90%");
+        clients.setRequired(true);
+        clients.setAllowCustomValue(true);
+        clients.setItemLabelGenerator(Client::getName);
+        clients.setItems(clientList);
+        clients.addFocusListener(event -> loadClientPropertiesOnDemand());
+        clientLayout.add(clients, addButton);
+        return clientLayout;
+    }
+
     private void setListeners() {
         carrier.addFocusListener(event -> loadCarrierPropertiesOnDemand());
 
@@ -227,33 +255,6 @@ public class NewBookingView extends Composite<VerticalLayout> {
             carrier.clear();
             clients.clear();
         });
-    }
-
-    private FormLayout getEntryFormLayout() {
-        FormLayout formLayout = new FormLayout();
-        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
-        formLayout.add(bookingNo, numberOfContainers, containerType, containerSize, commodity, carrier, loadingPort,
-                destinationPort, numOfShipments, getClientLayout(), remarks, new Hr());
-        formLayout.setMaxWidth("75%");
-        return formLayout;
-    }
-
-    private Booking createNewBooking() {
-        Booking booking = new Booking();
-        booking.setBookingNo(bookingNo.getValue());
-        booking.setContainerType(containerType.getValue());
-        booking.setContainerSize(containerSize.getValue());
-        booking.setNumOfContainers(numberOfContainers.getValue());
-        booking.setRemarks(remarks.getValue());
-        booking.setCreatedBy(user);
-        booking.setCreatedOn(LocalDateTime.now());
-        booking.setLoadingPort(loadingPort.getValue());
-        booking.setDestinationPort(destinationPort.getValue());
-        booking.setCommodity(commodity.getValue());
-        booking.setShipper(clients.getValue());
-        booking.setNumOfShipments(numOfShipments.getValue());
-        booking.setCarrier(carrier.getValue());
-        return bookingService.createBooking(booking);
     }
 
     private boolean isAllFieldsValid() {
@@ -339,23 +340,22 @@ public class NewBookingView extends Composite<VerticalLayout> {
         return isValid;
     }
 
-    private HorizontalLayout getClientLayout() {
-        HorizontalLayout clientLayout = new HorizontalLayout();
-        clientLayout.setAlignItems(FlexComponent.Alignment.END);
-        Button addButton = new Button();
-        addButton.setTooltipText("Add New Shipper");
-        addButton.setIcon(LineAwesomeIcon.USER_PLUS_SOLID.create());
-        addButton.setWidth("10%");
-        addButton.addClickListener(event -> new ClientCreationDialog(clientService, clientList).open());
-
-        clients.setWidth("90%");
-        clients.setRequired(true);
-        clients.setAllowCustomValue(true);
-        clients.setItemLabelGenerator(Client::getName);
-        clients.setItems(clientList);
-        clients.addFocusListener(event -> loadClientPropertiesOnDemand());
-        clientLayout.add(clients, addButton);
-        return clientLayout;
+    private Booking createNewBooking() {
+        Booking booking = new Booking();
+        booking.setBookingNo(bookingNo.getValue());
+        booking.setContainerType(containerType.getValue());
+        booking.setContainerSize(containerSize.getValue());
+        booking.setNumOfContainers(numberOfContainers.getValue());
+        booking.setRemarks(remarks.getValue());
+        booking.setCreatedBy(user);
+        booking.setCreatedOn(LocalDateTime.now());
+        booking.setLoadingPort(loadingPort.getValue());
+        booking.setDestinationPort(destinationPort.getValue());
+        booking.setCommodity(commodity.getValue());
+        booking.setShipper(clients.getValue());
+        booking.setNumOfShipments(numOfShipments.getValue());
+        booking.setCarrier(carrier.getValue());
+        return bookingService.createBooking(booking);
     }
 
     private void showBookingConfirmationDialog(Booking booking) {
@@ -434,8 +434,8 @@ public class NewBookingView extends Composite<VerticalLayout> {
         bookingTemplate.setPortOfLoading(booking.getLoadingPort().getPortShortCode().toLowerCase().hashCode());
         bookingTemplate.setPortOfDestination(booking.getDestinationPort().getPortShortCode().toLowerCase().hashCode());
         bookingTemplate.setShipper(booking.getShipper().getName().toLowerCase().hashCode());
-        String name = booking.getNumOfContainers() + " X " + booking.getContainerSize().getContainerSize()
-                + " " + StringUtils.truncate(booking.getCommodity(), 20);
+        String name = booking.getContainerSize().getContainerSize() + "-" + StringUtils.truncate(
+                booking.getCommodity() + "-" + booking.getDestinationPort().getPortShortCode(), 25);
         templateList.add(new CustomItem(name, name.hashCode(), bookingTemplate));
         CustomItems newTemplate = new CustomItems(templateList);
         CustomItemUtil.saveCustomItems(newTemplate, TEMPLATES);

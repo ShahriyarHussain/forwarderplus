@@ -119,7 +119,7 @@ public class ViewShipmentsView extends Div {
         grid.addColumn(shipment -> shipment.getCreatedOn().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 'T' hh:mm:ss")))
                 .setHeader("Created On").setAutoWidth(true).setSortable(true);
         grid.addComponentColumn(this::getReminderCreationButton).setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader("Edit Advice").setAutoWidth(true);
+                .setHeader("Add Reminder").setAutoWidth(true);
 
         grid.setItems(query -> shipmentService.getShipmentsByFilter(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
@@ -150,7 +150,7 @@ public class ViewShipmentsView extends Div {
 
     private Button getReminderCreationButton(Shipment shipment) {
         Button create = new Button(VaadinIcon.EDIT.create());
-        create.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        create.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         create.addClickListener(event -> new ReminderCreationDialog(reminderService, user, shipment.getShipmentId()).open());
         return create;
     }

@@ -106,7 +106,7 @@ public class ShipmentInvoiceView extends Div {
 
     private Button getCreateButtonForShipment(Shipment shipment) {
         Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        create.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         create.addClickListener(event -> new ShipmentInvoiceDialog(invoiceService, userService, shipmentService,
                 bankDetailsService, currencyDataService, idGenerationService, authenticatedUser, shipment).open());
         return create;

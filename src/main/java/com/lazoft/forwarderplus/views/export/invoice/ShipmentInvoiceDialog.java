@@ -26,6 +26,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -81,7 +82,7 @@ public class ShipmentInvoiceDialog extends Dialog {
     private final ComboBox<BankDetails> bankDetails = new ComboBox<>("Bank Details");
     private final ComboBox<User> respondent = new ComboBox<>("Contact Details");
 
-    private final Button addItem = new Button(LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
+    private final Button addItem = new Button("Add Item", LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
     private final TextField inWords = new TextField("In Words");
     private final Grid<InvoiceItem> invoiceItemGrid = new Grid<>(InvoiceItem.class, false);
     private Grid.Column<InvoiceItem> foreignCurrTotalColumn;
@@ -129,7 +130,9 @@ public class ShipmentInvoiceDialog extends Dialog {
 
     private void setFieldAttributes() {
         addItem.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        description.setWidth("90%");
+        foreignCurrency.setWidth("80%");
+        //description.setWidth("90%");
+
         inWords.setReadOnly(true);
         grandTotal.setReadOnly(true);
         invoiceItemGrid.getStyle().set("margin-top", "10px");
@@ -337,28 +340,41 @@ public class ShipmentInvoiceDialog extends Dialog {
 
     private FormLayout getAddInvoiceItemForm() {
         FormLayout invoiceItemDetailLayout = new FormLayout();
-        HorizontalLayout unitAndAddBtn = new HorizontalLayout(addItem, description);
-        unitAndAddBtn.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        unitAndAddBtn.setAlignItems(FlexComponent.Alignment.END);
-        Hr split2 = new Hr(), split1 = new Hr();
+        HorizontalLayout addBtnComponent = new HorizontalLayout(foreignCurrency, addItem);
+        addBtnComponent.setVerticalComponentAlignment(FlexComponent.Alignment.END);
+        addBtnComponent.setAlignItems(FlexComponent.Alignment.END);
+        Hr split2 = new Hr();
+        Hr split1 = new Hr();
 
-        invoiceItemDetailLayout.add(unitAndAddBtn, price, quantity, itemUnit, foreignCurrency,
+        invoiceItemDetailLayout.add(description, price, quantity, itemUnit, addBtnComponent,
                 split1,
                 invoiceItemGrid,
                 inWords, split2, grandTotal);
-        invoiceItemDetailLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 6));
-        invoiceItemDetailLayout.setColspan(unitAndAddBtn, 2);
-        invoiceItemDetailLayout.setColspan(invoiceItemGrid, 6);
-        invoiceItemDetailLayout.setColspan(split1, 6);
+        invoiceItemDetailLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 7));
+        invoiceItemDetailLayout.setColspan(addBtnComponent, 2);
+        invoiceItemDetailLayout.setColspan(description, 2);
+        invoiceItemDetailLayout.setColspan(invoiceItemGrid, 7);
+        invoiceItemDetailLayout.setColspan(split1, 7);
 
-        invoiceItemDetailLayout.setColspan(inWords, 2);
+        invoiceItemDetailLayout.setColspan(inWords, 3);
         invoiceItemDetailLayout.setColspan(split2, 2);
         invoiceItemDetailLayout.setColspan(grandTotal, 2);
         return invoiceItemDetailLayout;
     }
 
     public void setUpInvoiceItemGrid() {
-        invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setAutoWidth(true);
+        invoiceItemGrid.addColumn(InvoiceItem::getSl).setHeader("Sl").setWidth("2%");
+        invoiceItemGrid.addComponentColumn(invoiceItem -> {
+            if (!invoiceItem.isForeignCurrency()) {
+                return null;
+            }
+            Span statusBadge = new Span("In " + foreignCurrComboBox.getValue());
+            statusBadge.getElement().getThemeList().add("badge");
+            statusBadge.getStyle().setBackgroundColor("crimson");
+            statusBadge.getStyle().setColor("beige");
+            statusBadge.getStyle().set("font-weight", "bold");
+            return statusBadge;
+        }).setHeader("Alert").setWidth("2%");
         invoiceItemGrid.addColumn(InvoiceItem::getDescription).setHeader("Description");
         invoiceItemGrid.addColumn(item -> item.getPrice() + (item.isForeignCurrency() ?
                         foreignCurrComboBox.getValue().getSymbol() : localCurrencyComboBox.getValue().getSymbol()))
@@ -380,7 +396,7 @@ public class ShipmentInvoiceDialog extends Dialog {
                 refreshGrandTotals();
             });
             return deleteButton;
-        });
+        }).setHeader("Delete");
         invoiceItemGrid.setItems(invoiceItems);
     }
 
@@ -486,7 +502,17 @@ public class ShipmentInvoiceDialog extends Dialog {
     }
 
     private List<String> findErrorsForReportData() {
-        return new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        if (StringUtils.isBlank(invoiceNo.getValue())) {
+            errors.add("Invoice No cannot be empty");
+        }
+        if (foreignCurrency.getValue() != null && conversionRate.getValue() == null) {
+            errors.add("Conversion Rate cannot be empty");
+        }
+        if (invoiceItems.isEmpty()) {
+            errors.add("No invoice items are added in grid");
+        }
+        return errors;
     }
 
     private Map<String, Object> prepareParamsForShipmentInvoice() {

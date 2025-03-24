@@ -100,7 +100,7 @@ public class ShippingOrderView extends Div {
 
     private Button getCreateShippingOrderButton(Shipment shipment) {
         Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        create.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         create.addClickListener(event -> new ShippingOrderDialog(
                 shipment, authenticatedUser, clientService, shipmentService, userService, this).open());
         return create;
