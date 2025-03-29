@@ -39,7 +39,7 @@ public class Schedule {
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     private Set<Shipment> shipment;
 
-    @OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transshipment> transshipments;
 
     public String getScheduleSummary() {

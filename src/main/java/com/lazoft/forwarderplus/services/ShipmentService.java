@@ -85,9 +85,9 @@ public class ShipmentService {
     }
 
     @Transactional
-    public void addScheduleToShipment(Shipment shipment, Schedule schedule, Set<Transshipment> transshipmentSet) {
-        if (!transshipmentSet.isEmpty()) {
-            List<Transshipment> savedTransshipments = transshipmentRepository.saveAll(transshipmentSet);
+    public void addScheduleToShipment(Shipment shipment, Schedule schedule, List<Transshipment> transshipmentList) {
+        if (!transshipmentList.isEmpty()) {
+            List<Transshipment> savedTransshipments = transshipmentRepository.saveAll(transshipmentList);
             schedule.setTransshipments(savedTransshipments);
         }
         Schedule savedSchedule = scheduleService.saveSchedule(schedule);
@@ -98,5 +98,10 @@ public class ShipmentService {
     @Transactional
     public void deleteShipments(Set<Shipment> shipments) {
         shipmentRepository.deleteAll(shipments);
+    }
+
+    @Transactional
+    public void deleteTransshipments(List<Transshipment> transshipments) {
+        transshipmentRepository.deleteAll(transshipments);
     }
 }

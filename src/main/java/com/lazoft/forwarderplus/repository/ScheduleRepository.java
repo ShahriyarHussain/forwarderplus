@@ -15,7 +15,7 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long>, JpaSpecificationExecutor<Schedule> {
 
     @Query("select s from Schedule s where s.portOfLoading = :pol and s.portOfDestination = :pod and " +
-            "(s.portOfDestinationETA is null or s.portOfDestinationETA < :date)")
+            "(s.portOfDestinationETA is null or s.portOfLoadingETA > :date)")
     List<Schedule> findAllByPolAndPodAndDate(@Param("pol") Port pol, @Param("pod") Port pod,
                                              @Param("date") LocalDate date);
 }

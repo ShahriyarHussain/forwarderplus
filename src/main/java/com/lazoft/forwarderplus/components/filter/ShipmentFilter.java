@@ -141,7 +141,9 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         }
         if (!blNo.isEmpty()) {
             String blNoValue = blNo.getValue().toLowerCase();
-            Predicate blMatch = criteriaBuilder.like(root.get("id"), "%" + blNoValue + "%");
+            Predicate mblMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("mblNo")), "%" + blNoValue + "%");
+            Predicate hblMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("hblNo")), "%" + blNoValue + "%");
+            Predicate blMatch = criteriaBuilder.or(mblMatch, hblMatch);
             predicates.add(blMatch);
         }
         if (!portOfLoading.isEmpty()) {
