@@ -15,10 +15,9 @@ public class Transshipment {
     private int sl;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgenerator")
+    @SequenceGenerator(name = "idgenerator", initialValue = 1000)
     private long transshipmentId;
-
-    @OneToOne
-    private Schedule schedule;
 
     @ManyToOne
     private Port vesselPort;

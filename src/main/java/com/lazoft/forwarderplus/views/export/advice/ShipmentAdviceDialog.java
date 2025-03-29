@@ -560,12 +560,16 @@ public class ShipmentAdviceDialog extends Dialog {
 
         List<TSReportDto> tsReportDtoList = new LinkedList<>();
         List<Transshipment> tsList = shipmentSchedule.getTransshipments().stream().sorted(
-                Comparator.comparing(Transshipment::getPortEta)).toList();
+                Comparator.comparing(Transshipment::getTransshipmentId)).toList();
 
-        for (int i = 0, count = 1; i < tsList.size(); i++) {
+        tsReportDtoList.add(new TSReportDto("Mother Vessel", shipmentSchedule.getMotherVesselName()));
+        tsReportDtoList.add(new TSReportDto("ETA " + shipmentSchedule.getMotherVesselPort().getPortName(),
+                DateUtil.getDateAsString(shipmentSchedule.getMotherVesselETA())));
+
+        for (int i = 0; i < tsList.size(); i++) {
             Transshipment transshipment = tsList.get(i);
-            if (transshipment.getVesselName() != null && !transshipment.getVesselName().isEmpty()) {
-                tsReportDtoList.add(new TSReportDto("Vessel TS" + count++, transshipment.getVesselName()));
+            if (!StringUtils.isBlank(transshipment.getVesselName())) {
+                tsReportDtoList.add(new TSReportDto("Vessel TS" + i+1, transshipment.getVesselName()));
             }
             tsReportDtoList.add(new TSReportDto("ETA " + transshipment.getVesselPort().getPortName(),
                     DateUtil.getDateAsString(transshipment.getPortEta())));

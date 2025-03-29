@@ -62,11 +62,15 @@ public class EditScheduleDialog extends Dialog {
     private final Button saveButton = new Button("Save");
     private final Button selectSchedule = new Button(VaadinIcon.CHECK_CIRCLE.create());
 
-    private final Set<Transshipment> transshipmentSet = new HashSet<>();
+    private final List<Transshipment> transshipmentList = new LinkedList<>();
+    private final List<Transshipment> deletedTransshipmentList = new LinkedList<>();
+
     private final List<Port> portList = new LinkedList<>();
     private Schedule schedule;
     private final Shipment shipment;
     private final ShipmentAdviceDialog shipmentAdviceDialog;
+
+    private int sl = 1;
 
     public EditScheduleDialog(PortService portService, ShipmentService shipmentService,
                               ScheduleService scheduleService, Shipment shipment,
@@ -116,16 +120,17 @@ public class EditScheduleDialog extends Dialog {
         motherVesselPort.setValue(schedule.getMotherVesselPort());
         motherVesselPortETA.setValue(schedule.getMotherVesselETA());
 
-        transshipmentSet.clear();
-        transshipmentSet.addAll(schedule.getTransshipments());
+        transshipmentList.clear();
+        transshipmentList.addAll(schedule.getTransshipments());
+        setSerialAndIdToTransshipments(transshipmentList);
 
-        grid.setItems(transshipmentSet);
+        grid.setItems(transshipmentList);
     }
 
     private void setExistingScheduleValues() {
         Booking shipmentBooking = shipment.getBooking();
         List<Schedule> schedules = scheduleService.getScheduleByPolAndPodAndDate(shipmentBooking.getLoadingPort(),
-                shipmentBooking.getDestinationPort(), LocalDate.now().plusMonths(2));
+                shipmentBooking.getDestinationPort(), LocalDate.now().minusMonths(6));
 
         if (schedule != null && schedules.stream().noneMatch(item ->
                 Objects.equals(item.getScheduleId(), schedule.getScheduleId()))) {
@@ -164,22 +169,14 @@ public class EditScheduleDialog extends Dialog {
     }
 
     private void setClickListeners() {
-        saveButton.addClickListener(event -> {
-            try {
-                if (isInvalidEntries()) {
-                    NotificationUtil.getNotification("Please provide correct entries in required fields", "",
-                            false, NotificationVariant.LUMO_WARNING, 3000).open();
-                    return;
-                }
-                setValuesToSchedule();
-                shipmentService.addScheduleToShipment(shipment, schedule, transshipmentSet);
-                NotificationUtil.getNotification("Schedule Saved Successfully!", "", false,
-                        NotificationVariant.LUMO_PRIMARY, 3000).open();
-            } catch (Exception e) {
-                log.error("Error is saving container details", e);
-                NotificationUtil.getNotification("Unexpected Error! Could not save data.", e.getMessage(), true,
-                        NotificationVariant.LUMO_ERROR, 5000).open();
-            }
+        addTransshipmentButton.addClickListener(event -> {
+            Transshipment transshipment = new Transshipment();
+            transshipment.setVesselPort(transshipmentPort.getValue());
+            transshipment.setSl(sl++);
+            transshipment.setPortEta(transshipmentETA.getValue());
+            transshipment.setVesselName(transshipmentVessel.getValue());
+            transshipmentList.add(transshipment);
+            grid.setItems(transshipmentList);
         });
 
         selectSchedule.addClickListener(event -> {
@@ -191,11 +188,53 @@ public class EditScheduleDialog extends Dialog {
             setExistingValues(selectedSchedule);
         });
 
+        saveButton.addClickListener(event -> {
+            try {
+                if (isInvalidEntries()) {
+                    NotificationUtil.getNotification("Please provide correct entries in required fields", "",
+                            false, NotificationVariant.LUMO_WARNING, 3000).open();
+                    return;
+                }
+                if (!deletedTransshipmentList.isEmpty() && deleteTransshipmentsFromPersistence()) return;
+
+                setValuesToSchedule();
+                shipmentService.addScheduleToShipment(shipment, schedule, transshipmentList);
+                NotificationUtil.getNotification("Schedule Saved Successfully!", "", false,
+                        NotificationVariant.LUMO_PRIMARY, 3000).open();
+            } catch (Exception e) {
+                log.error("Error is saving container details", e);
+                NotificationUtil.getNotification("Unexpected Error! Could not save data.", e.getMessage(), true,
+                        NotificationVariant.LUMO_ERROR, 5000).open();
+            }
+        });
+
         closeBtn.addClickListener(event -> {
             shipmentAdviceDialog.fillUpExistingValues();
             close();
         });
     }
+
+    private boolean deleteTransshipmentsFromPersistence() {
+        try {
+            shipmentService.deleteTransshipments(deletedTransshipmentList);
+        } catch (Exception e) {
+            NotificationUtil.getNotification("Failed to delete trans-shipments", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 5000);
+            transshipmentList.addAll(deletedTransshipmentList);
+            setSerialAndIdToTransshipments(transshipmentList);
+            return true;
+        }
+        return false;
+    }
+
+    private void setSerialAndIdToTransshipments(List<Transshipment> transshipments) {
+        int tsSerial = 1;
+        transshipments.sort(Comparator.comparing(Transshipment::getTransshipmentId));
+        for (Transshipment transshipment : transshipments) {
+            transshipment.setSl(tsSerial++);
+            transshipment.setTransshipmentId(Long.parseLong(shipment.getShipmentId() + String.valueOf(transshipment.getSl())));
+        }
+    }
+
 
     private void setValuesToSchedule() {
         if (schedule == null) {
@@ -215,7 +254,8 @@ public class EditScheduleDialog extends Dialog {
         schedule.setMotherVesselETA(motherVesselPortETA.getValue());
 
         schedule.setTransshipments(new LinkedList<>());
-        schedule.getTransshipments().addAll(transshipmentSet);
+        setSerialAndIdToTransshipments(transshipmentList);
+        schedule.getTransshipments().addAll(transshipmentList);
     }
 
     private void prepareTransshipmentGrid() {
@@ -228,27 +268,17 @@ public class EditScheduleDialog extends Dialog {
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
-                transshipmentSet.remove(transshipment);
-                grid.setItems(transshipmentSet);
+                sl--;
+                deletedTransshipmentList.add(transshipment);
+                transshipmentList.remove(transshipment);
+                setSerialAndIdToTransshipments(transshipmentList);
+                grid.setItems(transshipmentList);
             });
             return deleteButton;
         }).setHeader("Delete");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.setItems(transshipmentSet);
-
-        addTransshipmentButton.addClickListener(event -> {
-            Transshipment transshipment = new Transshipment();
-            transshipment.setVesselPort(transshipmentPort.getValue());
-            transshipment.setSl(transshipmentSet.size() + 1);
-            transshipment.setPortEta(transshipmentETA.getValue());
-            transshipment.setVesselName(transshipmentVessel.getValue());
-            transshipment.setTransshipmentId(Long.parseLong(shipment.getShipmentId()
-                    + String.valueOf(transshipment.getSl())));
-            transshipmentSet.add(transshipment);
-            grid.setItems(transshipmentSet);
-        });
-
+        grid.setItems(transshipmentList);
     }
 
     private FormLayout getScheduleEditForm() {
