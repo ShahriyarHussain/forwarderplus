@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -174,12 +175,10 @@ public class ReportOptionsDialog extends Dialog {
     private Anchor getReportDownloadAnchor() {
         Anchor anchor = new Anchor(new StreamResource(reportOptionsDto.getFileName() + ".pdf",
                 (InputStreamFactory) () -> {
-                    try (InputStream stream = getClass().getResourceAsStream("/Reports/" + reportOptionsDto.getReportSourceFileName())) {
+                    try (InputStream stream = getClass().getResourceAsStream(File.separator + "Reports" + File.separator + reportOptionsDto.getReportSourceFileName())) {
                         return new ByteArrayInputStream(JasperRunManager
                                 .runReportToPdf(stream, parameters, new JREmptyDataSource(1)));
                     } catch (JRException | IOException e) {
-//                        NotificationUtil.getNotification("Error while generating report", e.getMessage(),
-//                                true, NotificationVariant.LUMO_ERROR, 5000).open();
                         throw new RuntimeException(e);
                     }
                 }), "");
