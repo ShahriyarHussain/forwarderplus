@@ -2,9 +2,9 @@ package com.lazoft.forwarderplus.views.export;
 
 import com.lazoft.forwarderplus.components.TemplateBadge;
 import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
-import com.lazoft.forwarderplus.dto.xml.BookingTemplate;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
+import com.lazoft.forwarderplus.model.xml.BookingTemplate;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 

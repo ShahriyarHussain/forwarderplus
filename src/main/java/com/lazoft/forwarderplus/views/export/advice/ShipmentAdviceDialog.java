@@ -4,8 +4,8 @@ import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.*;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
@@ -173,7 +173,9 @@ public class ShipmentAdviceDialog extends Dialog {
         schedule.setReadOnly(true);
         approxTime.setReadOnly(true);
         departureDate.setReadOnly(true);
+        departureDate.setLocale(Locale.UK);
         arrivalDate.setReadOnly(true);
+        arrivalDate.setLocale(Locale.UK);
 
         totalQuantity.setReadOnly(true);
         unit.setReadOnly(true);
@@ -189,6 +191,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
         stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
         stuffingDepot.setAllowCustomValue(true);
+        stuffingDate.setLocale(Locale.UK);
     }
 
     public void fillUpExistingValues() {
@@ -569,7 +572,7 @@ public class ShipmentAdviceDialog extends Dialog {
         for (int i = 0; i < tsList.size(); i++) {
             Transshipment transshipment = tsList.get(i);
             if (!StringUtils.isBlank(transshipment.getVesselName())) {
-                tsReportDtoList.add(new TSReportDto("Vessel TS" + i+1, transshipment.getVesselName()));
+                tsReportDtoList.add(new TSReportDto("Vessel TS" + (i+1), transshipment.getVesselName()));
             }
             tsReportDtoList.add(new TSReportDto("ETA " + transshipment.getVesselPort().getPortName(),
                     DateUtil.getDateAsString(transshipment.getPortEta())));

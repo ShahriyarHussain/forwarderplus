@@ -1,8 +1,8 @@
 package com.lazoft.forwarderplus.views.finances.transaction;
 
 import com.lazoft.forwarderplus.components.dialog.CreateTransactionLegDialog;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.Account;
 import com.lazoft.forwarderplus.entity.Ledger;
 import com.lazoft.forwarderplus.entity.Transaction;
@@ -46,6 +46,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.lazoft.forwarderplus.util.Constants.CATEGORIES;
 
@@ -139,6 +140,7 @@ public class CreateTransactionView extends VerticalLayout {
         transactionType.setWidth("40%");
 
         transactionDate.setWidth("20%");
+        transactionDate.setLocale(Locale.UK);
         category.setWidth("25%");
         category.setAllowCustomValue(true);
         transactionMethod.setWidth("30%");

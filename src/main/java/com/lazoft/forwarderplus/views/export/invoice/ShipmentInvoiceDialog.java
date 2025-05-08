@@ -131,7 +131,8 @@ public class ShipmentInvoiceDialog extends Dialog {
     private void setFieldAttributes() {
         addItem.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         foreignCurrency.setWidth("80%");
-        //description.setWidth("90%");
+        expDate.setLocale(Locale.UK);
+        invoiceDate.setLocale(Locale.UK);
 
         inWords.setReadOnly(true);
         grandTotal.setReadOnly(true);

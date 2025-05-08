@@ -166,6 +166,12 @@ public class EditScheduleDialog extends Dialog {
         portOfDestination.setItemLabelGenerator(Port::getPortLabel);
         motherVesselPort.setItemLabelGenerator(Port::getPortLabel);
         transshipmentPort.setItemLabelGenerator(Port::getPortLabel);
+
+        etaPortOfLoading.setLocale(Locale.UK);
+        etdPortOfLoading.setLocale(Locale.UK);
+        motherVesselPortETA.setLocale(Locale.UK);
+        etaPortOfDestination.setLocale(Locale.UK);
+        transshipmentETA.setLocale(Locale.UK);
     }
 
     private void setClickListeners() {

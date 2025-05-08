@@ -1,6 +1,6 @@
 package com.lazoft.forwarderplus.components.filter;
 
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Carrier;
 import com.lazoft.forwarderplus.entity.Port;
@@ -29,6 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class ShipmentFilter extends Div implements Specification<Shipment> {
@@ -52,6 +53,9 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         addClassName("filter-layout");
         addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
                 LumoUtility.BoxSizing.BORDER);
+
+        createFromDate.setLocale(Locale.UK);
+        createdToDate.setLocale(Locale.UK);
 
         bookingNo.setPlaceholder("Booking No");
         bookingNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));

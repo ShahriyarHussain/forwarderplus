@@ -1,7 +1,7 @@
 package com.lazoft.forwarderplus.util;
 
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;

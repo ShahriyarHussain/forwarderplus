@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.dto.xml;
+package com.lazoft.forwarderplus.model.xml;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;

@@ -1,24 +1,26 @@
-package com.lazoft.forwarderplus.dto.xml;
+package com.lazoft.forwarderplus.model.xml;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-@XmlRootElement(name = "Items")
 @XmlAccessorType(XmlAccessType.FIELD)
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomItems {
+public class CustomItem {
 
-    @XmlElement(name = "Item")
-    private List<CustomItem> categories;
+    @XmlElement(name = "name")
+    private String name;
+
+    @XmlElement(name = "hash")
+    private Integer hash;
+
+    @XmlElement(name = "bookingTemplate")
+    private BookingTemplate bookingTemplate;
 }

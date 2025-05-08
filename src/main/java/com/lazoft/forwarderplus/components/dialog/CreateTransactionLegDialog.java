@@ -16,6 +16,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIcon;
@@ -30,6 +31,7 @@ public class CreateTransactionLegDialog extends Dialog {
     private int serialNo;
 
     private final TextField remarks = new TextField("Remarks");
+    private final IntegerField quantity = new IntegerField("Quantity");
     private final BigDecimalField amount = new BigDecimalField("Amount");
     private final Button addLegButton = new Button(LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
 
@@ -43,7 +45,7 @@ public class CreateTransactionLegDialog extends Dialog {
         this.transactionLegs = transactionLegs;
         this.createTransactionView = createTransactionView;
         this.setHeaderTitle("Add Transaction Legs");
-        this.setWidth(800, Unit.PIXELS);
+        this.setWidth(850, Unit.PIXELS);
         this.setCloseOnOutsideClick(false);
         this.serialNo = transactionLegs.size() + 1;
 
@@ -68,19 +70,21 @@ public class CreateTransactionLegDialog extends Dialog {
         addLegButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         close.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        amount.setWidth("40%");
-        remarks.setWidth("50%");
+        quantity.setMin(1);
+        quantity.setWidth("20%");
+        amount.setWidth("30%");
+        remarks.setWidth("40%");
         addLegButton.setWidth("10%");
     }
 
     private FormLayout getTransactionLegForm() {
         FormLayout formLayout = new FormLayout();
         HorizontalLayout amountLayout = new HorizontalLayout();
-        amountLayout.add(amount, remarks, addLegButton);
+        amountLayout.add(quantity, amount, remarks, addLegButton);
         amountLayout.setAlignItems(FlexComponent.Alignment.END);
         amountLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
         formLayout.add(amountLayout);
-        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 3));
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
         formLayout.setColspan(amountLayout, 3);
         return formLayout;
     }
@@ -96,6 +100,7 @@ public class CreateTransactionLegDialog extends Dialog {
            leg.setSlNo(serialNo++);
            leg.setAmount(amount.getValue());
            leg.setRemarks(remarks.getValue());
+           leg.setQuantity(quantity.getValue());
            transactionLegs.add(leg);
            grid.setItems(transactionLegs);
         });

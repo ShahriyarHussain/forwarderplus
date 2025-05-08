@@ -34,10 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class ShippingOrderDialog extends Dialog {
@@ -116,6 +113,7 @@ public class ShippingOrderDialog extends Dialog {
         bookingNo.setReadOnly(true);
         portOfLoading.setReadOnly(true);
         portOfDischarge.setReadOnly(true);
+        documentDate.setLocale(Locale.UK);
 
         saveButton.setIcon(LineAwesomeIcon.SAVE_SOLID.create());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
