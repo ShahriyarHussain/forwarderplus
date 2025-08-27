@@ -29,6 +29,7 @@ import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -110,7 +111,7 @@ public class ShipmentAdviceDialog extends Dialog {
             this.user = null;
             close();
         } else {
-            this.user = authenticatedUser.get().get();
+            this.user = authenticatedUser.get().orElseThrow(() -> new NotFoundException("User not found"));
         }
 
         this.shipment = shipment;
@@ -210,12 +211,12 @@ public class ShipmentAdviceDialog extends Dialog {
         fillUpScheduleValues();
         fillUpCargoValues();
 
-        StuffingDetails stuffingDetails = shipment.getStuffingDetails();
-        if (stuffingDetails == null) {
+        StuffingDetails shipmentStuffingDetails = shipment.getStuffingDetails();
+        if (shipmentStuffingDetails == null) {
             return;
         }
-        stuffingDepot.setValue(stuffingDetails.getStuffingDepot());
-        stuffingDate.setValue(stuffingDetails.getStuffingDate());
+        stuffingDepot.setValue(shipmentStuffingDetails.getStuffingDepot());
+        stuffingDate.setValue(shipmentStuffingDetails.getStuffingDate());
     }
 
     private void fillUpScheduleValues() {
@@ -302,7 +303,6 @@ public class ShipmentAdviceDialog extends Dialog {
                 stuffingDate, stuffingDepot, freightTerm,
                 goodsDescription, shipperMarks);
         shipmentInfoLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 4));
-//        shipmentInfoLayout.setColspan(freightTerm, 2);
         shipmentInfoLayout.setColspan(goodsDescription, 2);
         shipmentInfoLayout.setColspan(shipperMarks, 2);
         return shipmentInfoLayout;
@@ -508,11 +508,6 @@ public class ShipmentAdviceDialog extends Dialog {
             shipperMarks.setErrorMessage("Cannot exceed " + TEXT_AREA_CHAR_LIMIT + " Characters");
             isInvalid = true;
         }
-//        if (stuffingDate.getValue() != null) {
-//            stuffingDate.setInvalid(true);
-//            stuffingDate.setErrorMessage("Please provide a date");
-//            isInvalid = true;
-//        }
         return isInvalid;
     }
 
@@ -525,10 +520,10 @@ public class ShipmentAdviceDialog extends Dialog {
         paramMap.put("BOOKING_NO", bookingNo.getValue());
         paramMap.put("SHIPPER_INVOICE_NO", clientInvoiceNo.getValue());
 
-        StuffingDetails stuffingDetails = shipment.getStuffingDetails();
-        if (stuffingDetails != null) {
-            paramMap.put("STUFFING_DATE", DateUtil.getDateAsString(stuffingDetails.getStuffingDate()));
-            paramMap.put("STUFFING_DEPOT", stuffingDetails.getStuffingDepot());
+        StuffingDetails shipmentStuffingDetails = shipment.getStuffingDetails();
+        if (shipmentStuffingDetails != null) {
+            paramMap.put("STUFFING_DATE", DateUtil.getDateAsString(shipmentStuffingDetails.getStuffingDate()));
+            paramMap.put("STUFFING_DEPOT", shipmentStuffingDetails.getStuffingDepot());
         }
 
         paramMap.put("SHIPPER_NAME", shipper.getValue().getName());
@@ -553,9 +548,9 @@ public class ShipmentAdviceDialog extends Dialog {
         paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMotherVesselETA()));
 
         List<ContainerDetails> containerDetails = shipment.getContainerDetails();
-        paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getContainerNo)
+        paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getSealNo)
                 .reduce((container1, container2) -> container1 + ", " + container2).orElse(""));
-        paramMap.put("CONTAINERS", containerDetails.stream().map(ContainerDetails::getSealNo)
+        paramMap.put("CONTAINERS", containerDetails.stream().map(ContainerDetails::getContainerNo)
                 .reduce((seal1, seal2) -> seal1 + ", " + seal2).orElse(""));
 
         List<TSReportDto> tsReportDtoList = new LinkedList<>();

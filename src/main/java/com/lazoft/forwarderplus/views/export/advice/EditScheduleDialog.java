@@ -4,6 +4,7 @@ import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.services.ScheduleService;
 import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -27,7 +28,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class EditScheduleDialog extends Dialog {
@@ -292,7 +296,9 @@ public class EditScheduleDialog extends Dialog {
         transhipmentEtaAddLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
         transhipmentEtaAddLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        Hr line1 = new Hr(), line2 = new Hr(), line3 = new Hr();
+        Hr line1 = new Hr();
+        Hr line2 = new Hr();
+        Hr line3 = new Hr();
         formLayout.add(chooseExistingShipmentLayout,
                 line1,
                 feederVessel, etaPortOfLoading, etdPortOfLoading,
@@ -329,17 +335,17 @@ public class EditScheduleDialog extends Dialog {
         }
         if (portOfLoading.getValue() == null) {
             portOfLoading.setInvalid(true);
-            portOfLoading.setErrorMessage("Please provide correct value");
+            portOfLoading.setErrorMessage(Constants.PROVIDE_CORRECT_VALUE_MESSAGE);
             isInvalid = true;
         }
         if (portOfDestination.getValue() == null) {
             portOfDestination.setInvalid(true);
-            portOfDestination.setErrorMessage("Please provide correct value");
+            portOfDestination.setErrorMessage(Constants.PROVIDE_CORRECT_VALUE_MESSAGE);
             isInvalid = true;
         }
         if (etaPortOfDestination.getValue() == null) {
             etaPortOfDestination.setInvalid(true);
-            etaPortOfDestination.setErrorMessage("Please provide correct value");
+            etaPortOfDestination.setErrorMessage(Constants.PROVIDE_CORRECT_VALUE_MESSAGE);
             return true;
         }
         if (etaPortOfDestination.getValue().isBefore(etaPortOfLoading.getValue()) ||

@@ -2,25 +2,17 @@ package com.lazoft.forwarderplus.views.viewshipments;
 
 import com.lazoft.forwarderplus.components.dialog.ReminderCreationDialog;
 import com.lazoft.forwarderplus.components.filter.ShipmentFilter;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.entity.*;
-import com.lazoft.forwarderplus.enums.ContainerSize;
+import com.lazoft.forwarderplus.entity.Booking;
+import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.Role;
-import com.lazoft.forwarderplus.enums.ShipmentStatus;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
-import com.lazoft.forwarderplus.util.Constants;
-import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyDownEvent;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
@@ -30,24 +22,19 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.NotFoundException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.persistence.criteria.*;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @PageTitle("Search & View Shipments")
@@ -58,7 +45,6 @@ public class ViewShipmentsView extends Div {
 
     private final ShipmentService shipmentService;
     private final ReminderService reminderService;
-    private final BookingService bookingService;
     private Grid<Shipment> grid;
 
     private final Button deleteButton = new Button("Delete", VaadinIcon.EXCLAMATION_CIRCLE.create());
@@ -68,19 +54,19 @@ public class ViewShipmentsView extends Div {
     private final ShipmentFilter filters;
 
     public ViewShipmentsView(PortService portService, ShipmentService shipmentService, ReminderService reminderService,
-                             CarrierService carrierService, BookingService bookingService, AuthenticatedUser authenticatedUser) {
+                             CarrierService carrierService, AuthenticatedUser authenticatedUser) {
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("Session Lost. Reload page or login again", "", false,
                     NotificationVariant.LUMO_WARNING, 2000).open();
             this.user = null;
         } else {
-            this.user = authenticatedUser.get().get();
+            this.user = authenticatedUser.get().orElseThrow(() -> new NotFoundException("User not found"));
         }
         this.shipmentService = shipmentService;
         this.reminderService = reminderService;
 
         deleteButton.getStyle().set("margin", "10px");
-        deleteButton.setVisible(authenticatedUser.get().get().getRoles().contains(Role.ADMIN));
+        deleteButton.setVisible(authenticatedUser.get().orElseThrow(() -> new NotFoundException("Username not found")).getRoles().contains(Role.ADMIN));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
         deleteButton.addClickListener(event -> deleteShipments());
 
@@ -92,7 +78,6 @@ public class ViewShipmentsView extends Div {
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
-        this.bookingService = bookingService;
     }
 
     private Component createGrid() {
@@ -136,8 +121,6 @@ public class ViewShipmentsView extends Div {
             NotificationUtil.getNotification("No Items Selected!", "", false, NotificationVariant.LUMO_WARNING, 2000).open();
             return;
         }
-
-//        List<Booking> bookings = selectedShipments.stream().map(Shipment::getBooking).distinct().toList();
 
         try {
             shipmentService.deleteShipments(selectedShipments);

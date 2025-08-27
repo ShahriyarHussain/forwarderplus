@@ -4,6 +4,7 @@ import com.lazoft.forwarderplus.entity.Reminder;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.enums.ReminderVisibility;
 import com.lazoft.forwarderplus.services.ReminderService;
+import com.lazoft.forwarderplus.util.Constants;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -82,7 +83,7 @@ public class ReminderCreationDialog extends Dialog {
         saveButton.addClickListener(event -> {
             try {
                 if (isInvalidEntries()) {
-                    NotificationUtil.getNotification("Please provide correct values",
+                    NotificationUtil.getNotification(Constants.PROVIDE_CORRECT_VALUE_MESSAGE,
                             "", false, NotificationVariant.LUMO_WARNING, 4000).open();
                     return;
                 }

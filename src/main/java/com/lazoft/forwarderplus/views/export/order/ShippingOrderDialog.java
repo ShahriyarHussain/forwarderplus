@@ -152,7 +152,7 @@ public class ShippingOrderDialog extends Dialog {
     private void addListeners() {
         saveButton.addClickListener(event -> {
             if (isInvalidDataForSaveAndReport()) {
-                NotificationUtil.getNotification("Please provide correct values", "", false,
+                NotificationUtil.getNotification(Constants.PROVIDE_CORRECT_VALUE_MESSAGE, "", false,
                         NotificationVariant.LUMO_WARNING, 3000).open();
                 return;
             }

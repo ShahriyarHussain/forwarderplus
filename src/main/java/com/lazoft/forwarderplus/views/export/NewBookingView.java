@@ -37,6 +37,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.router.NotFoundException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
@@ -46,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -101,7 +101,7 @@ public class NewBookingView extends Composite<VerticalLayout> {
         this.templateList = CustomItemUtil.getItemsListFromFile(TEMPLATES);
 
         if (authenticatedUser.get().isPresent()) {
-            user = authenticatedUser.get().get();
+            user = authenticatedUser.get().orElseThrow(() -> new NotFoundException("User not found"));
         } else {
             ConfirmDialog dialog = new ConfirmDialog();
             dialog.setText("User session expired! Please login again");
