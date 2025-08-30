@@ -31,10 +31,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@PageTitle("Create Ledger")
-@Route(value = "create-ledger", layout = MainLayout.class)
+@PageTitle("Ledgers")
+@Route(value = "ledgers", layout = MainLayout.class)
 @RolesAllowed({"ADMIN", "FINANCE"})
-public class ManageLedgerView extends Composite<VerticalLayout> {
+public class LedgerView extends Composite<VerticalLayout> {
 
     private final TextField ledgerName = new TextField("Ledger Name");
     private final TextField ledgerCode = new TextField("Ledger Code");
@@ -52,7 +52,7 @@ public class ManageLedgerView extends Composite<VerticalLayout> {
     private final Tab createLedgerTab = new Tab("Create Ledger");
     private final VerticalLayout createLedgerVerticalLayout = new VerticalLayout();
 
-    private final Tab editLedgerTab = new Tab("Edit Ledgers");
+    private final Tab editLedgerTab = new Tab("Manage Ledgers");
     private final VerticalLayout editLedgerVerticalLayout = new VerticalLayout();
 
     private final LedgerService ledgerService;
@@ -60,7 +60,7 @@ public class ManageLedgerView extends Composite<VerticalLayout> {
     private User user;
 
 
-    public ManageLedgerView(LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
+    public LedgerView(LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
         this.ledgerService = ledgerService;
 
         if (authenticatedUser.get().isPresent()) {

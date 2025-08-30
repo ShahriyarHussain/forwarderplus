@@ -55,4 +55,11 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
+    public void deleteAccount(Account account) {
+        accountRepository.delete(account);
+    }
+
+    public long accountCount() {
+        return accountRepository.count();
+    }
 }

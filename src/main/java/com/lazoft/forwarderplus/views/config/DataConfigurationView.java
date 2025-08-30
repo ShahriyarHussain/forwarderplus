@@ -162,7 +162,7 @@ public class DataConfigurationView extends VerticalLayout {
 
     private void setPortGrid() {
         portGrid.addColumn("portName").setHeader("Name").setAutoWidth(true);
-        portGrid.addColumn("portCountry").setHeader("Email").setAutoWidth(true);
+        portGrid.addColumn("portCountry").setHeader("Country").setAutoWidth(true);
         portGrid.addColumn("portCity").setHeader("Post Code").setAutoWidth(true);
         portGrid.addColumn("portShortCode").setHeader("Short Code").setAutoWidth(true);
         portGrid.setItems(query -> portService.getAllPorts(PageRequest.of(query.getPage(), query.getPageSize(),

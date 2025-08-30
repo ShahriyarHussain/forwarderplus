@@ -1,12 +1,12 @@
 package com.lazoft.forwarderplus.components.filter;
 
-import com.lazoft.forwarderplus.model.xml.CustomItem;
 import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Carrier;
 import com.lazoft.forwarderplus.entity.Port;
 import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
 import com.lazoft.forwarderplus.services.CarrierService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
@@ -118,7 +118,7 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
 
         // For screen readers
         createFromDate.setAriaLabel("Created From");
-        createdToDate.setAriaLabel("Created From");
+        createdToDate.setAriaLabel("Created To");
 
         FlexLayout portSelectionComponent = new FlexLayout(createFromDate, new Text(" – "), createdToDate);
         portSelectionComponent.setAlignItems(FlexComponent.Alignment.BASELINE);

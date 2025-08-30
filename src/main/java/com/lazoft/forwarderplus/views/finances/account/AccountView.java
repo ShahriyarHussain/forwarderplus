@@ -10,7 +10,6 @@ import com.lazoft.forwarderplus.services.AccountService;
 import com.lazoft.forwarderplus.services.LedgerService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
-import com.lazoft.forwarderplus.views.finances.ledger.ManageLedgerLayout;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -39,11 +38,11 @@ import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
-@PageTitle("Create Account")
-@Route(value = "create-account", layout = MainLayout.class)
+@PageTitle("Accounts")
+@Route(value = "accounts", layout = MainLayout.class)
 @RolesAllowed({"ADMIN", "FINANCE"})
 @Slf4j
-public class ManageAccountView extends Composite<VerticalLayout> {
+public class AccountView extends Composite<VerticalLayout> {
 
     private final TextField accountName = new TextField("Account Name");
     private final TextField accountNo = new TextField("Account No");
@@ -61,7 +60,7 @@ public class ManageAccountView extends Composite<VerticalLayout> {
     private final Tab createAccountTab = new Tab("Create Account");
     private final VerticalLayout createAccountVerticalLayout = new VerticalLayout();
 
-    private final Tab editAccountTab = new Tab("Edit Account");
+    private final Tab editAccountTab = new Tab("Manage Accounts");
     private final VerticalLayout editAccountVerticalLayout = new VerticalLayout();
 
 
@@ -71,7 +70,7 @@ public class ManageAccountView extends Composite<VerticalLayout> {
     private final List<LedgerTagInfo> taggedLedgers = new LinkedList<>();
 
 
-    public ManageAccountView(AccountService accountService, LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
+    public AccountView(AccountService accountService, LedgerService ledgerService, AuthenticatedUser authenticatedUser) {
         this.accountService = accountService;
         this.ledgerService = ledgerService;
 
@@ -86,14 +85,14 @@ public class ManageAccountView extends Composite<VerticalLayout> {
 
         FormLayout formLayout = setUpFormLayout();
         Button reset = new Button("Reset");
-        createAccountVerticalLayout.add(new VerticalLayout(new H3("Create Ledger"), formLayout, new HorizontalLayout(createAccount, reset)));
-        editAccountVerticalLayout.add(new ManageLedgerLayout(ledgerService, user));
+        createAccountVerticalLayout.add(new VerticalLayout(new H3("Create Account"), formLayout,
+                new HorizontalLayout(createAccount, reset)));
+        editAccountVerticalLayout.add(new ManageAccountLayout(accountService, ledgerService));
         setFieldAttributes();
         setListeners();
 
         HorizontalLayout layoutRow = new HorizontalLayout();
         VerticalLayout layoutColumn2 = new VerticalLayout();
-        H3 h3 = new H3();
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         layoutRow.addClassName(LumoUtility.Gap.MEDIUM);
@@ -101,11 +100,9 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         layoutRow.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
         layoutColumn2.getStyle().set("flex-grow", "1");
-        h3.setText("Create Account");
-        h3.setWidth("max-content");
         getContent().add(layoutRow);
         layoutRow.add(layoutColumn2);
-        layoutColumn2.add(h3, formLayout, new HorizontalLayout(createAccount, reset));
+        layoutColumn2.add(accountManageTabs, createAccountVerticalLayout, editAccountVerticalLayout);
     }
 
     private FormLayout setUpFormLayout() {
@@ -142,12 +139,13 @@ public class ManageAccountView extends Composite<VerticalLayout> {
 
         accountManageTabs.add(createAccountTab, editAccountTab);
         accountManageTabs.setSelectedTab(createAccountTab);
+
         createAccountVerticalLayout.setVisible(true);
         editAccountVerticalLayout.setVisible(false);
     }
 
     private void setListeners() {
-        createAccount.addClickListener((event) -> {
+        createAccount.addClickListener(event -> {
             if (isInvalidData()) {
                 return;
             }
@@ -174,6 +172,11 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         });
 
         tagLedger.addClickListener(event -> new AccountLedgerTagDialog(taggedLedgers, ledgerService).open());
+
+        accountManageTabs.addSelectedChangeListener(e -> {
+            createAccountVerticalLayout.setVisible(createAccountTab.isSelected());
+            editAccountVerticalLayout.setVisible(editAccountTab.isSelected());
+        });
     }
 
     private Account createAccountFromData() {
@@ -184,7 +187,8 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         account.setStartingBalance(startingBalance.getValue());
         account.setFinancialDetails(description.getValue());
         account.setTaggedLedgers(taggedLedgers);
-        account.setUpdatedAt(LocalDateTime.now());
+        account.setAmountCurrency(currency.getValue());
+        account.setCreatedAt(LocalDateTime.now());
         return account;
     }
 
@@ -192,12 +196,12 @@ public class ManageAccountView extends Composite<VerticalLayout> {
         boolean isInvalid = false;
         if (StringUtils.isBlank(accountName.getValue())) {
             accountName.setInvalid(true);
-            accountName.setErrorMessage("Ledger Name is required");
+            accountName.setErrorMessage("Account Name is required");
             isInvalid = true;
         }
         if (StringUtils.isBlank(accountNo.getValue())) {
             accountNo.setInvalid(true);
-            accountNo.setErrorMessage("Ledger Code is required");
+            accountNo.setErrorMessage("Account Code is required");
             isInvalid = true;
         }
         if (startingBalance.getValue() == null) {

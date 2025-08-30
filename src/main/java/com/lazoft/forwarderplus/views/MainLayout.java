@@ -12,9 +12,10 @@ import com.lazoft.forwarderplus.views.export.bill.BLCreateView;
 import com.lazoft.forwarderplus.views.export.invoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.export.order.ShippingOrderView;
 import com.lazoft.forwarderplus.views.finances.FinancesView;
-import com.lazoft.forwarderplus.views.finances.account.ManageAccountView;
-import com.lazoft.forwarderplus.views.finances.ledger.ManageLedgerView;
+import com.lazoft.forwarderplus.views.finances.account.AccountView;
+import com.lazoft.forwarderplus.views.finances.ledger.LedgerView;
 import com.lazoft.forwarderplus.views.finances.transaction.CreateTransactionView;
+import com.lazoft.forwarderplus.views.report.ViewTransactions;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -97,9 +98,10 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(FinancesView.class)) {
             SideNavItem finances = new SideNavItem("Finances");
             finances.setPrefixComponent(LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create());
-            finances.addItem(new SideNavItem("Manage Accounts", ManageAccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
-            finances.addItem(new SideNavItem("Manage Ledger", ManageLedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
+            finances.addItem(new SideNavItem("Accounts", AccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
+            finances.addItem(new SideNavItem("Ledger", LedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
             finances.addItem(new SideNavItem("Add Transaction", CreateTransactionView.class, VaadinIcon.MONEY_EXCHANGE.create()));
+            finances.addItem(new SideNavItem("View Transactions", ViewTransactions.class, VaadinIcon.LIST.create()));
             finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
             nav.addItem(finances);
         }

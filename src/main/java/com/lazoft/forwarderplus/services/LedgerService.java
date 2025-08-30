@@ -32,6 +32,10 @@ public class LedgerService {
         return ledgerRepository.findAll();
     }
 
+    public long ledgerCount() {
+        return ledgerRepository.count();
+    }
+
     public Page<Ledger> getLedgersByFilter(Specification<Ledger> specification, Pageable pageable) {
         return ledgerRepository.findAll(specification, pageable);
     }
@@ -42,5 +46,9 @@ public class LedgerService {
 
     public void saveAllLedgers(List<Ledger> ledgers) {
         ledgerRepository.saveAll(ledgers);
+    }
+
+    public void deleteLedger(Ledger ledger) {
+        ledgerRepository.delete(ledger);
     }
 }

@@ -1,13 +1,16 @@
 package com.lazoft.forwarderplus.views.finances.transaction;
 
 import com.lazoft.forwarderplus.components.dialog.CreateTransactionLegDialog;
-import com.lazoft.forwarderplus.entity.*;
-import com.lazoft.forwarderplus.model.xml.CustomItem;
-import com.lazoft.forwarderplus.model.xml.CustomItems;
+import com.lazoft.forwarderplus.entity.Account;
+import com.lazoft.forwarderplus.entity.Ledger;
+import com.lazoft.forwarderplus.entity.Transaction;
+import com.lazoft.forwarderplus.entity.TransactionLeg;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.enums.TransactionMethod;
 import com.lazoft.forwarderplus.enums.TransactionStatus;
 import com.lazoft.forwarderplus.enums.TransactionType;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.services.AccountService;
 import com.lazoft.forwarderplus.services.CurrencyDataService;
 import com.lazoft.forwarderplus.services.LedgerService;
@@ -92,6 +95,7 @@ public class CreateTransactionView extends VerticalLayout {
     private final BigDecimalField amount = new BigDecimalField("Amount");
     private final BigDecimalField totalAmount = new BigDecimalField("Total Amount");
     private final Button addLegButton = new Button(LineAwesomeIcon.PLUS_CIRCLE_SOLID.create());
+    private final BigDecimalField subTotal = new BigDecimalField("Sub Total");
 
     private final Grid<TransactionLeg> transactionLegGrid = new Grid<>(TransactionLeg.class, false);
 
@@ -119,10 +123,23 @@ public class CreateTransactionView extends VerticalLayout {
         this.unitList = CustomItemUtil.getItemsListFromFile(unitsFileName);
         accountsList = accountService.getAccounts();
         ledgerList = ledgerService.getLedgers();
+        showPopUpIfAccountLedgerNotSetup();
         setValues();
         setAttributes();
         setListeners();
         setFormLayout();
+    }
+
+    private void showPopUpIfAccountLedgerNotSetup() {
+        if (ledgerService.ledgerCount() > 0 || accountService.accountCount() > 0) {
+            return;
+        }
+        ConfirmDialog confirmDialog = new ConfirmDialog();
+        confirmDialog.setHeader("No Financial Entity Warning!");
+        confirmDialog.setText("No Account or Ledger is created. Without a Ledger or Account, you cannot perform transaction.");
+        confirmDialog.setCancelable(false);
+        confirmDialog.setConfirmButton(new Button("I Understand", event -> confirmDialog.close()));
+        confirmDialog.open();
     }
 
     enum EntityType {
@@ -189,6 +206,8 @@ public class CreateTransactionView extends VerticalLayout {
         clear.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         totalAmount.setReadOnly(true);
+        subTotal.setReadOnly(true);
+        subTotal.setValue(BigDecimal.ZERO);
         transactionLegGrid.setMaxHeight("150px");
     }
 
@@ -208,11 +227,14 @@ public class CreateTransactionView extends VerticalLayout {
             }
             if (event.getValue() == TransactionType.TRANSFER) {
                 fromEntity.setVisible(true);
+                fromEntity.setLabel("From Account/Ledger");
                 fromEntityBalance.setVisible(true);
                 toEntity.setVisible(true);
+                toEntity.setLabel("To Account/Ledger");
                 toEntityBalance.setVisible(true);
             } else {
                 fromEntity.setVisible(true);
+                fromEntity.setLabel("Account/Ledger");
                 fromEntityBalance.setVisible(true);
                 toEntity.setVisible(false);
                 toEntityBalance.setVisible(false);
@@ -255,11 +277,12 @@ public class CreateTransactionView extends VerticalLayout {
             transactionLeg.setQuantity(quantity.getValue());
             transactionLeg.setUnit(unit.getValue());
             transactionLeg.setAmount(amount.getValue());
-            transactionLeg.setRemarks(remarks.getValue());
+            transactionLeg.setRemarks(legRemarks.getValue());
             transactionLeg.setSlNo(sl);
             transactionLeg.setId((long) sl);
             transactionLegs.add(transactionLeg);
             transactionLegGrid.setItems(transactionLegs);
+            subTotal.setValue(subTotal.getValue().add(totalAmount.getValue()));
             sl++;
         });
     }
@@ -296,10 +319,12 @@ public class CreateTransactionView extends VerticalLayout {
             updateLocalCurrencyAmount();
         });
 
-        foreignCurrencyAmount.addValueChangeListener(event -> updateLocalCurrencyAmount());
+        foreignCurrencyAmount.addValueChangeListener(event ->
+                updateLocalCurrencyAmount());
 
         amount.addValueChangeListener(event ->
-                totalAmount.setValue(amount.getValue().multiply(new BigDecimal(quantity.getValue()))));
+                totalAmount.setValue(amount.getValue() == null ? BigDecimal.ZERO :
+                        amount.getValue().multiply(new BigDecimal(quantity.getValue()))));
     }
 
     private void updateLocalCurrencyAmount() {
@@ -349,10 +374,28 @@ public class CreateTransactionView extends VerticalLayout {
             foreignCurrencyAmount.setErrorMessage("Amount cannot be Negative/Zero/Empty");
             return true;
         }
-        if (transactionType.getValue() != TransactionType.INCOME &&
+        if (fromEntity.getValue().type != EntityType.LEDGER &&
+                transactionType.getValue() != TransactionType.INCOME &&
                 localCurrencyAmount.getValue().compareTo(fromEntityBalance.getValue()) > 0) {
             NotificationUtil.getNotification("Entered amount is more than available balance!", "", false,
                     NotificationVariant.LUMO_WARNING, 3000).open();
+            return true;
+        }
+        if (!transactionLegs.isEmpty()) {
+            subTotal.setInvalid(false);
+            foreignCurrencyAmount.setInvalid(false);
+            BigDecimal legsTotal = transactionLegs.stream().map(TransactionLeg::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (!foreignCurrencyAmount.getValue().equals(legsTotal)) {
+//                foreignCurrencyAmount.setValue(legsTotal);
+                foreignCurrencyAmount.setInvalid(true);
+                foreignCurrencyAmount.setErrorMessage("Amounts don't match");
+                subTotal.setInvalid(true);
+                subTotal.setErrorMessage("Amounts don't match");
+                NotificationUtil.getNotification("Total Legs amount does not match the total above", "", false,
+                        NotificationVariant.LUMO_WARNING, 3000).open();
+                return true;
+            }
+
         }
         return false;
     }
@@ -388,9 +431,10 @@ public class CreateTransactionView extends VerticalLayout {
             confirmDialog.open();
             clearAll();
         } catch (OptimisticLockingFailureException e) {
-            NotificationUtil.getNotification("Transaction details were updated. Please try again", e.getMessage(), true,
+            NotificationUtil.getNotification("Transaction details were not updated. Please try again", e.getMessage(), true,
                     NotificationVariant.LUMO_ERROR, 5000).open();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             NotificationUtil.getNotification("Unexpected Error", e.getMessage(), true,
                     NotificationVariant.LUMO_ERROR, 5000).open();
         }
@@ -456,7 +500,7 @@ public class CreateTransactionView extends VerticalLayout {
         VerticalLayout middleLayout = new VerticalLayout();
         setupTransactionLegGrid();
         FormLayout transactionLegLayout = getTransactionLegForm();
-        middleLayout.add(transactionLegLayout, transactionLegGrid);
+        middleLayout.add(transactionLegLayout, transactionLegGrid, subTotal);
         middleLayout.setWidth("100%");
 
         HorizontalLayout currencyAmountLayout = new HorizontalLayout();
@@ -491,7 +535,7 @@ public class CreateTransactionView extends VerticalLayout {
     private FormLayout getTransactionLegForm() {
         FormLayout formLayout = new FormLayout();
         HorizontalLayout amountLayout = new HorizontalLayout();
-        amountLayout.add(legRemarks, quantity, unit, amount, totalAmount , addLegButton);
+        amountLayout.add(legRemarks, quantity, unit, amount, totalAmount, addLegButton);
         amountLayout.setAlignItems(FlexComponent.Alignment.END);
         amountLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
         formLayout.add(amountLayout);
@@ -513,7 +557,6 @@ public class CreateTransactionView extends VerticalLayout {
                 transactionLegs.remove(leg);
                 transactionLegGrid.setItems(transactionLegs);
                 refreshGrandTotals();
-                sl--;
             });
             return deleteButton;
         }).setHeader("Delete");
@@ -521,8 +564,10 @@ public class CreateTransactionView extends VerticalLayout {
     }
 
     private void refreshGrandTotals() {
-        foreignCurrencyAmount.setValue(transactionLegs.stream().map(TransactionLeg::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+        subTotal.setValue(transactionLegs.stream().map(TransactionLeg::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
         localCurrencyAmount.setValue(foreignCurrencyAmount.getValue().multiply(conversionRate.getValue()));
+        sl = 1;
+        transactionLegs.forEach(leg -> leg.setSlNo(sl++));
     }
 
     private void clearAll() {

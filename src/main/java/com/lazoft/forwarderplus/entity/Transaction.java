@@ -4,6 +4,7 @@ import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.enums.TransactionMethod;
 import com.lazoft.forwarderplus.enums.TransactionType;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode(callSuper = true)
 @Table(indexes = @Index(name = "batchDateSlIdx", columnList = "businessDate, batchNo, slNo", unique = true))
 public class Transaction extends AbstractEntity {
 

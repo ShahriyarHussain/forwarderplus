@@ -4,10 +4,10 @@ import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
-import com.lazoft.forwarderplus.model.xml.CustomItem;
-import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.*;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.*;
@@ -121,8 +121,7 @@ public class ShipmentAdviceDialog extends Dialog {
         this.scheduleService = scheduleService;
         this.shipmentService = shipmentService;
         this.idGenerationService = idGenerationService;
-        this.clientList = clientService.getAllClients();
-        this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
+        this.clientList = clientService.getAllClients();this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
 
         if (shipment.getStuffingDetails() == null) {
             this.stuffingDetails = new StuffingDetails();
@@ -158,17 +157,21 @@ public class ShipmentAdviceDialog extends Dialog {
         carrierComboBox.setItemLabelGenerator(Carrier::getName);
 
         shipper.setItemLabelGenerator(Client::getName);
-        shipper.setItems(clientList.stream().filter(client -> client.getType() == ClientType.SHIPPER
-                || client.getType() == ClientType.ALL).toList());
+        shipper.setItems(new LinkedList<>());
+        shipper.addFocusListener(event ->
+                loadClientPropertiesOnDemand(shipper, ClientType.SHIPPER));
 
         consignee.setItemLabelGenerator(Client::getName);
-        consignee.setItems(clientList.stream().filter(client -> client.getType() == ClientType.CONSIGNEE
-                || client.getType() == ClientType.ALL).toList());
+        consignee.setItems(new LinkedList<>());
+        consignee.addFocusListener(event ->
+                loadClientPropertiesOnDemand(consignee, ClientType.CONSIGNEE));
 
-        notifyParty.setItemLabelGenerator(Client::getName);
-        notifyParty.setItems(clientList.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
-                || client.getType() == ClientType.ALL).toList());
         notifyParty.setWidth("80%");
+        notifyParty.setItemLabelGenerator(Client::getName);
+        notifyParty.setItems(new LinkedList<>());
+        notifyParty.addFocusListener(event ->
+                loadClientPropertiesOnDemand(notifyParty, ClientType.NOTIFY_PARTY));
+
 
         schedule.setReadOnly(true);
         approxTime.setReadOnly(true);
@@ -188,6 +191,7 @@ public class ShipmentAdviceDialog extends Dialog {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        addClientButton.setTooltipText("Add Client");
 
         stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
         stuffingDepot.setAllowCustomValue(true);
@@ -249,6 +253,13 @@ public class ShipmentAdviceDialog extends Dialog {
         totalQuantity.setValue(totalQuantityValue);
         unit.setValue(containerDetailsList.get(0).getPackageUnit().toString());
         totalGrossWeight.setValue(totalWeightValue);
+    }
+
+    private void loadClientPropertiesOnDemand(ComboBox<Client> clientComboBox, ClientType clientType) {
+        if (clientList.isEmpty()) {
+            clientList.addAll(clientService.getClientsByType(List.of(clientType, ClientType.ALL)));
+        }
+        clientComboBox.setItems(clientList);
     }
 
     public void setUpFormLayout() {

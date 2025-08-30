@@ -3,11 +3,14 @@ package com.lazoft.forwarderplus.views.finances.ledger;
 import com.lazoft.forwarderplus.entity.Ledger;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.services.LedgerService;
+import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -67,6 +70,8 @@ public class ManageLedgerLayout extends VerticalLayout {
         ledgerGrid.addColumn("currency").setHeader("Currency").setAutoWidth(true);
         ledgerGrid.addColumn("createdOn").setHeader("Created On").setAutoWidth(true).setSortable(true);
         ledgerGrid.addComponentColumn(this::getEditLedgerButton).setHeader("Edit").setAutoWidth(true);
+        ledgerGrid.addComponentColumn(this::getDeleteLedgerButton).setHeader("Delete").setAutoWidth(true);
+
         ledgerGrid.setItems(query -> ledgerService.getLedgersByFilter(getFilterSpecification(),
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query))).stream());
     }
@@ -74,7 +79,34 @@ public class ManageLedgerLayout extends VerticalLayout {
     private Button getEditLedgerButton(Ledger ledger) {
         Button edit = new Button(LineAwesomeIcon.PEN_SOLID.create());
         edit.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-//        edit.addClickListener(event -> new EditLedgerDialog().open());
+        edit.addClickListener(event -> new EditLedgerDialog(ledgerService, ledger).open());
+        return edit;
+    }
+
+    private Button getDeleteLedgerButton(Ledger ledger) {
+        Button edit = new Button(LineAwesomeIcon.TRASH_ALT_SOLID.create());
+        edit.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        edit.addClickListener(event -> {
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setHeader("Delete Account");
+            confirmDialog.setText("Are you sure you want to delete this Ledger ?");
+            confirmDialog.setCancelable(true);
+            confirmDialog.setConfirmButton(new Button("Yes, I am Sure", confirmEvent -> {
+                try {
+                    ledgerService.deleteLedger(ledger);
+                    NotificationUtil.getNotification("Deleted Successfully", "",
+                            false, NotificationVariant.LUMO_PRIMARY, 2000);
+                } catch (Exception e) {
+                    log.error("Error while deleting ledger: {}", e.getMessage(), e);
+                    NotificationUtil.getNotification("Failed to delete entry", "Reason: " + e.getMessage(),
+                            true, NotificationVariant.LUMO_ERROR, 5000);
+                }
+            }));
+            Button cancel = new Button("Close", confirmEvent -> confirmDialog.close());
+            cancel.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            confirmDialog.setCancelButton(cancel);
+            confirmDialog.open();
+        });
         return edit;
     }
 
