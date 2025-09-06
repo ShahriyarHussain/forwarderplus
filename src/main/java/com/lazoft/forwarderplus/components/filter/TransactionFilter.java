@@ -4,19 +4,23 @@ import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.AmountCurrency;
 import com.lazoft.forwarderplus.enums.TransactionMethod;
 import com.lazoft.forwarderplus.enums.TransactionType;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.TransactionService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -43,7 +47,7 @@ public class TransactionFilter extends Div implements Specification<Transaction>
     private final DatePicker fromBusinessDate = new DatePicker("Business Date");
     private final DatePicker toBusinessDate = new DatePicker();
 
-    public TransactionFilter(Runnable onSearch, TransactionService transactionService) {
+    public TransactionFilter(Runnable onSearch) {
 
         setWidthFull();
         addClassName("filter-layout");
@@ -94,6 +98,16 @@ public class TransactionFilter extends Div implements Specification<Transaction>
                 createDateFilter(fromTransactionDate, toTransactionDate),
                 createDateFilter(fromBusinessDate, toBusinessDate),
                 createAmountFilter(), actions);
+    }
+
+    private HorizontalLayout getSummaryCard() {
+        Card numberOfTransactions = new Card();
+        numberOfTransactions.setTitle("INCOME");
+        numberOfTransactions.setSubtitle(new H4("32,000"));
+        Span pendingPrimary = new Span("BDT");
+        pendingPrimary.getElement().getThemeList().add("badge Success");
+        numberOfTransactions.setHeaderSuffix(pendingPrimary);
+        return new HorizontalLayout(numberOfTransactions);
     }
 
     private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {

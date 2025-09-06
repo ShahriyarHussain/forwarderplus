@@ -6,18 +6,18 @@
     <groupId>com.lazoft.forwarderplus</groupId>
     <artifactId>forwarder-plus</artifactId>
     <name>forwarder-plus</name>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
         <java.version>17</java.version>
-        <vaadin.version>24.4.12</vaadin.version>
+        <vaadin.version>24.8.7</vaadin.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.9</version>
+        <version>3.5.3</version>
     </parent>
 
     <repositories>

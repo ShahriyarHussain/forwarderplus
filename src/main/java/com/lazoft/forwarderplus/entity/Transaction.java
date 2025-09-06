@@ -47,6 +47,4 @@ public class Transaction extends AbstractEntity {
 
     @Transient
     private Map<String, TransactionType> ledgerTransactionType;
-
-
 }

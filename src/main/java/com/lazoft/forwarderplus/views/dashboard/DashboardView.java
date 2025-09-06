@@ -17,7 +17,7 @@ import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Dashboard")
 @Route(value = "", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
+//@RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
 public class DashboardView extends Composite<VerticalLayout> {
 
