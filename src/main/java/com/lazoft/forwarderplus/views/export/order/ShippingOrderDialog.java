@@ -286,7 +286,7 @@ public class ShippingOrderDialog extends Dialog {
         paramMap.put("NOTIFY_PARTY", shipment.getNotifyParty().getName());
 
         paramMap.put("CONTAINERS", shipment.getNumOfContainers() + " X " + booking.getContainerSize().getContainerSize());
-        paramMap.put("GOODS_DESC", booking.getCommodity());
+        paramMap.put("GOODS_DESC", shipment.getCommodity());
         paramMap.put("QUANTITY", quantity.getValue() + " " + units.getValue().toString());
 
         paramMap.put("PORT_OF_LOADING", booking.getLoadingPort().getPortCityAndCountry());
