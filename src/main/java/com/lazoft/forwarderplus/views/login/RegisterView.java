@@ -24,6 +24,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -47,6 +48,10 @@ public class RegisterView extends VerticalLayout {
     private final PasswordField confirmPassword = new PasswordField("Confirm Password");
     private final Button registerButton = new Button("Register");
     private final Button loginButton = new Button("Back To Login");
+
+
+    @Value("${dev.env}")
+    private boolean devEnvironment;
 
     public RegisterView(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
@@ -207,6 +212,9 @@ public class RegisterView extends VerticalLayout {
     }
 
     private boolean isStrongPassword() {
+        if (devEnvironment) {
+            return true;
+        }
         String pass = password.getValue();
         if (pass.length() < 6) {
             password.setInvalid(true);
