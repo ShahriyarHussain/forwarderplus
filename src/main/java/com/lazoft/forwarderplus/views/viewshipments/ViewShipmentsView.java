@@ -51,8 +51,14 @@ public class ViewShipmentsView extends Div {
 
     private final ShipmentFilter filters;
 
-    public ViewShipmentsView(PortService portService, ShipmentService shipmentService, ReminderService reminderService,
-                             CarrierService carrierService, BookingService bookingService, AuthenticatedUser authenticatedUser) {
+    public ViewShipmentsView(PortService portService,
+                             ShipmentService shipmentService,
+                             ReminderService reminderService,
+                             CarrierService carrierService,
+                             BookingService bookingService,
+                             ClientService clientService,
+                             AuthenticatedUser authenticatedUser) {
+
         if (authenticatedUser.get().isEmpty()) {
             NotificationUtil.getNotification("Session Lost. Reload page or login again", "", false,
                     NotificationVariant.LUMO_WARNING, 2000).open();
@@ -70,7 +76,7 @@ public class ViewShipmentsView extends Div {
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService, clientService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid(), deleteButton);
         layout.setSizeFull();
         layout.setPadding(false);

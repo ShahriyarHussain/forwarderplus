@@ -22,7 +22,7 @@ public class CarrierCreationDialog extends Dialog {
         FormLayout formLayout = new FormLayout();
         formLayout.setWidth("fit-content");
 
-        TextField carrierName = new TextField("Port Name");
+        TextField carrierName = new TextField("Carrier Name");
         carrierName.setRequired(true);
         TextField carrierCountry = new TextField("Country");
         

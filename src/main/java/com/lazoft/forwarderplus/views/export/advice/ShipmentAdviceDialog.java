@@ -196,6 +196,15 @@ public class ShipmentAdviceDialog extends Dialog {
         stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
         stuffingDepot.setAllowCustomValue(true);
         stuffingDate.setLocale(Locale.UK);
+
+        editSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        editSchedule.setTooltipText("Edit Schedule");
+        editSchedule.setMaxWidth("15%");
+        editSchedule.setText("Edit Schedule");
+
+        editCargo.setTooltipText("Edit Container Details");
+        editCargo.setMaxWidth("20%");
+        editCargo.setText("Edit Container Details");
     }
 
     public void fillUpExistingValues() {
@@ -264,13 +273,13 @@ public class ShipmentAdviceDialog extends Dialog {
 
     public void setUpFormLayout() {
         Accordion shipmentPanel = new Accordion();
-        shipmentPanel.add("Shipment Info", getShipmentInfoFormLayout());
+        shipmentPanel.add("Shipment Info (Click to Collapse/Expand)", getShipmentInfoFormLayout());
 
         Accordion schedulePanel = new Accordion();
-        schedulePanel.add("Schedule Info", getScheduleInfoFormLayout());
+        schedulePanel.add("Schedule Info (Click to Collapse/Expand)", getScheduleInfoFormLayout());
 
         Accordion containerDetailsPanel = new Accordion();
-        containerDetailsPanel.add("Container Details", getContainerDetailsFormLayout());
+        containerDetailsPanel.add("Container Details (Click to Collapse/Expand)", getContainerDetailsFormLayout());
 
         add(shipmentPanel, schedulePanel, containerDetailsPanel);
     }
@@ -279,22 +288,14 @@ public class ShipmentAdviceDialog extends Dialog {
         FormLayout containerDetailsLayout = new FormLayout();
         editCargo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         editCargo.setTooltipText("Edit Container Details");
-        HorizontalLayout editContainerLayout = new HorizontalLayout(unit, editCargo);
-        editContainerLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        editContainerLayout.setAlignItems(FlexComponent.Alignment.END);
-        containerDetailsLayout.add(totalGrossWeight, totalQuantity, unit, editContainerLayout);
+        containerDetailsLayout.add(totalGrossWeight, totalQuantity, unit, editCargo);
         containerDetailsLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
         return containerDetailsLayout;
     }
 
     private FormLayout getScheduleInfoFormLayout() {
         FormLayout scheduleLayout = new FormLayout();
-        editSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editSchedule.setTooltipText("Edit Schedule");
-        HorizontalLayout editScheduleLayout = new HorizontalLayout(arrivalDate, editSchedule);
-        editScheduleLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        editScheduleLayout.setAlignItems(FlexComponent.Alignment.END);
-        scheduleLayout.add(schedule, approxTime, departureDate, editScheduleLayout);
+        scheduleLayout.add(schedule, approxTime, departureDate, arrivalDate, editSchedule);
         scheduleLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
         scheduleLayout.setColspan(schedule, 2);
         return scheduleLayout;
@@ -478,6 +479,10 @@ public class ShipmentAdviceDialog extends Dialog {
         if (stuffingDate != null) {
             stuffingDetails.setStuffingDate(stuffingDate.getValue());
         }
+        if (numOfContainers.getValue() != 0) {
+            shipment.getBooking().setNumOfContainers(numOfContainers.getValue());
+            shipment.setNumOfContainers(numOfContainers.getValue());
+        }
     }
 
     private boolean isInvalidEntriesForSave() {
@@ -564,7 +569,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
         paramMap.put("POL_ETA", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETA()));
         paramMap.put("POL_ETD", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETD()));
-        paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMotherVesselETA()));
+        paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMvPortFeederEta()));
 
         List<ContainerDetails> containerDetails = shipment.getContainerDetails();
         paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getContainerNo)

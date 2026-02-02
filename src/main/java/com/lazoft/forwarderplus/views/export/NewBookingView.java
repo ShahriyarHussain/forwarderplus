@@ -39,6 +39,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,9 @@ import static com.lazoft.forwarderplus.util.Constants.TEMPLATES;
 @PageTitle("New Booking")
 @Route(value = "new-booking", layout = MainLayout.class)
 @RolesAllowed({"EXPORT", "ADMIN"})
-public class NewBookingView extends Composite<VerticalLayout> {
+@SpringComponent
+@UIScope
+public final class NewBookingView extends Composite<VerticalLayout> {
 
     private final TextField bookingNo = new TextField("Booking No");
     private final ComboBox<ContainerType> containerType = new ComboBox<>("Container Type");

@@ -3,10 +3,7 @@ package com.lazoft.forwarderplus.views.export.bill;
 import com.lazoft.forwarderplus.components.filter.ShipmentFilter;
 import com.lazoft.forwarderplus.entity.Booking;
 import com.lazoft.forwarderplus.entity.Shipment;
-import com.lazoft.forwarderplus.services.BillOfLadingService;
-import com.lazoft.forwarderplus.services.CarrierService;
-import com.lazoft.forwarderplus.services.PortService;
-import com.lazoft.forwarderplus.services.ShipmentService;
+import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -43,13 +40,13 @@ public class BLCreateView extends Div {
     private final ShipmentFilter filters;
 
     public BLCreateView(ShipmentService shipmentService, BillOfLadingService billOfLadingService,
-                        PortService portService, CarrierService carrierService) {
+                        PortService portService, CarrierService carrierService, ClientService clientService) {
         this.shipmentService = shipmentService;
         this.billOfLadingService = billOfLadingService;
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService, clientService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);

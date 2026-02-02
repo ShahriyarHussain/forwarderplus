@@ -62,7 +62,7 @@ public class ShipmentAdviceView extends Div {
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService, clientService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);

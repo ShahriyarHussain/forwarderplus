@@ -3,7 +3,7 @@ package com.lazoft.forwarderplus.views.finances.account;
 import com.lazoft.forwarderplus.components.dialog.AccountLedgerTagDialog;
 import com.lazoft.forwarderplus.entity.Account;
 import com.lazoft.forwarderplus.entity.LedgerTagInfo;
-import com.lazoft.forwarderplus.services.AccountService;
+import com.lazoft.forwarderplus.services.finance.impl.AccountService;
 import com.lazoft.forwarderplus.services.LedgerService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.vaadin.flow.component.Unit;

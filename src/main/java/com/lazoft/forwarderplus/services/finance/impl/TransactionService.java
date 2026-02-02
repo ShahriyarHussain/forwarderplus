@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.services;
+package com.lazoft.forwarderplus.services.finance.impl;
 
 import com.lazoft.forwarderplus.dto.TransactionResult;
 import com.lazoft.forwarderplus.dto.TransactionSummary;
@@ -6,6 +6,7 @@ import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.TransactionType;
 import com.lazoft.forwarderplus.repository.TransactionLegRepository;
 import com.lazoft.forwarderplus.repository.TransactionRepository;
+import com.lazoft.forwarderplus.services.LedgerService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;

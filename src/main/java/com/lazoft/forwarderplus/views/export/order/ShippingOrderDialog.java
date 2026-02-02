@@ -110,6 +110,9 @@ public class ShippingOrderDialog extends Dialog {
     }
 
     private void setFieldAttributes() {
+        quantity.setHelperText("Total Packages");
+        units.setHelperText("Package Unit");
+
         bookingNo.setReadOnly(true);
         portOfLoading.setReadOnly(true);
         portOfDischarge.setReadOnly(true);

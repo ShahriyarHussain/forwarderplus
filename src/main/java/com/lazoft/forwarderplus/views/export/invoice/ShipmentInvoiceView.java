@@ -47,10 +47,17 @@ public class ShipmentInvoiceView extends Div {
 
     private final ShipmentFilter filters;
 
-    public ShipmentInvoiceView(PortService portService, ShipmentService shipmentService, InvoiceService invoiceService,
-                               UserService userService, BankDetailsService bankDetailsService, CarrierService carrierService,
-                               CurrencyDataService currencyDataService, IdGenerationService idGenerationService,
+    public ShipmentInvoiceView(PortService portService,
+                               ShipmentService shipmentService,
+                               InvoiceService invoiceService,
+                               UserService userService,
+                               BankDetailsService bankDetailsService,
+                               CarrierService carrierService,
+                               CurrencyDataService currencyDataService,
+                               IdGenerationService idGenerationService,
+                               ClientService clientService,
                                AuthenticatedUser authenticatedUser) {
+
         this.shipmentService = shipmentService;
         this.invoiceService = invoiceService;
         this.userService = userService;
@@ -61,7 +68,7 @@ public class ShipmentInvoiceView extends Div {
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService, clientService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);

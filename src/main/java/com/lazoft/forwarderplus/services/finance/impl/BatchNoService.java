@@ -1,4 +1,4 @@
-package com.lazoft.forwarderplus.services;
+package com.lazoft.forwarderplus.services.finance.impl;
 
 import com.lazoft.forwarderplus.entity.BatchInfo;
 import com.lazoft.forwarderplus.repository.BatchInfoRepository;

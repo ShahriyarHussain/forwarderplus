@@ -6,7 +6,7 @@ import com.lazoft.forwarderplus.dto.TransactionSummary;
 import com.lazoft.forwarderplus.entity.Transaction;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
-import com.lazoft.forwarderplus.services.*;
+import com.lazoft.forwarderplus.services.finance.impl.TransactionService;
 import com.lazoft.forwarderplus.util.NotificationUtil;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.Component;
