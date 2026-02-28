@@ -223,6 +223,7 @@ public class ShipmentAdviceDialog extends Dialog {
         goodsDescription.setValue(StringUtils.defaultIfBlank(shipment.getGoodsDescription(), ""));
         shipperMarks.setValue(StringUtils.defaultIfBlank(shipment.getShipperMarks(), ""));
         freightTerm.setValue(shipment.getShippingTerm());
+        
         fillUpScheduleValues();
         fillUpCargoValues();
 

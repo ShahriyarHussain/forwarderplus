@@ -114,6 +114,7 @@ public class EditScheduleDialog extends Dialog {
         portOfLoading.setValue(schedule.getPortOfLoading());
         polFeederEta.setValue(schedule.getPortOfLoadingETA());
         polFeederEtd.setValue(schedule.getPortOfLoadingETD());
+        mvPortFeederEta.setValue(schedule.getMvPortFeederEta());
 
         portOfDestination.setValue(schedule.getPortOfDestination());
         etaPortOfDestination.setValue(schedule.getPortOfDestinationETA());
