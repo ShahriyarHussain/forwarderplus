@@ -160,7 +160,9 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
     @Override
     public Predicate toPredicate(Root<Shipment> root, @Nonnull CriteriaQuery<?> query, @Nonnull CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
-        root.fetch("schedule", JoinType.LEFT);
+        if (Shipment.class.equals(query.getResultType())) {
+            root.fetch("schedule", JoinType.LEFT);
+        }
 
         if (!bookingNo.isEmpty()) {
             String bookingNoLowerCase = bookingNo.getValue().toLowerCase();

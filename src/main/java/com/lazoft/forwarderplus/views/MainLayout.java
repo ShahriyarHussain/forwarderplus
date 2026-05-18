@@ -3,6 +3,9 @@ package com.lazoft.forwarderplus.views;
 import com.lazoft.forwarderplus.entity.User;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
+import com.lazoft.forwarderplus.views.accounting.chart.ChartOfAccountsView;
+import com.lazoft.forwarderplus.views.accounting.transaction.entry.TransactionEntry;
+import com.lazoft.forwarderplus.views.accounting.transaction.view.TransactionView;
 import com.lazoft.forwarderplus.views.config.DataConfigurationView;
 import com.lazoft.forwarderplus.views.config.UserConfigurationView;
 import com.lazoft.forwarderplus.views.dashboard.DashboardView;
@@ -11,11 +14,6 @@ import com.lazoft.forwarderplus.views.export.advice.ShipmentAdviceView;
 import com.lazoft.forwarderplus.views.export.bill.BLCreateView;
 import com.lazoft.forwarderplus.views.export.invoice.ShipmentInvoiceView;
 import com.lazoft.forwarderplus.views.export.order.ShippingOrderView;
-import com.lazoft.forwarderplus.views.finances.FinancesView;
-import com.lazoft.forwarderplus.views.finances.account.AccountView;
-import com.lazoft.forwarderplus.views.finances.ledger.LedgerView;
-import com.lazoft.forwarderplus.views.finances.transaction.CreateTransactionView;
-import com.lazoft.forwarderplus.views.report.ViewTransactions;
 import com.lazoft.forwarderplus.views.viewshipments.ViewShipmentsView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -24,7 +22,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -95,14 +92,13 @@ public class MainLayout extends AppLayout {
             nav.addItem(new SideNavItem("View Shipments", ViewShipmentsView.class, LineAwesomeIcon.FILTER_SOLID.create()));
         }
 
-        if (accessChecker.hasAccess(FinancesView.class)) {
+        if (accessChecker.hasAccess(ChartOfAccountsView.class)) {
             SideNavItem finances = new SideNavItem("Finances");
             finances.setPrefixComponent(LineAwesomeIcon.MONEY_BILL_WAVE_SOLID.create());
-            finances.addItem(new SideNavItem("Accounts", AccountView.class, LineAwesomeIcon.WALLET_SOLID.create()));
-            finances.addItem(new SideNavItem("Ledger", LedgerView.class, LineAwesomeIcon.BOOK_SOLID.create()));
-            finances.addItem(new SideNavItem("Add Transaction", CreateTransactionView.class, VaadinIcon.MONEY_EXCHANGE.create()));
-            finances.addItem(new SideNavItem("View Transactions", ViewTransactions.class, VaadinIcon.LIST.create()));
-            finances.addItem(new SideNavItem("Create Invoice", FinancesView.class, LineAwesomeIcon.FILE_INVOICE_DOLLAR_SOLID.create()));
+            finances.addItem(new SideNavItem("Chart of Accounts", ChartOfAccountsView.class, LineAwesomeIcon.WALLET_SOLID.create()));
+            finances.addItem(new SideNavItem("Transaction Entry", TransactionEntry.class, LineAwesomeIcon.MONEY_BILL_ALT_SOLID.create()));
+            finances.addItem(new SideNavItem("View Transactions", TransactionView.class, LineAwesomeIcon.TABLE_SOLID.create()));
+            finances.addItem(new SideNavItem("Executive Reports", ChartOfAccountsView.class, LineAwesomeIcon.CHALKBOARD_SOLID.create()));
             nav.addItem(finances);
         }
 
