@@ -50,4 +50,15 @@ html {
       --lumo-size-xs: 1.5rem;
       --lumo-font-family: Barlow;
 
+
     }
+
+/* Standard white for even transactions */
+vaadin-grid::part(tx-even) {
+      background-color: #C1C0B9;
+}
+
+/* Subtle off-white for odd transactions */
+vaadin-grid::part(tx-odd) {
+      background-color: #D9D8D0;
+}

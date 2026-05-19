@@ -171,13 +171,10 @@ public class TransactionEntry extends VerticalLayout {
     }
 
     private void createTransaction() {
-        Set<TransactionLeg> legs = new HashSet<>();
-        legs.addAll(debitLegs);
-        legs.addAll(creditLegs);
-
         Transaction transaction = new Transaction();
         transaction.setDate(transactionDate.getValue());
-        transaction.setTransactionLegs(legs);
+        transaction.addLegs(debitLegs);
+        transaction.addLegs(creditLegs);
         transaction.setDescription(legRemarks.getValue());
         transactionService.saveTransaction(transaction);
     }
@@ -195,6 +192,7 @@ public class TransactionEntry extends VerticalLayout {
         TransactionLeg leg = new TransactionLeg();
         validateLegData();
         leg.setAccount(account.getValue());
+        leg.setLegRemarks(legRemarks.getValue());
         if (isBigDecimalNullOrZero(debitAmount.getValue())) {
             leg.setCreditAmount(creditAmount.getValue());
         } else {

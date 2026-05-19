@@ -119,8 +119,17 @@ public class TransactionFilter extends Div implements Specification<TransactionL
             predicates.add(criteriaBuilder.equal(accountJoin.get("accountType"), accountType.getValue()));
         }
         if (fromAmount.getValue() != null || toAmount.getValue() != null) {
-            Predicate debitInRange = buildAmountRangePredicate(criteriaBuilder, root.get("debitAmount"));
-            Predicate creditInRange = buildAmountRangePredicate(criteriaBuilder, root.get("creditAmount"));
+            Predicate hasDebit = criteriaBuilder.greaterThan(root.get("debitAmount"), BigDecimal.ZERO);
+            Predicate debitInRange = criteriaBuilder.and(
+                    hasDebit,
+                    buildAmountRangePredicate(criteriaBuilder, root.get("debitAmount"))
+            );
+
+            Predicate hasCredit = criteriaBuilder.greaterThan(root.get("creditAmount"), BigDecimal.ZERO);
+            Predicate creditInRange = criteriaBuilder.and(
+                    hasCredit,
+                    buildAmountRangePredicate(criteriaBuilder, root.get("creditAmount"))
+            );
             predicates.add(criteriaBuilder.or(debitInRange, creditInRange));
         }
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

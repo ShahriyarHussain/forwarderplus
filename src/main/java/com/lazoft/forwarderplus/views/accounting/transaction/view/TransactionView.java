@@ -11,6 +11,7 @@ import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
@@ -108,20 +109,32 @@ public class TransactionView extends Div {
 
     private void setGridLayout() {
         grid.addColumn(leg -> leg.getTransaction().getId()).setHeader("Transaction Id")
-                .setAutoWidth(true).setSortable(true);
+                .setAutoWidth(false).setWidth("5px").setTextAlign(ColumnTextAlign.CENTER).setSortable(true).setResizable(true);
         grid.addColumn(leg -> leg.getAccount().getName() + "- " + leg.getAccount().getAccountType())
-                .setHeader("Account").setAutoWidth(true);
-        grid.addColumn(TransactionLeg::getCreditAmount).setHeader("Credit Amount").setAutoWidth(true).setSortable(true);
-        grid.addColumn(TransactionLeg::getDebitAmount).setHeader("Debit Amount").setAutoWidth(true).setSortable(true);
-        grid.addComponentColumn(this::getPrintInvoiceButton).setHeader("Print Invoice").setAutoWidth(true);
+                .setHeader("Account").setAutoWidth(true).setResizable(true);
+        grid.addColumn(TransactionLeg::getCreditAmount).setHeader("Credit Amount")
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.END).setSortable(true);
+        grid.addColumn(TransactionLeg::getDebitAmount).setHeader("Debit Amount")
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.END).setSortable(true);
+        grid.addColumn(TransactionLeg::getLegRemarks).setHeader("Remarks").setResizable(true)
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.START).setSortable(true);
+        grid.addComponentColumn(this::getPrintInvoiceButton).setHeader("Print Invoice")
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.CENTER);
 
         grid.setWidth("100%");
-        grid.setMinHeight("50%");
+        grid.setPartNameGenerator(leg -> {
+            if (leg.getTransaction() == null || leg.getTransaction().getId() == null) {
+                return null;
+            }
+            return (leg.getTransaction().getId() % 2 == 0) ? "tx-even" : "tx-odd";
+        });
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.Border.RIGHT, LumoUtility.BorderColor.CONTRAST_10);
     }
 
     private Button getPrintInvoiceButton(TransactionLeg transactionLeg) {
-        return null;
+        Button button = new Button(LineAwesomeIcon.PRINT_SOLID.create());
+        button.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_TERTIARY);
+       return button;
     }
 
     private void setValues(TransactionSummary transactionSummary) {

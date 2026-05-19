@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,5 +34,12 @@ public class Transaction extends AccountingBaseEntity {
                         .map(TransactionLeg::getDebitAmount).reduce(BigDecimal.ZERO, BigDecimal::add))) {
             throw new ValidationException("Debit Amount and Credit Amount does not match");
         }
+    }
+
+    public void addLegs(Collection<TransactionLeg> legs) {
+        legs.forEach(transactionLeg -> {
+            transactionLeg.setTransaction(this);
+            transactionLegs.add(transactionLeg);
+        });
     }
 }

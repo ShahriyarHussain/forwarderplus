@@ -23,4 +23,5 @@ public class TransactionLeg extends AccountingBaseEntity {
     private Account account;
     private BigDecimal debitAmount = BigDecimal.ZERO;
     private BigDecimal creditAmount = BigDecimal.ZERO;
+    private String legRemarks;
 }
