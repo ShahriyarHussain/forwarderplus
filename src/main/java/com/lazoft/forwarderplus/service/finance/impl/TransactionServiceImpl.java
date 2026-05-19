@@ -1,15 +1,16 @@
 package com.lazoft.forwarderplus.service.finance.impl;
 
 import com.lazoft.forwarderplus.dto.TransactionSummary;
-import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.entity.finance.Transaction;
 import com.lazoft.forwarderplus.entity.finance.TransactionLeg;
-import com.lazoft.forwarderplus.enums.TransactionType;
 import com.lazoft.forwarderplus.repository.finance.TransactionLegRepository;
 import com.lazoft.forwarderplus.repository.finance.TransactionRepository;
 import com.lazoft.forwarderplus.service.finance.TransactionService;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

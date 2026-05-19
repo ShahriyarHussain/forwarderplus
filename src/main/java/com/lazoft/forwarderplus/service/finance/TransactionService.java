@@ -1,6 +1,5 @@
 package com.lazoft.forwarderplus.service.finance;
 
-import com.lazoft.forwarderplus.entity.Shipment;
 import com.lazoft.forwarderplus.entity.finance.Transaction;
 import com.lazoft.forwarderplus.entity.finance.TransactionLeg;
 import org.springframework.data.domain.Page;

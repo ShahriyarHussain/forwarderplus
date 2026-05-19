@@ -2,7 +2,6 @@ package com.lazoft.forwarderplus.views.accounting.chart;
 
 import com.lazoft.forwarderplus.builder.PopUpMessageBuilder;
 import com.lazoft.forwarderplus.entity.finance.Account;
-import com.lazoft.forwarderplus.entity.finance.TransactionLeg;
 import com.lazoft.forwarderplus.service.finance.AccountService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.button.Button;

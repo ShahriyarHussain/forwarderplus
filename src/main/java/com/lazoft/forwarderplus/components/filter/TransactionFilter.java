@@ -18,7 +18,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.criteria.*;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;

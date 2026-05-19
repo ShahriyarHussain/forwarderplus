@@ -2,10 +2,8 @@ package com.lazoft.forwarderplus.views.accounting.transaction.view;
 
 import com.lazoft.forwarderplus.components.filter.TransactionFilter;
 import com.lazoft.forwarderplus.dto.TransactionSummary;
-import com.lazoft.forwarderplus.entity.finance.Account;
 import com.lazoft.forwarderplus.entity.finance.TransactionLeg;
 import com.lazoft.forwarderplus.service.finance.AccountService;
-
 import com.lazoft.forwarderplus.service.finance.TransactionService;
 import com.lazoft.forwarderplus.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
@@ -17,13 +15,10 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +27,6 @@ import org.springframework.data.domain.Sort;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 @PageTitle("View Transactions")
 @Route(value = "transaction-view", layout = MainLayout.class)
