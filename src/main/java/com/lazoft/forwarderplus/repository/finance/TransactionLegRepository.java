@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TransactionLegRepository extends JpaRepository<TransactionLeg, Long>,
-        JpaSpecificationExecutor<TransactionLeg> {
+public interface TransactionLegRepository extends
+        JpaRepository<TransactionLeg, Long>,
+        JpaSpecificationExecutor<TransactionLeg>,
+        TransactionLegQueryRepository {
 }

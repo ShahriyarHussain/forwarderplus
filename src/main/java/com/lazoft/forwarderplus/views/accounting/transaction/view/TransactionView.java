@@ -1,8 +1,9 @@
 package com.lazoft.forwarderplus.views.accounting.transaction.view;
 
 import com.lazoft.forwarderplus.components.filter.TransactionFilter;
-import com.lazoft.forwarderplus.dto.TransactionSummary;
+import com.lazoft.forwarderplus.dto.AccountTypeSummaryDto;
 import com.lazoft.forwarderplus.entity.finance.TransactionLeg;
+import com.lazoft.forwarderplus.enums.AccountType;
 import com.lazoft.forwarderplus.service.finance.AccountService;
 import com.lazoft.forwarderplus.service.finance.TransactionService;
 import com.lazoft.forwarderplus.views.MainLayout;
@@ -26,7 +27,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
-import java.math.BigDecimal;
+import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @PageTitle("View Transactions")
 @Route(value = "transaction-view", layout = MainLayout.class)
@@ -35,35 +39,45 @@ import java.math.BigDecimal;
 public class TransactionView extends Div {
 
     private final TransactionFilter transactionFilter;
-    private final AccountService accountService;
     private final TransactionService transactionService;
 
     HorizontalLayout summaryLayout = new HorizontalLayout();
-    private final Card totalCountCard = new Card();
-    private final Card totalAmount = new Card();
-    private final Card expenseCountCard = new Card();
-    private final Card expenseAmountCard = new Card();
-    private final Card incomeAmountCard = new Card();
-    private final Card incomeCountCard = new Card();
+    private final Card netAssetCard = new Card();
+    private final Card netLiabilityCard = new Card();
+    private final Card netRevenueCard = new Card();
+    private final Card netExpenseCard = new Card();
+    private final Card netEquityCard = new Card();
+    private final Map<AccountType, Card> cardMap = new EnumMap<>(AccountType.class);
+
+
+    private final List<AccountTypeSummaryDto> dto = new LinkedList<>();
 
     private final Grid<TransactionLeg> grid = new Grid<>(TransactionLeg.class, false);
     VerticalLayout pageLayout = new VerticalLayout();
 
 
     public TransactionView(AccountService accountService, TransactionService transactionService) {
-        this.accountService = accountService;
         this.transactionService = transactionService;
         this.transactionFilter = new TransactionFilter(this::refreshGrid, accountService.getAllAccounts());
 
+        setCardMap();
         setGridLayout();
         setSummaryLayout();
         setPageLayout();
-//        setValues();
+        setSummaryValues();
         loadDataIntoGrid();
 
         setSizeFull();
         addClassNames("view-shipments-view");
         add(pageLayout);
+    }
+
+    private void setCardMap() {
+        cardMap.put(AccountType.ASSET, netAssetCard);
+        cardMap.put(AccountType.LIABILITY, netLiabilityCard);
+        cardMap.put(AccountType.REVENUE, netRevenueCard);
+        cardMap.put(AccountType.EXPENSE, netExpenseCard);
+        cardMap.put(AccountType.EQUITY, netEquityCard);
     }
 
     private void loadDataIntoGrid() {
@@ -74,13 +88,15 @@ public class TransactionView extends Div {
                     PageRequest.of(query.getPage(), query.getPageSize(), groupedSort),
                     transactionFilter).stream();
         });
+        dto.addAll(transactionService.getSummaryHeaderData(transactionFilter));
+        setSummaryValues();
     }
 
     private void setPageLayout() {
         pageLayout.setSizeFull();
         pageLayout.setPadding(false);
         pageLayout.setSpacing(false);
-        pageLayout.add(transactionFilter, new Hr(), grid);
+        pageLayout.add(transactionFilter, new Hr(), summaryLayout, grid);
     }
 
     private void setSummaryLayout() {
@@ -88,20 +104,18 @@ public class TransactionView extends Div {
         summaryLayout.setSpacing(true);
         summaryLayout.setPadding(true);
         summaryLayout.getStyle().set("flex-wrap", "wrap");
-
-        summaryLayout.add(totalCountCard, totalAmount, incomeCountCard, incomeAmountCard,
-                expenseCountCard, expenseAmountCard);
-        summaryLayout.setFlexGrow(1, totalCountCard, totalAmount, incomeCountCard,
-                incomeAmountCard, expenseCountCard);
     }
 
     private void refreshGrid() {
+        dto.clear();
+        dto.addAll(transactionService.getSummaryHeaderData(transactionFilter));
+        setSummaryValues();
         grid.getDataProvider().refreshAll();
     }
 
     private void setGridLayout() {
         grid.addColumn(leg -> leg.getTransaction().getId()).setHeader("Transaction Id")
-                .setAutoWidth(false).setWidth("5px").setTextAlign(ColumnTextAlign.CENTER).setSortable(true).setResizable(true);
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.CENTER).setSortable(true).setResizable(true);
         grid.addColumn(leg -> leg.getAccount().getName() + "- " + leg.getAccount().getAccountType())
                 .setHeader("Account").setAutoWidth(true).setResizable(true);
         grid.addColumn(TransactionLeg::getCreditAmount).setHeader("Credit Amount")
@@ -111,6 +125,8 @@ public class TransactionView extends Div {
         grid.addColumn(TransactionLeg::getLegRemarks).setHeader("Remarks").setResizable(true)
                 .setAutoWidth(true).setTextAlign(ColumnTextAlign.START).setSortable(true);
         grid.addComponentColumn(this::getPrintInvoiceButton).setHeader("Print Invoice")
+                .setAutoWidth(true).setTextAlign(ColumnTextAlign.CENTER);
+        grid.addComponentColumn(this::getViewDetailsButton).setHeader("View Details")
                 .setAutoWidth(true).setTextAlign(ColumnTextAlign.CENTER);
 
         grid.setWidth("100%");
@@ -129,44 +145,32 @@ public class TransactionView extends Div {
        return button;
     }
 
-    private void setValues(TransactionSummary transactionSummary) {
-        setCardAttributes(totalCountCard, "Total Transactions",
-                String.valueOf(transactionSummary.getTotalCount()), null, null);
-        setCardAttributes(incomeAmountCard, "Total Revenue",
-                transactionSummary.getIncomeAmount().toPlainString(),
-                LineAwesomeIcon.ARROW_UP_SOLID, "primary");
-        setCardAttributes(expenseCountCard, "Total Expense",
-                String.valueOf(transactionSummary.getExpenseCount()),
-                LineAwesomeIcon.ARROW_DOWN_SOLID, "error");
-        setCardAttributes(expenseAmountCard, "Total Asset",
-                transactionSummary.getExpenseAmount().toPlainString(),
-                LineAwesomeIcon.ARROW_DOWN_SOLID, "error");
-        setCardAttributes(expenseAmountCard, "Total Liability",
-                transactionSummary.getExpenseAmount().toPlainString(),
-                LineAwesomeIcon.ARROW_DOWN_SOLID, "error");
+    private Button getViewDetailsButton(TransactionLeg transactionLeg) {
+        Button button = new Button(LineAwesomeIcon.COMPASS.create());
+        button.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_TERTIARY);
+        return button;
+    }
 
-        BigDecimal netAmount = transactionSummary.getIncomeAmount().subtract(transactionSummary.getExpenseAmount());
-        boolean isProfit = transactionSummary.getIncomeAmount()
-                .compareTo(transactionSummary.getExpenseAmount()) >= 0;
-        setCardAttributes(totalAmount, "Net Amount", netAmount.toPlainString(),
-                isProfit ? LineAwesomeIcon.ARROW_UP_SOLID : LineAwesomeIcon.ARROW_DOWN_SOLID,
-                isProfit ? "primary" : "error");
+    private void setSummaryValues() {
+        summaryLayout.removeAll();
+        dto.forEach(summary -> {
+            Card card = cardMap.get(summary.accountType());
+            setCardAttributes(card,
+                    "Net " + summary.accountType(),
+                    String.valueOf(summary.getNetBalance()));
+            summaryLayout.add(card);
+            summaryLayout.setFlexGrow(1, card);
+        });
+        setSummaryLayout();
     }
 
     private void setCardAttributes(Card card,
                                    String title,
-                                   String cardValue,
-                                   LineAwesomeIcon cardIcon,
-                                   String badgeType) {
+                                   String cardValue) {
         card.setTitle(title);
         card.setSubtitle(new H5(cardValue));
-        if (cardIcon == null) {
-            return;
-        }
-        Span pendingPrimary = new Span(cardIcon.create());
-        pendingPrimary.getElement().getThemeList().add("badge " + badgeType + " primary");
+        Span pendingPrimary = new Span(LineAwesomeIcon.WALLET_SOLID.create());
+        pendingPrimary.getElement().getThemeList().add("badge " + "primary" + " primary");
         card.setHeaderSuffix(pendingPrimary);
     }
-
-
 }
