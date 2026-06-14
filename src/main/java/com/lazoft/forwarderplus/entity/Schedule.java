@@ -31,6 +31,7 @@ public class Schedule {
 
     @ManyToOne
     private Port motherVesselPort;
+    private LocalDate mvPortFeederEta;
     private LocalDate motherVesselETA;
 
     private String portOfLoadingVesselName;
@@ -39,7 +40,7 @@ public class Schedule {
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     private Set<Shipment> shipment;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Transshipment> transshipments;
 
     public String getScheduleSummary() {

@@ -46,7 +46,7 @@ public class NotificationUtil {
         return switch (variant) {
             case LUMO_PRIMARY -> VaadinIcon.CHECK_CIRCLE.create();
             case LUMO_ERROR -> VaadinIcon.EXCLAMATION_CIRCLE.create();
-            default -> VaadinIcon.EXCLAMATION_CIRCLE.create();
+            default -> VaadinIcon.AIRPLANE.create();
         };
     }
 }

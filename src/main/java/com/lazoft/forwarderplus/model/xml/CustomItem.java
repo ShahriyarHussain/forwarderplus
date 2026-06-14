@@ -1,0 +1,26 @@
+package com.lazoft.forwarderplus.model.xml;
+
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@XmlAccessorType(XmlAccessType.FIELD)
+@AllArgsConstructor
+@NoArgsConstructor
+public class CustomItem {
+
+    @XmlElement(name = "name")
+    private String name;
+
+    @XmlElement(name = "hash")
+    private Integer hash;
+
+    @XmlElement(name = "bookingTemplate")
+    private BookingTemplate bookingTemplate;
+}

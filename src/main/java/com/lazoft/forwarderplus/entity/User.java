@@ -39,7 +39,10 @@ public class User implements UserDetails {
 
     private boolean isUserNotLocked;
     private boolean isPasswordNotExpired;
+    private boolean isEnabled;
     private boolean isNotTerminated;
+
+    private int invalidAttempts;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -54,7 +57,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return isNotTerminated;
     }
 
     @Override
@@ -69,6 +72,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isNotTerminated;
+        return isEnabled;
     }
 }

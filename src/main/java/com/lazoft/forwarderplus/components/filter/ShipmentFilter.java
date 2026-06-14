@@ -1,13 +1,12 @@
 package com.lazoft.forwarderplus.components.filter;
 
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.entity.Booking;
-import com.lazoft.forwarderplus.entity.Carrier;
-import com.lazoft.forwarderplus.entity.Port;
-import com.lazoft.forwarderplus.entity.Shipment;
+import com.lazoft.forwarderplus.entity.*;
+import com.lazoft.forwarderplus.enums.ClientType;
 import com.lazoft.forwarderplus.enums.ContainerSize;
 import com.lazoft.forwarderplus.enums.ShipmentStatus;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
 import com.lazoft.forwarderplus.services.CarrierService;
+import com.lazoft.forwarderplus.services.ClientService;
 import com.lazoft.forwarderplus.services.PortService;
 import com.lazoft.forwarderplus.util.CustomItemUtil;
 import com.vaadin.flow.component.Component;
@@ -29,14 +28,16 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class ShipmentFilter extends Div implements Specification<Shipment> {
 
     private final TextField blNo = new TextField("HBL/MBL No:");
     private final TextField bookingNo = new TextField("Booking No");
-    private final ComboBox<Port> portOfLoading = new ComboBox<>("Loading Port");
-    private final ComboBox<Port> portOfDestination = new ComboBox<>("Destination Port");
+    private final ComboBox<Port> portOfLoading = new ComboBox<>("Port");
+    private final ComboBox<Port> portOfDestination = new ComboBox<>();
+    private final ComboBox<Client> clientComboBox = new ComboBox<>("Shipper");
     private final ComboBox<Carrier> carrier = new ComboBox<>("Carrier");
     private final ComboBox<String> commodity = new ComboBox<>("Commodity");
     private final ComboBox<ShipmentStatus> status = new ComboBox<>("Status");
@@ -44,14 +45,22 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
     private final DatePicker createFromDate = new DatePicker("Created Date");
     private final DatePicker createdToDate = new DatePicker();
 
-    public ShipmentFilter(Runnable onSearch, PortService portService, CarrierService carrierService) {
+    public ShipmentFilter(Runnable onSearch,
+                          PortService portService,
+                          CarrierService carrierService,
+                          ClientService clientService) {
+
         List<Port> ports = portService.getAllPorts();
         List<Carrier> carriers = carrierService.getAllCarriers();
+        List<Client> clientList = clientService.getClientsByType(List.of(ClientType.SHIPPER, ClientType.ALL));
 
         setWidthFull();
         addClassName("filter-layout");
         addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
                 LumoUtility.BoxSizing.BORDER);
+
+        createFromDate.setLocale(Locale.UK);
+        createdToDate.setLocale(Locale.UK);
 
         bookingNo.setPlaceholder("Booking No");
         bookingNo.addKeyDownListener(keyDownEvent -> searchOnKeyDown(keyDownEvent, onSearch));
@@ -62,6 +71,9 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         containerSize.setItems(ContainerSize.values());
         containerSize.setItemLabelGenerator(ContainerSize::getContainerSize);
 
+        clientComboBox.setItems(clientList);
+        clientComboBox.setItemLabelGenerator(Client::getName);
+
         commodity.setItems(CustomItemUtil.getItemsListFromFile("commodities").stream().map(CustomItem::getName).toList());
 
         status.setItems(ShipmentStatus.values());
@@ -71,9 +83,9 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         carrier.setItemLabelGenerator(Carrier::getName);
 
         portOfLoading.setItems(ports);
-        portOfLoading.setItemLabelGenerator(Port::getPortLabel);
+        portOfLoading.setItemLabelGenerator(Port::getPortName);
         portOfDestination.setItems(ports);
-        portOfDestination.setItemLabelGenerator(Port::getPortLabel);
+        portOfDestination.setItemLabelGenerator(Port::getPortName);
 
         // Action buttons
         Button resetBtn = new Button("Reset");
@@ -89,6 +101,7 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
             carrier.clear();
             commodity.clear();
             status.clear();
+            clientComboBox.clear();
             onSearch.run();
         });
         Button searchBtn = new Button("Search");
@@ -99,7 +112,8 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         actions.addClassName(LumoUtility.Gap.SMALL);
         actions.addClassName("actions");
 
-        add(bookingNo, blNo, portOfLoading, portOfDestination, commodity, containerSize, status, carrier, createDateFilter(), actions);
+        add(bookingNo, blNo, createPortFilter(), clientComboBox, commodity, containerSize, carrier,
+                createDateFilter(), status, actions);
     }
 
     private void searchOnKeyDown(KeyDownEvent keyDownEvent, Runnable onSearch) {
@@ -114,7 +128,7 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
 
         // For screen readers
         createFromDate.setAriaLabel("Created From");
-        createdToDate.setAriaLabel("Created From");
+        createdToDate.setAriaLabel("Created To");
 
         FlexLayout portSelectionComponent = new FlexLayout(createFromDate, new Text(" – "), createdToDate);
         portSelectionComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
@@ -122,10 +136,33 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
         return portSelectionComponent;
     }
 
+    private Component createPortFilter() {
+        portOfLoading.setPlaceholder("Origin");
+        portOfDestination.setPlaceholder("Destination");
+
+        // For screen readers
+        portOfLoading.setAriaLabel("Origin Port");
+        portOfDestination.setAriaLabel("Destination Port");
+
+        FlexLayout portSelectionComponent = new FlexLayout(portOfLoading, new Text(" – "), portOfDestination);
+        portSelectionComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
+        portSelectionComponent.addClassName(LumoUtility.Gap.XSMALL);
+        return portSelectionComponent;
+    }
+
+    private Component createCommodityStatusFilter() {
+        FlexLayout commodityStatusComponent = new FlexLayout(commodity, status);
+        commodityStatusComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
+        commodityStatusComponent.addClassName(LumoUtility.Gap.XSMALL);
+        return commodityStatusComponent;
+    }
+
     @Override
     public Predicate toPredicate(Root<Shipment> root, @Nonnull CriteriaQuery<?> query, @Nonnull CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
-        root.fetch("schedule", JoinType.LEFT);
+        if (Shipment.class.equals(query.getResultType())) {
+            root.fetch("schedule", JoinType.LEFT);
+        }
 
         if (!bookingNo.isEmpty()) {
             String bookingNoLowerCase = bookingNo.getValue().toLowerCase();
@@ -184,6 +221,13 @@ public class ShipmentFilter extends Div implements Specification<Shipment> {
             Join<Shipment, Booking> bookingJoin = root.join("booking");
             Predicate containerSizeMatch = criteriaBuilder.equal(bookingJoin.get("containerSize"), containerSize.getValue());
             predicates.add(containerSizeMatch);
+        }
+        if (!clientComboBox.isEmpty()) {
+            Client clientFilter = clientComboBox.getValue();
+            Join<Shipment, Client> clientJoin = root.join("shipper");
+            Predicate clientNoMatch = criteriaBuilder.like(criteriaBuilder.lower(
+                    clientJoin.get("id")), String.valueOf(clientFilter.getId()));
+            predicates.add(clientNoMatch);
         }
         return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
     }

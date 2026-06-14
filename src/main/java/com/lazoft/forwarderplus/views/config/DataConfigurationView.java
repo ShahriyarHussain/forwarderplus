@@ -18,6 +18,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.vaadin.lineawesome.LineAwesomeIcon;
@@ -51,8 +53,12 @@ public class DataConfigurationView extends VerticalLayout {
     private final Map<DataType, Grid> gridMap = Map.of(DataType.CLIENT, clientGrid, DataType.BANK_DETAILS, bankDetailsGrid,
             DataType.PORT, portGrid, DataType.CARRIER, carrierGrid, DataType.ID_GENERATION, idGrid);
 
+    @Getter
+    @RequiredArgsConstructor
     enum DataType {
-        CLIENT, BANK_DETAILS, PORT, CARRIER, ID_GENERATION
+        CLIENT("Client"), BANK_DETAILS("Bank Details"),
+        PORT("Ports"), CARRIER("Carriers"), ID_GENERATION("Unique ID Generation Types");
+        private final String label;
     }
 
     public DataConfigurationView(ClientService clientService, PortService portService,
@@ -130,7 +136,7 @@ public class DataConfigurationView extends VerticalLayout {
 
     private void makeGridVisible(DataType type) {
         gridMap.keySet().forEach(dataType -> gridMap.get(dataType).setVisible(dataType == type));
-        title.setText("Edit " + type.name());
+        title.setText("Edit " + type.getLabel());
     }
 
     private void setClientGrid() {
@@ -162,7 +168,7 @@ public class DataConfigurationView extends VerticalLayout {
 
     private void setPortGrid() {
         portGrid.addColumn("portName").setHeader("Name").setAutoWidth(true);
-        portGrid.addColumn("portCountry").setHeader("Email").setAutoWidth(true);
+        portGrid.addColumn("portCountry").setHeader("Country").setAutoWidth(true);
         portGrid.addColumn("portCity").setHeader("Post Code").setAutoWidth(true);
         portGrid.addColumn("portShortCode").setHeader("Short Code").setAutoWidth(true);
         portGrid.setItems(query -> portService.getAllPorts(PageRequest.of(query.getPage(), query.getPageSize(),

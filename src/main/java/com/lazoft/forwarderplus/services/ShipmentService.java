@@ -40,7 +40,7 @@ public class ShipmentService {
         return savedShipments;
     }
 
-    @EntityGraph("shipment")
+//    @EntityGraph("shipment")
     public Page<Shipment> getShipmentsByFilter(Pageable pageable, Specification<Shipment> filter) {
         return shipmentRepository.findAll(filter, pageable);
     }

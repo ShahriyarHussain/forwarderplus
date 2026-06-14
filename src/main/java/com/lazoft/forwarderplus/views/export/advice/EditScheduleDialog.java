@@ -38,17 +38,18 @@ public class EditScheduleDialog extends Dialog {
 
     private final ComboBox<Schedule> existingSchedule = new ComboBox<>("Choose Existing Schedule");
 
-    private final TextField feederVessel = new TextField("Loading Port/Feeder Vessel");
+    private final TextField feederVessel = new TextField("Feeder Vessel");
     private final ComboBox<Port> portOfLoading = new ComboBox<>("Port of Loading");
-    private final DatePicker etaPortOfLoading = new DatePicker("Port of Loading ETA");
-    private final DatePicker etdPortOfLoading = new DatePicker("Port of Loading ETD");
+    private final DatePicker polFeederEta = new DatePicker("Feeder ETA (PoL)");
+    private final DatePicker polFeederEtd = new DatePicker("Feeder ETD (PoL)");
+    private final DatePicker mvPortFeederEta = new DatePicker("Feeder ETA (Connect)");
 
     private final TextField motherVessel = new TextField("Mother Vessel");
-    private final ComboBox<Port> motherVesselPort = new ComboBox<>("Mother Vessel Port");
-    private final DatePicker motherVesselPortETA = new DatePicker("Mother Vessel Connect Port ETA");
+    private final ComboBox<Port> motherVesselPort = new ComboBox<>("Mother Vessel/Connect Port");
+    private final DatePicker motherVesselPortETA = new DatePicker("Mother Vessel/ Connect Port ETA");
 
     private final ComboBox<Port> portOfDestination = new ComboBox<>("Port of Destination");
-    private final DatePicker etaPortOfDestination = new DatePicker("Port of Destination ETA");
+    private final DatePicker etaPortOfDestination = new DatePicker("Destination ETA");
 
     private final TextField transshipmentVessel = new TextField("Transshipment Vessel");
     private final ComboBox<Port> transshipmentPort = new ComboBox<>("Transshipment Port");
@@ -70,7 +71,7 @@ public class EditScheduleDialog extends Dialog {
     private final Shipment shipment;
     private final ShipmentAdviceDialog shipmentAdviceDialog;
 
-    private int sl = 1;
+    private int sl = 0;
 
     public EditScheduleDialog(PortService portService, ShipmentService shipmentService,
                               ScheduleService scheduleService, Shipment shipment,
@@ -83,10 +84,11 @@ public class EditScheduleDialog extends Dialog {
         this.shipment = shipment;
         this.schedule = shipment.getSchedule();
         this.setHeaderTitle("Schedule Details");
-        this.setWidth(900, Unit.PIXELS);
+        this.setWidth(1000, Unit.PIXELS);
         this.getFooter().add(closeBtn, clearAllBtn, saveButton);
         this.setCloseOnOutsideClick(false);
 
+        sl = transshipmentList.size();
         prepareTransshipmentGrid();
         setAttributes();
         setExistingValues(schedule);
@@ -110,8 +112,9 @@ public class EditScheduleDialog extends Dialog {
         feederVessel.setValue(StringUtils.defaultString(schedule.getPortOfLoadingVesselName()));
 
         portOfLoading.setValue(schedule.getPortOfLoading());
-        etaPortOfLoading.setValue(schedule.getPortOfLoadingETA());
-        etdPortOfLoading.setValue(schedule.getPortOfLoadingETD());
+        polFeederEta.setValue(schedule.getPortOfLoadingETA());
+        polFeederEtd.setValue(schedule.getPortOfLoadingETD());
+        mvPortFeederEta.setValue(schedule.getMvPortFeederEta());
 
         portOfDestination.setValue(schedule.getPortOfDestination());
         etaPortOfDestination.setValue(schedule.getPortOfDestinationETA());
@@ -121,8 +124,12 @@ public class EditScheduleDialog extends Dialog {
         motherVesselPortETA.setValue(schedule.getMotherVesselETA());
 
         transshipmentList.clear();
-        transshipmentList.addAll(schedule.getTransshipments());
-        setSerialAndIdToTransshipments(transshipmentList);
+        transshipmentList.addAll(schedule.getTransshipments()
+                .stream()
+                .sorted(Comparator.comparing(Transshipment::getTransshipmentId))
+                .toList()
+        );
+        updateTransshipmentSerial();
 
         grid.setItems(transshipmentList);
     }
@@ -166,6 +173,13 @@ public class EditScheduleDialog extends Dialog {
         portOfDestination.setItemLabelGenerator(Port::getPortLabel);
         motherVesselPort.setItemLabelGenerator(Port::getPortLabel);
         transshipmentPort.setItemLabelGenerator(Port::getPortLabel);
+
+        polFeederEta.setLocale(Locale.UK);
+        polFeederEtd.setLocale(Locale.UK);
+        motherVesselPortETA.setLocale(Locale.UK);
+        etaPortOfDestination.setLocale(Locale.UK);
+        transshipmentETA.setLocale(Locale.UK);
+        mvPortFeederEta.setLocale(Locale.UK);
     }
 
     private void setClickListeners() {
@@ -216,23 +230,22 @@ public class EditScheduleDialog extends Dialog {
 
     private boolean deleteTransshipmentsFromPersistence() {
         try {
+//            shipmentService.deleteTransshipments(deletedTransshipmentList);
+            schedule.setTransshipments(transshipmentList);
+            scheduleService.saveSchedule(schedule);
             shipmentService.deleteTransshipments(deletedTransshipmentList);
         } catch (Exception e) {
             NotificationUtil.getNotification("Failed to delete trans-shipments", e.getMessage(), true, NotificationVariant.LUMO_ERROR, 5000);
             transshipmentList.addAll(deletedTransshipmentList);
-            setSerialAndIdToTransshipments(transshipmentList);
+            updateTransshipmentSerial();
             return true;
         }
         return false;
     }
 
-    private void setSerialAndIdToTransshipments(List<Transshipment> transshipments) {
-        int tsSerial = 1;
-        transshipments.sort(Comparator.comparing(Transshipment::getTransshipmentId));
-        for (Transshipment transshipment : transshipments) {
-            transshipment.setSl(tsSerial++);
-            transshipment.setTransshipmentId(Long.parseLong(shipment.getShipmentId() + String.valueOf(transshipment.getSl())));
-        }
+    private void updateTransshipmentSerial() {
+        sl = 1;
+        transshipmentList.forEach(ts -> ts.setSl(sl++));
     }
 
 
@@ -242,8 +255,9 @@ public class EditScheduleDialog extends Dialog {
         }
 
         schedule.setPortOfLoadingVesselName(feederVessel.getValue());
-        schedule.setPortOfLoadingETA(etaPortOfLoading.getValue());
-        schedule.setPortOfLoadingETD(etdPortOfLoading.getValue());
+        schedule.setPortOfLoadingETA(polFeederEta.getValue());
+        schedule.setPortOfLoadingETD(polFeederEtd.getValue());
+        schedule.setMvPortFeederEta(mvPortFeederEta.getValue());
 
         schedule.setPortOfLoading(portOfLoading.getValue());
         schedule.setPortOfDestination(portOfDestination.getValue());
@@ -254,7 +268,7 @@ public class EditScheduleDialog extends Dialog {
         schedule.setMotherVesselETA(motherVesselPortETA.getValue());
 
         schedule.setTransshipments(new LinkedList<>());
-        setSerialAndIdToTransshipments(transshipmentList);
+        updateTransshipmentSerial();
         schedule.getTransshipments().addAll(transshipmentList);
     }
 
@@ -271,7 +285,7 @@ public class EditScheduleDialog extends Dialog {
                 sl--;
                 deletedTransshipmentList.add(transshipment);
                 transshipmentList.remove(transshipment);
-                setSerialAndIdToTransshipments(transshipmentList);
+                updateTransshipmentSerial();
                 grid.setItems(transshipmentList);
             });
             return deleteButton;
@@ -292,19 +306,25 @@ public class EditScheduleDialog extends Dialog {
         transhipmentEtaAddLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
         transhipmentEtaAddLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        Hr line1 = new Hr(), line2 = new Hr(), line3 = new Hr();
+        Hr line1 = new Hr();
+        Hr line2 = new Hr();
+        Hr line3 = new Hr();
+        Hr line4 = new Hr();
+
         formLayout.add(chooseExistingShipmentLayout,
                 line1,
-                feederVessel, etaPortOfLoading, etdPortOfLoading,
                 portOfLoading, portOfDestination, etaPortOfDestination,
                 line2,
-                motherVessel, motherVesselPort, motherVesselPortETA,
+                feederVessel, polFeederEta, polFeederEtd, mvPortFeederEta,
                 line3,
+                motherVessel, motherVesselPort, motherVesselPortETA,
+                line4,
                 transshipmentVessel, transshipmentPort, transhipmentEtaAddLayout);
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 3));
         formLayout.setColspan(line1, 3);
         formLayout.setColspan(line2, 3);
         formLayout.setColspan(line3, 3);
+        formLayout.setColspan(line4, 3);
         formLayout.setColspan(chooseExistingShipmentLayout, 3);
         return formLayout;
     }
@@ -312,19 +332,19 @@ public class EditScheduleDialog extends Dialog {
     private boolean isInvalidEntries() {
         boolean isInvalid = false;
 
-        if (etaPortOfLoading.getValue() == null) {
-            etaPortOfLoading.setInvalid(true);
-            etaPortOfLoading.setErrorMessage("Please select a date");
+        if (polFeederEta.getValue() == null) {
+            polFeederEta.setInvalid(true);
+            polFeederEta.setErrorMessage("Please select a date");
             isInvalid = true;
         }
-        if (etdPortOfLoading.getValue() == null) {
-            etdPortOfLoading.setInvalid(true);
-            etdPortOfLoading.setErrorMessage("Please select a date");
+        if (polFeederEtd.getValue() == null) {
+            polFeederEtd.setInvalid(true);
+            polFeederEtd.setErrorMessage("Please select a date");
             return true;
         }
-        if (etdPortOfLoading.getValue().isBefore(etaPortOfLoading.getValue())) {
-            etdPortOfLoading.setInvalid(true);
-            etdPortOfLoading.setErrorMessage("Origin departure cannot be earlier than arrival");
+        if (polFeederEtd.getValue().isBefore(polFeederEta.getValue())) {
+            polFeederEtd.setInvalid(true);
+            polFeederEtd.setErrorMessage("Origin departure cannot be earlier than arrival");
             isInvalid = true;
         }
         if (portOfLoading.getValue() == null) {
@@ -342,7 +362,7 @@ public class EditScheduleDialog extends Dialog {
             etaPortOfDestination.setErrorMessage("Please provide correct value");
             return true;
         }
-        if (etaPortOfDestination.getValue().isBefore(etaPortOfLoading.getValue()) ||
+        if (etaPortOfDestination.getValue().isBefore(polFeederEta.getValue()) ||
                 etaPortOfDestination.getValue().isBefore(etaPortOfDestination.getValue())) {
             etaPortOfDestination.setInvalid(true);
             etaPortOfDestination.setErrorMessage("Destination arrival cannot be earlier than origin arrival/departure");

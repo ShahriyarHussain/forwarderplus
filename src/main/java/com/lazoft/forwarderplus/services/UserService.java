@@ -19,6 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
+    private final int MAX_ATTEMPTS = 3;
+
     private final UserRepository userRepository;
 
     public Optional<User> get(String id) {
@@ -31,6 +33,10 @@ public class UserService implements UserDetailsService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsUserByEmail(email);
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsById(username);
     }
 
     public User update(User entity) {
@@ -66,6 +72,19 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return get(username).orElseThrow(() ->
                 new UsernameNotFoundException("No user present with username: " + username));
+    }
+
+    public void increaseFailedLoginCount(String username) {
+        User user = get(username).orElseThrow(() -> new UsernameNotFoundException(""));
+        user.setInvalidAttempts(user.getInvalidAttempts() + 1);
+        user.setUserNotLocked(user.getInvalidAttempts() < MAX_ATTEMPTS);
+        update(user);
+    }
+
+    public void resetFailedLoginCount(String username) {
+        User user = get(username).orElseThrow(() -> new UsernameNotFoundException(""));
+        user.setInvalidAttempts(0);
+        update(user);
     }
 
 

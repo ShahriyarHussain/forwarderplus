@@ -4,10 +4,10 @@ import com.lazoft.forwarderplus.components.dialog.ClientCreationDialog;
 import com.lazoft.forwarderplus.components.dialog.ReportOptionsDialog;
 import com.lazoft.forwarderplus.dto.ReportOptionsDto;
 import com.lazoft.forwarderplus.dto.TSReportDto;
-import com.lazoft.forwarderplus.dto.xml.CustomItem;
-import com.lazoft.forwarderplus.dto.xml.CustomItems;
 import com.lazoft.forwarderplus.entity.*;
 import com.lazoft.forwarderplus.enums.*;
+import com.lazoft.forwarderplus.model.xml.CustomItem;
+import com.lazoft.forwarderplus.model.xml.CustomItems;
 import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.services.*;
 import com.lazoft.forwarderplus.util.*;
@@ -121,8 +121,7 @@ public class ShipmentAdviceDialog extends Dialog {
         this.scheduleService = scheduleService;
         this.shipmentService = shipmentService;
         this.idGenerationService = idGenerationService;
-        this.clientList = clientService.getAllClients();
-        this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
+        this.clientList = clientService.getAllClients();this.depotList = CustomItemUtil.getItemsListFromFile(Constants.DEPOT);
 
         if (shipment.getStuffingDetails() == null) {
             this.stuffingDetails = new StuffingDetails();
@@ -158,22 +157,28 @@ public class ShipmentAdviceDialog extends Dialog {
         carrierComboBox.setItemLabelGenerator(Carrier::getName);
 
         shipper.setItemLabelGenerator(Client::getName);
-        shipper.setItems(clientList.stream().filter(client -> client.getType() == ClientType.SHIPPER
-                || client.getType() == ClientType.ALL).toList());
+        shipper.setItems(new LinkedList<>());
+        shipper.addFocusListener(event ->
+                loadClientPropertiesOnDemand(shipper, ClientType.SHIPPER));
 
         consignee.setItemLabelGenerator(Client::getName);
-        consignee.setItems(clientList.stream().filter(client -> client.getType() == ClientType.CONSIGNEE
-                || client.getType() == ClientType.ALL).toList());
+        consignee.setItems(new LinkedList<>());
+        consignee.addFocusListener(event ->
+                loadClientPropertiesOnDemand(consignee, ClientType.CONSIGNEE));
 
-        notifyParty.setItemLabelGenerator(Client::getName);
-        notifyParty.setItems(clientList.stream().filter(client -> client.getType() == ClientType.NOTIFY_PARTY
-                || client.getType() == ClientType.ALL).toList());
         notifyParty.setWidth("80%");
+        notifyParty.setItemLabelGenerator(Client::getName);
+        notifyParty.setItems(new LinkedList<>());
+        notifyParty.addFocusListener(event ->
+                loadClientPropertiesOnDemand(notifyParty, ClientType.NOTIFY_PARTY));
+
 
         schedule.setReadOnly(true);
         approxTime.setReadOnly(true);
         departureDate.setReadOnly(true);
+        departureDate.setLocale(Locale.UK);
         arrivalDate.setReadOnly(true);
+        arrivalDate.setLocale(Locale.UK);
 
         totalQuantity.setReadOnly(true);
         unit.setReadOnly(true);
@@ -186,9 +191,20 @@ public class ShipmentAdviceDialog extends Dialog {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         downloadButton.setIcon(LineAwesomeIcon.PRINT_SOLID.create());
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        addClientButton.setTooltipText("Add Client");
 
         stuffingDepot.setItems(depotList.stream().map(CustomItem::getName).toList());
         stuffingDepot.setAllowCustomValue(true);
+        stuffingDate.setLocale(Locale.UK);
+
+        editSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        editSchedule.setTooltipText("Edit Schedule");
+        editSchedule.setMaxWidth("15%");
+        editSchedule.setText("Edit Schedule");
+
+        editCargo.setTooltipText("Edit Container Details");
+        editCargo.setMaxWidth("20%");
+        editCargo.setText("Edit Container Details");
     }
 
     public void fillUpExistingValues() {
@@ -207,6 +223,7 @@ public class ShipmentAdviceDialog extends Dialog {
         goodsDescription.setValue(StringUtils.defaultIfBlank(shipment.getGoodsDescription(), ""));
         shipperMarks.setValue(StringUtils.defaultIfBlank(shipment.getShipperMarks(), ""));
         freightTerm.setValue(shipment.getShippingTerm());
+        
         fillUpScheduleValues();
         fillUpCargoValues();
 
@@ -248,15 +265,22 @@ public class ShipmentAdviceDialog extends Dialog {
         totalGrossWeight.setValue(totalWeightValue);
     }
 
+    private void loadClientPropertiesOnDemand(ComboBox<Client> clientComboBox, ClientType clientType) {
+        if (clientList.isEmpty()) {
+            clientList.addAll(clientService.getClientsByType(List.of(clientType, ClientType.ALL)));
+        }
+        clientComboBox.setItems(clientList);
+    }
+
     public void setUpFormLayout() {
         Accordion shipmentPanel = new Accordion();
-        shipmentPanel.add("Shipment Info", getShipmentInfoFormLayout());
+        shipmentPanel.add("Shipment Info (Click to Collapse/Expand)", getShipmentInfoFormLayout());
 
         Accordion schedulePanel = new Accordion();
-        schedulePanel.add("Schedule Info", getScheduleInfoFormLayout());
+        schedulePanel.add("Schedule Info (Click to Collapse/Expand)", getScheduleInfoFormLayout());
 
         Accordion containerDetailsPanel = new Accordion();
-        containerDetailsPanel.add("Container Details", getContainerDetailsFormLayout());
+        containerDetailsPanel.add("Container Details (Click to Collapse/Expand)", getContainerDetailsFormLayout());
 
         add(shipmentPanel, schedulePanel, containerDetailsPanel);
     }
@@ -265,22 +289,14 @@ public class ShipmentAdviceDialog extends Dialog {
         FormLayout containerDetailsLayout = new FormLayout();
         editCargo.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         editCargo.setTooltipText("Edit Container Details");
-        HorizontalLayout editContainerLayout = new HorizontalLayout(unit, editCargo);
-        editContainerLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        editContainerLayout.setAlignItems(FlexComponent.Alignment.END);
-        containerDetailsLayout.add(totalGrossWeight, totalQuantity, unit, editContainerLayout);
+        containerDetailsLayout.add(totalGrossWeight, totalQuantity, unit, editCargo);
         containerDetailsLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
         return containerDetailsLayout;
     }
 
     private FormLayout getScheduleInfoFormLayout() {
         FormLayout scheduleLayout = new FormLayout();
-        editSchedule.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editSchedule.setTooltipText("Edit Schedule");
-        HorizontalLayout editScheduleLayout = new HorizontalLayout(arrivalDate, editSchedule);
-        editScheduleLayout.setVerticalComponentAlignment(FlexComponent.Alignment.END);
-        editScheduleLayout.setAlignItems(FlexComponent.Alignment.END);
-        scheduleLayout.add(schedule, approxTime, departureDate, editScheduleLayout);
+        scheduleLayout.add(schedule, approxTime, departureDate, arrivalDate, editSchedule);
         scheduleLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 5));
         scheduleLayout.setColspan(schedule, 2);
         return scheduleLayout;
@@ -464,6 +480,10 @@ public class ShipmentAdviceDialog extends Dialog {
         if (stuffingDate != null) {
             stuffingDetails.setStuffingDate(stuffingDate.getValue());
         }
+        if (numOfContainers.getValue() != 0) {
+            shipment.getBooking().setNumOfContainers(numOfContainers.getValue());
+            shipment.setNumOfContainers(numOfContainers.getValue());
+        }
     }
 
     private boolean isInvalidEntriesForSave() {
@@ -550,7 +570,7 @@ public class ShipmentAdviceDialog extends Dialog {
 
         paramMap.put("POL_ETA", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETA()));
         paramMap.put("POL_ETD", DateUtil.getDateAsString(shipmentSchedule.getPortOfLoadingETD()));
-        paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMotherVesselETA()));
+        paramMap.put("MV_PORT_FEEDER_ETA", DateUtil.getDateAsString(shipmentSchedule.getMvPortFeederEta()));
 
         List<ContainerDetails> containerDetails = shipment.getContainerDetails();
         paramMap.put("SEAL_NO", containerDetails.stream().map(ContainerDetails::getContainerNo)
@@ -569,7 +589,7 @@ public class ShipmentAdviceDialog extends Dialog {
         for (int i = 0; i < tsList.size(); i++) {
             Transshipment transshipment = tsList.get(i);
             if (!StringUtils.isBlank(transshipment.getVesselName())) {
-                tsReportDtoList.add(new TSReportDto("Vessel TS" + i+1, transshipment.getVesselName()));
+                tsReportDtoList.add(new TSReportDto("Vessel TS" + (i+1), transshipment.getVesselName()));
             }
             tsReportDtoList.add(new TSReportDto("ETA " + transshipment.getVesselPort().getPortName(),
                     DateUtil.getDateAsString(transshipment.getPortEta())));

@@ -34,10 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class ShippingOrderDialog extends Dialog {
@@ -113,9 +110,13 @@ public class ShippingOrderDialog extends Dialog {
     }
 
     private void setFieldAttributes() {
+        quantity.setHelperText("Total Packages");
+        units.setHelperText("Package Unit");
+
         bookingNo.setReadOnly(true);
         portOfLoading.setReadOnly(true);
         portOfDischarge.setReadOnly(true);
+        documentDate.setLocale(Locale.UK);
 
         saveButton.setIcon(LineAwesomeIcon.SAVE_SOLID.create());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -288,7 +289,7 @@ public class ShippingOrderDialog extends Dialog {
         paramMap.put("NOTIFY_PARTY", shipment.getNotifyParty().getName());
 
         paramMap.put("CONTAINERS", shipment.getNumOfContainers() + " X " + booking.getContainerSize().getContainerSize());
-        paramMap.put("GOODS_DESC", booking.getCommodity());
+        paramMap.put("GOODS_DESC", shipment.getCommodity());
         paramMap.put("QUANTITY", quantity.getValue() + " " + units.getValue().toString());
 
         paramMap.put("PORT_OF_LOADING", booking.getLoadingPort().getPortCityAndCountry());

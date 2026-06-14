@@ -94,7 +94,8 @@ public class EditContainerDetailsDialog extends Dialog {
     private void setAttributes() {
         containerNo.setHelperText("Separate values with comma or newline to add all at once");
         sealNo.setHelperText("Separate values with comma or newline to add all at once");
-        grossWeight.setHelperText("Per container");
+        grossWeight.setHelperText("Total Weight of " + shipment.getNumOfContainers() + " Containers");
+        noOfPackages.setHelperText("Total Packages");
         numOfCont.setReadOnly(true);
         containerSize.setReadOnly(true);
         containerType.setReadOnly(true);
@@ -125,9 +126,7 @@ public class EditContainerDetailsDialog extends Dialog {
             }
         });
 
-        addContainerBtn.addClickListener(event -> {
-            addContainersToList();
-        });
+        addContainerBtn.addClickListener(event -> addContainersToList());
 
         close.addClickListener(event -> {
             shipmentAdviceDialog.fillUpExistingValues();

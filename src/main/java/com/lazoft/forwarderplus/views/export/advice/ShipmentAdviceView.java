@@ -62,7 +62,7 @@ public class ShipmentAdviceView extends Div {
 
         setSizeFull();
         addClassNames("view-shipments-view");
-        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService);
+        filters = new ShipmentFilter(this::refreshGrid, portService, carrierService, clientService);
         VerticalLayout layout = new VerticalLayout(filters, createGrid());
         layout.setSizeFull();
         layout.setPadding(false);
@@ -108,7 +108,7 @@ public class ShipmentAdviceView extends Div {
 
     private Button getCreateButtonForShipment(Shipment shipment) {
         Button create = new Button(LineAwesomeIcon.PEN_SOLID.create());
-        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        create.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         create.addClickListener(event -> new ShipmentAdviceDialog(shipmentService, scheduleService,
                 carrierService, clientService, portService, userService, idGenerationService, shipment, authenticatedUser).open());
         return create;
