@@ -185,7 +185,7 @@ public class RegisterView extends VerticalLayout {
             confirmPasswordField.setInvalid(true);
             return;
         }
-        if (!registerService.isStrongPassword(passwordField.getValue())) {
+        if (!devEnvironment && !registerService.isStrongPassword(passwordField.getValue())) {
             passwordField.setInvalid(true);
             passwordField.setErrorMessage("Password must have minimum 6 characters, 1 upper case character & 1 number");
             return;

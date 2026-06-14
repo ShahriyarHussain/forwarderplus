@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -31,7 +32,9 @@ public class RegisterServiceImpl implements RegisterService {
         user.setName(dto.fullName());
         user.setEmail(dto.email());
         user.setHashedPassword(passwordEncoder.encode(dto.password()));
-        user.setContactNo(dto.countryCode().getCountryCode() + dto.contactNo());
+        if (Objects.nonNull(dto.countryCode())) {
+            user.setContactNo(dto.countryCode().getCountryCode() + dto.contactNo());
+        }
         user.setDesignation(dto.designation());
         user.setRoles(Set.of(Role.USER));
         user.setUserNotLocked(true);

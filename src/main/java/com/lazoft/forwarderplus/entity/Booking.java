@@ -23,6 +23,8 @@ public class Booking {
     private LocalDateTime createdOn;
 
     @ManyToOne
+    private Carrier carrier;
+    @ManyToOne
     private User createdBy;
     @ManyToOne
     private Port loadingPort;
@@ -37,8 +39,6 @@ public class Booking {
 
     @Transient
     private int numOfShipments;
-    @Transient
-    private Carrier carrier;
     @Transient
     private String commodity;
 }

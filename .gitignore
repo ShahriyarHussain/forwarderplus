@@ -20,3 +20,6 @@ drivers/
 error-screenshots/
 webpack.generated.js
 /*.xml
+/AGENTS.md
+/.factorypath
+/.continue/rules/vaadin-metabase.md

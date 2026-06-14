@@ -5,6 +5,7 @@ import com.lazoft.forwarderplus.security.AuthenticatedUser;
 import com.lazoft.forwarderplus.views.about.AboutView;
 import com.lazoft.forwarderplus.views.accounting.chart.ChartOfAccountsView;
 import com.lazoft.forwarderplus.views.accounting.transaction.entry.TransactionEntry;
+import com.lazoft.forwarderplus.views.accounting.transaction.report.TransactionReportView;
 import com.lazoft.forwarderplus.views.accounting.transaction.view.TransactionView;
 import com.lazoft.forwarderplus.views.config.DataConfigurationView;
 import com.lazoft.forwarderplus.views.config.UserConfigurationView;
@@ -98,7 +99,7 @@ public class MainLayout extends AppLayout {
             finances.addItem(new SideNavItem("Chart of Accounts", ChartOfAccountsView.class, LineAwesomeIcon.WALLET_SOLID.create()));
             finances.addItem(new SideNavItem("Transaction Entry", TransactionEntry.class, LineAwesomeIcon.MONEY_BILL_ALT_SOLID.create()));
             finances.addItem(new SideNavItem("View Transactions", TransactionView.class, LineAwesomeIcon.TABLE_SOLID.create()));
-            finances.addItem(new SideNavItem("Executive Reports", ChartOfAccountsView.class, LineAwesomeIcon.CHALKBOARD_SOLID.create()));
+            finances.addItem(new SideNavItem("Executive Reports", TransactionReportView.class, LineAwesomeIcon.CHALKBOARD_SOLID.create()));
             nav.addItem(finances);
         }
 
@@ -109,9 +110,6 @@ public class MainLayout extends AppLayout {
             adminActions.addItem(new SideNavItem("User Management", UserConfigurationView.class,LineAwesomeIcon.USER_EDIT_SOLID.create()));
             nav.addItem(adminActions);
         }
-//        if (accessChecker.hasAccess(ChatView.class)) {
-//            nav.addItem(new SideNavItem("Chat", ChatView.class, LineAwesomeIcon.SMS_SOLID.create()));
-//        }
         if (accessChecker.hasAccess(AboutView.class)) {
             nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.QUESTION_CIRCLE_SOLID.create()));
         }

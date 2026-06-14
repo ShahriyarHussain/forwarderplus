@@ -17,10 +17,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -251,7 +248,7 @@ public class TransactionEntry extends VerticalLayout {
 
         List<Account> accountList = accountService.getAllAccounts();
         account.setItems(accountList);
-        account.setItemLabelGenerator(account -> account.getName() + "- " + account.getAccountType());
+        account.setItemLabelGenerator(acc -> acc.getName() + "- " + acc.getAccountType());
 
         debitLegsGrid.setItems(debitLegs);
         creditLegsGrid.setItems(creditLegs);
@@ -270,7 +267,6 @@ public class TransactionEntry extends VerticalLayout {
         });
         return deleteButton;
     }
-
 
     //----- UI Properties --//
 
@@ -364,5 +360,9 @@ public class TransactionEntry extends VerticalLayout {
         pendingPrimary.getElement().getThemeList().add("badge " + badgeType + " primary");
         card.setHeaderSuffix(pendingPrimary);
         card.setWidth("100%");
+    }
+
+    private Anchor getExportAsExcelAnchor() {
+        return null;
     }
 }
